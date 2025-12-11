@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Soumyajyoti Dutta — Portfolio</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+  </style>
+</head>
+
+<body class="bg-gray-50 text-gray-800">
+
+  <!-- NAVBAR -->
+  <nav class="w-full bg-white shadow-sm fixed top-0 z-50">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+      <h1 class="font-semibold text-xl">Soumyajyoti Dutta</h1>
+      <div class="space-x-6 text-gray-700 hidden md:flex">
+        <a href="#about" class="hover:text-blue-600">About</a>
+        <a href="#experience" class="hover:text-blue-600">Experience</a>
+        <a href="#projects" class="hover:text-blue-600">Projects</a>
+        <a href="#education" class="hover:text-blue-600">Education</a>
+        <a href="#contact" class="hover:text-blue-600">Contact</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO / ABOUT -->
+  <section id="about" class="pt-28 pb-16 bg-gradient-to-b from-white to-gray-50">
+    <div class="max-w-6xl mx-auto px-6">
+
+      <!-- Title -->
+      <h2 class="text-4xl font-bold mb-4">
+        Data Scientist / Machine Learning Engineer
+      </h2>
+
+      <!-- Subtitle -->
+      <p class="text-lg text-gray-700 leading-relaxed max-w-2xl">
+        Interests: Machine Learning for Cybersecurity, Small & Large Language Models, Syntax Aware Tokenization,
+        Reinforcement Learning, Automated Program Synthesis, Model Interpretability, Data Analysis, Statistics,
+        Distributed Training, and Systems Optimization.
+      </p>
+
+      <!-- Buttons -->
+      <div class="mt-8 flex flex-wrap gap-4">
+
+        <!-- CV Button -->
+        <a href="assets/SJDResume_Detailed.pdf" target="_blank"
+           class="px-5 py-3 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition">
+          📄 View Full CV (PDF)
+        </a>
+
+        <a href="mailto:soumyajyotidutta23@gmail.com"
+           class="px-5 py-3 bg-gray-800 text-white rounded-lg shadow hover:bg-gray-900 transition">
+          Email Me
+        </a>
+
+        <a href="https://github.com/xoumyax" target="_blank"
+           class="px-5 py-3 bg-white border border-gray-300 rounded-lg shadow hover:bg-gray-100 transition">
+          GitHub
+        </a>
+
+        <a href="https://www.linkedin.com/in/soumyajyotidutta/" target="_blank"
+           class="px-5 py-3 bg-white border border-gray-300 rounded-lg shadow hover:bg-gray-100 transition">
+          LinkedIn
+        </a>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- EXPERIENCE -->
+  <section id="experience" class="py-16 bg-white border-t">
+    <div class="max-w-6xl mx-auto px-6">
+      <h3 class="text-3xl font-semibold mb-10">Professional Experience</h3>
+
+      <!-- Research Assistant -->
+      <div class="mb-16">
+  <h4 class="text-2xl font-bold">Research Assistant — Texas A&M University</h4>
+  <p class="text-gray-600 mb-4">Botacin’s Lab • Spring 2024 – Present</p>
+
+  <ul class="list-none space-y-6 text-gray-800 leading-relaxed">
+
+    <!-- Item 1 -->
+    <li class="p-5 bg-gray-50 border rounded-xl shadow-sm hover:shadow transition">
+      <span class="font-semibold text-blue-700">End-to-end LLM-based YARA Rule Generation Framework</span><br>
+      Built a next-generation pipeline integrating 
+      <span class="font-semibold text-gray-900">Reinforcement Learning</span>,
+      <span class="font-semibold text-pink-900">curriculum-based complexity scheduling</span>,
+      <span class="font-semibold text-green-700">AST-aware tokenization</span>, and 
+      <span class="font-semibold text-purple-700">Brownie & Puff evaluation function</span>
+      to generate structurally and semantically accurate rules and provided a rigorous evaluation / interpretability framework.
+    </li>
+
+
+    <!-- Item 2 -->
+    <li class="p-5 bg-gray-50 border rounded-xl shadow-sm hover:shadow transition">
+      <span class="font-semibold text-red-700">AutoPYara (Euro S&P 2026 Submission)</span><br>
+      Rebuilt and expanded the AutoYara biclustering engine with  
+      <span class="inline-block bg-red-100 text-red-800 px-2 py-0.5 rounded-md">Augmented K-means</span>,
+      optimal K-selection heuristics, and modular clustering strategies for robust rule generation.
+    </li>
+
+    <!-- Item 3 -->
+    <li class="p-5 bg-gray-50 border rounded-xl shadow-sm hover:shadow transition">
+      <span class="font-semibold text-gray-900">Performance Gains</span><br>
+      Achieved:
+      <ul class="ml-5 mt-2 space-y-1 text-gray-700">
+        <li>• <span class="font-semibold text-green-700">14% improvement</span> via optimized centroid selection</li>
+        <li>• <span class="font-semibold text-green-700">10% improvement</span> via sub-clustering heuristics</li>
+        <li>• <span class="font-semibold text-green-700">8% generalization boost</span> in low-sample threat-hunting settings</li>
+      </ul>
+    </li>
+
+  </ul>
+</div>
+
+
+      <!-- Graduate Researcher -->
+      <div class="mb-12">
+        <h4 class="text-2xl font-bold">Graduate Student Researcher — Texas A&M University</h4>
+        <p class="text-gray-600 mb-3">Summer 2023</p>
+        <p class="text-gray-700 leading-relaxed">
+          Conducted mathematical modeling of prostate cancer genomic signaling pathways, built
+          multi-drug interaction simulations, supported experimental biologists, and performed
+          sensitivity modeling for system stability analysis.
+        </p>
+      </div>
+
+      <!-- Cognizant -->
+      <div>
+        <h4 class="text-2xl font-bold">Junior Software Engineer — Cognizant Technology Solutions</h4>
+        <p class="text-gray-600 mb-3">2021 – 2022</p>
+        <p class="text-gray-700 leading-relaxed">
+          Developed large-scale full-stack web applications for logistics automation (TJX),
+          optimized REST endpoints for high concurrency, improved latency, and collaborated with
+          DevOps teams on CI/CD pipelines.
+        </p>
+      </div>
+
+    </div>
+  </section>
+
+  <section id="projects" class="py-16 bg-gray-50 border-t">
+  <div class="max-w-6xl mx-auto px-6">
+    
+    <h3 class="text-3xl font-semibold mb-10">Highlighted Projects</h3>
+
+    <div class="grid md:grid-cols-2 gap-8">
+
+      <!-- Project 1 -->
+      <div class="p-6 bg-white border rounded-xl shadow-sm hover:shadow-lg transition group">
+        <div class="flex items-center mb-3">
+          <div class="w-10 h-10 bg-blue-100 text-blue-600 flex items-center justify-center rounded-lg text-xl">
+            🔒
+          </div>
+          <h4 class="text-xl font-semibold ml-3 group-hover:text-blue-700 transition">
+            ML Malware Detection (1st Place)
+          </h4>
+        </div>
+
+        <p class="text-gray-700 leading-relaxed mb-3">
+          End-to-end malware classification pipeline integrating 
+          <span class="font-semibold">2M+ PE files</span> from EMBER, BODMAS, and Benign-NET. 
+          Engineered PE-header + byte-level features and built LightGBM, XGBoost, Random Forest, SVM ensemble achieving 
+          <span class="font-semibold text-green-700">96.2% accuracy</span> and 
+          <span class="font-semibold text-green-700">0.97 F1</span>.
+        </p>
+
+        <div class="flex flex-wrap gap-2 mt-3">
+            
+          <span class="px-2 py-1 text-sm bg-blue-100 text-blue-700 rounded-md">XGBoost</span>
+          <span class="px-2 py-1 text-sm bg-blue-100 text-blue-700 rounded-md">Random Forest</span>
+          <span class="px-2 py-1 text-sm bg-blue-100 text-blue-700 rounded-md">SVM</span>
+          <span class="px-2 py-1 text-sm bg-blue-100 text-blue-700 rounded-md">Static Analysis</span>
+        </div>
+      </div>
+
+      <!-- Project 2 -->
+      <div class="p-6 bg-white border rounded-xl shadow-sm hover:shadow-lg transition group">
+        <div class="flex items-center mb-3">
+          <div class="w-10 h-10 bg-green-100 text-green-600 flex items-center justify-center rounded-lg text-xl">
+            ⚙️
+          </div>
+          <h4 class="text-xl font-semibold ml-3 group-hover:text-green-700 transition">
+            Multiperspective Hawkeye
+          </h4>
+        </div>
+
+        <p class="text-gray-700 leading-relaxed mb-3">
+          Implemented the ISCA’16 <span class="font-semibold">Hawkeye cache replacement policy</span> in the 
+          zsim simulator, extended with <span class="font-semibold">PC-tracking</span> and 
+          multi-policy evaluation. Benchmarked performance under overlapping multi-threaded workloads.
+        </p>
+
+        <div class="flex flex-wrap gap-2 mt-3">
+          <span class="px-2 py-1 text-sm bg-green-100 text-green-700 rounded-md">zsim</span>
+          <span class="px-2 py-1 text-sm bg-green-100 text-green-700 rounded-md">Cache Policies</span>
+          <span class="px-2 py-1 text-sm bg-green-100 text-green-700 rounded-md">Systems</span>
+        </div>
+      </div>
+
+      <!-- Project 3 -->
+      <div class="p-6 bg-white border rounded-xl shadow-sm hover:shadow-lg transition group">
+        <div class="flex items-center mb-3">
+          <div class="w-10 h-10 bg-purple-100 text-purple-600 flex items-center justify-center rounded-lg text-xl">
+            🤖
+          </div>
+          <h4 class="text-xl font-semibold ml-3 group-hover:text-purple-700 transition">
+            HelloPentagon
+          </h4>
+        </div>
+
+        <p class="text-gray-700 leading-relaxed mb-3">
+          Built an explainable ML-based malware-defense assistant integrating 
+          <span class="font-semibold">ML classifiers</span> for triage with an 
+          <span class="font-semibold">LLM rule-explanation layer</span> for analyst interpretability. 
+          Designed to assist rapid malware scanning and rule generation workflows.
+        </p>
+
+        <div class="flex flex-wrap gap-2 mt-3">
+          <span class="px-2 py-1 text-sm bg-purple-100 text-purple-700 rounded-md">Explainable ML</span>
+          <span class="px-2 py-1 text-sm bg-purple-100 text-purple-700 rounded-md">LLMs</span>
+          <span class="px-2 py-1 text-sm bg-purple-100 text-purple-700 rounded-md">Cybersecurity</span>
+        </div>
+      </div>
+
+      <!-- Project 4 -->
+      <div class="p-6 bg-white border rounded-xl shadow-sm hover:shadow-lg transition group">
+        <div class="flex items-center mb-3">
+          <div class="w-10 h-10 bg-red-100 text-red-600 flex items-center justify-center rounded-lg text-xl">
+            🫀
+          </div>
+          <h4 class="text-xl font-semibold ml-3 group-hover:text-red-700 transition">
+            Carotid Artery USG Analysis
+          </h4>
+        </div>
+
+        <p class="text-gray-700 leading-relaxed mb-3">
+          Designed a CNN-based pipeline for <span class="font-semibold">ultrasound artery image classification</span>,
+          enabling automated risk scoring for carotid stenosis. Published as a 
+          <span class="font-semibold">Springer Chapter (2022)</span>.
+        </p>
+
+        <div class="flex flex-wrap gap-2 mt-3">
+          <span class="px-2 py-1 text-sm bg-red-100 text-red-700 rounded-md">CNN</span>
+          <span class="px-2 py-1 text-sm bg-red-100 text-red-700 rounded-md">Medical Imaging</span>
+          <span class="px-2 py-1 text-sm bg-red-100 text-red-700 rounded-md">Deep Learning</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section id="teaching" class="py-16 bg-white border-t">
+  <div class="max-w-6xl mx-auto px-6">
+    
+    <h3 class="text-3xl font-semibold mb-10">Teaching & Outreach</h3>
+
+    <div class="space-y-8">
+
+      <!-- TA for CSCE 439 -->
+      <div class="p-6 bg-gray-50 border rounded-xl shadow-sm hover:shadow transition">
+        <h4 class="text-xl font-bold text-blue-700">Teaching Assistant — CSCE 439: Data Analytics for Cybersecurity</h4>
+        <p class="text-gray-500 mb-3">Spring 2026 (Upcoming)</p>
+
+        <p class="text-gray-700 leading-relaxed">
+          Supporting instruction for a security-focused data analytics course emphasizing:
+        </p>
+
+        <ul class="ml-5 mt-3 space-y-2 text-gray-800">
+          <li>• <span class="font-semibold">Clustering & Unsupervised ML</span></li>
+          <li>• <span class="font-semibold">Supervised Classification Models</span></li>
+          <li>• <span class="font-semibold">Anomaly Detection & Threat Pattern Discovery</span></li>
+          <li>• <span class="font-semibold">Security-Focused Data Visualization</span></li>
+          <li>• Applications to attacks, vulnerabilities, adversarial behaviors</li>
+        </ul>
+      </div>
+
+      <!-- ECEN 325 TA -->
+      <div class="p-6 bg-gray-50 border rounded-xl shadow-sm hover:shadow transition">
+        <h4 class="text-xl font-bold text-green-700">Teaching Assistant — ECEN 325: Electronics</h4>
+        <p class="text-gray-500 mb-3">Summer 2023</p>
+
+        <p class="text-gray-700 leading-relaxed">
+          Assisted with lectures, homework grading, lab coordination, and one-on-one student mentoring
+          for foundational analog electronics concepts.
+        </p>
+      </div>
+
+      <!-- TAMU CS Day Outreach -->
+      <div class="p-6 bg-gray-50 border rounded-xl shadow-sm hover:shadow transition">
+        <h4 class="text-xl font-bold text-purple-700">Partner & Presenter — TAMU CS Day</h4>
+        <p class="text-gray-500 mb-3">2024, 2025</p>
+
+        <p class="text-gray-700 leading-relaxed">
+          Designed and led interactive demos on <span class="font-semibold">AI for Cybersecurity</span> and 
+          <span class="font-semibold">ML-driven malware defense</span> for high school students, focused on 
+          accessibility and science outreach.
+        </p>
+      </div>
+
+      <!-- Student Research Week -->
+      <div class="p-6 bg-gray-50 border rounded-xl shadow-sm hover:shadow transition">
+        <h4 class="text-xl font-bold text-red-700">Technical Coordinator — TAMU Student Research Week</h4>
+        <p class="text-gray-500 mb-3">Spring 2023</p>
+
+        <p class="text-gray-700 leading-relaxed">
+          Automated judging and submission infrastructure for one of TAMU’s largest academic events, 
+          streamlining review workflows and improving platform usability for participants.
+        </p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+  <!-- EDUCATION -->
+  <section id="education" class="py-16 bg-white border-t">
+    <div class="max-w-6xl mx-auto px-6">
+      <h3 class="text-3xl font-semibold mb-10">Education</h3>
+
+      <div class="space-y-8">
+        <div>
+          <h4 class="font-bold text-xl">Texas A&M University</h4>
+          <p class="text-gray-700 leading-relaxed">
+            Ph.D. in Computer Science (2024 – 2029)<br>
+            Thesis: LLMs for Automated Rule Generation and Interpretability in Cyberdefense.
+          </p>
+        </div>
+
+        <div>
+          <h4 class="font-bold text-xl">Texas A&M University</h4>
+          <p class="text-gray-700">M.S. in Computer Engineering (2022 – 2023)</p>
+        </div>
+
+        <div>
+          <h4 class="font-bold text-xl">SRM University</h4>
+          <p class="text-gray-700">B.Tech. in Electronics & Communication Engineering (2017 – 2021)</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact" class="py-16 bg-gray-50 border-t">
+    <div class="max-w-6xl mx-auto px-6">
+      <h3 class="text-3xl font-semibold mb-10">Contact</h3>
+      <p class="text-gray-700 text-lg">📧 Email:
+        <a href="mailto:soumyajyotidutta23@gmail.com" class="text-blue-600">soumyajyotidutta23@gmail.com</a>
+      </p>
+      <p class="text-gray-700 text-lg">💻 GitHub:
+        <a href="https://github.com/xoumyax" class="text-blue-600">github.com/xoumyax</a>
+      </p>
+      <p class="text-gray-700 text-lg">🔗 LinkedIn:
+        <a href="https://linkedin.com/in/soumyajyotidutta" class="text-blue-600">linkedin.com/in/soumyajyotidutta</a>
+      </p>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="py-6 text-center text-gray-600 border-t">
+    © 2025 Soumyajyoti Dutta — All Rights Reserved
+  </footer>
+
+</body>
+</html>
