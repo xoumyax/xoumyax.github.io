@@ -3,369 +3,585 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Soumyajyoti Dutta — Portfolio</title>
+  <title>Soumyajyoti Dutta — ML × Cybersecurity Researcher</title>
+  <meta name="description" content="Soumyajyoti Dutta — CS PhD student at Texas A&M building LLM-driven malware defense: automated YARA rule generation, reinforcement learning, and interpretable classifiers." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>" />
 
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 
   <style>
-    body { font-family: 'Inter', sans-serif; }
+    :root {
+      --paper: #f3f5f4;
+      --card: #fbfcfc;
+      --ink: #131c19;
+      --muted: #5c6763;
+      --line: #d9dfdd;
+      --match: #0b7a5b;
+      --match-soft: #e0efe9;
+      --panel: #0f1a16;
+      --panel-line: #24352e;
+      --panel-text: #d7e2dd;
+      --panel-dim: #7d938a;
+      --kw: #7bd4b8;      /* keywords in code */
+      --str: #e5a54b;     /* strings in code */
+      --font-display: "Bricolage Grotesque", "IBM Plex Sans", sans-serif;
+      --font-body: "IBM Plex Sans", system-ui, sans-serif;
+      --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; scroll-padding-top: 5rem; }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--paper);
+      color: var(--ink);
+      line-height: 1.65;
+      font-size: 1rem;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: var(--match); text-decoration: none; }
+    a:hover { text-decoration: underline; text-underline-offset: 3px; }
+    a:focus-visible, button:focus-visible {
+      outline: 2px solid var(--match);
+      outline-offset: 3px;
+      border-radius: 2px;
+    }
+
+    .wrap { max-width: 68rem; margin: 0 auto; padding: 0 1.5rem; }
+
+    /* ── Nav ─────────────────────────────────────── */
+    nav {
+      position: sticky; top: 0; z-index: 50;
+      background: color-mix(in srgb, var(--paper) 88%, transparent);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--line);
+    }
+    .nav-inner {
+      display: flex; align-items: baseline; justify-content: space-between;
+      padding-top: 1rem; padding-bottom: 1rem;
+    }
+    .nav-name {
+      font-family: var(--font-display);
+      font-weight: 700; font-size: 1.05rem; color: var(--ink);
+      letter-spacing: -0.01em;
+    }
+    .nav-name:hover { text-decoration: none; color: var(--match); }
+    .nav-links { display: flex; gap: 1.5rem; font-family: var(--font-mono); font-size: 0.8rem; }
+    .nav-links a { color: var(--muted); }
+    .nav-links a:hover { color: var(--match); text-decoration: none; }
+    @media (max-width: 640px) {
+      .nav-inner { flex-direction: column; align-items: flex-start; gap: 0.3rem; padding-top: 0.75rem; padding-bottom: 0.75rem; }
+      .nav-links { flex-wrap: wrap; gap: 0.5rem 1.1rem; }
+    }
+
+    /* ── Hero ────────────────────────────────────── */
+    .hero { padding: 4.5rem 0 5rem; }
+    .hero-grid {
+      display: grid; grid-template-columns: 1.05fr 1fr;
+      gap: 3.5rem; align-items: center;
+    }
+    @media (max-width: 900px) {
+      .hero { padding: 3rem 0; }
+      .hero-grid { grid-template-columns: 1fr; gap: 2.5rem; }
+    }
+
+    .eyebrow {
+      font-family: var(--font-mono); font-size: 0.78rem;
+      color: var(--match); letter-spacing: 0.02em;
+      margin-bottom: 1rem;
+    }
+
+    h1 {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: clamp(2.4rem, 5.5vw, 3.6rem);
+      line-height: 1.04;
+      letter-spacing: -0.025em;
+      margin-bottom: 1.1rem;
+    }
+    h1 .accent { color: var(--match); }
+
+    .hero-role {
+      font-size: 1.15rem; font-weight: 500; margin-bottom: 0.9rem;
+    }
+    .hero-bio {
+      color: var(--muted); max-width: 34rem; margin-bottom: 2rem;
+    }
+
+    .btn-row { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+    .btn {
+      display: inline-block;
+      font-family: var(--font-mono); font-size: 0.85rem; font-weight: 500;
+      padding: 0.65rem 1.15rem;
+      border-radius: 6px;
+      border: 1px solid var(--ink);
+      color: var(--ink);
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+    .btn:hover { text-decoration: none; background: var(--ink); color: var(--paper); }
+    .btn-primary { background: var(--match); border-color: var(--match); color: #fff; }
+    .btn-primary:hover { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+
+    /* ── YARA panel (signature) ──────────────────── */
+    .yara {
+      background: var(--panel);
+      border: 1px solid var(--panel-line);
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 12px 32px -16px rgba(15, 26, 22, 0.45);
+    }
+    .yara-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.6rem 1rem;
+      border-bottom: 1px solid var(--panel-line);
+      font-family: var(--font-mono); font-size: 0.72rem; color: var(--panel-dim);
+    }
+    .yara-dots { display: flex; gap: 6px; }
+    .yara-dots span { width: 9px; height: 9px; border-radius: 50%; background: var(--panel-line); }
+    .yara pre {
+      padding: 1.1rem 1.25rem 0.9rem;
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      line-height: 1.75;
+      color: var(--panel-text);
+    }
+    .yara .kw { color: var(--kw); }
+    .yara .id { color: #fff; font-weight: 600; }
+    .yara .str { color: var(--str); }
+    .yara .dim { color: var(--panel-dim); }
+
+    .hit { display: inline-block; border-radius: 3px; padding: 0 2px; margin: 0 -2px; }
+    @keyframes lightup {
+      from { background: transparent; }
+      to { background: rgba(123, 212, 184, 0.16); }
+    }
+    .hit { animation: lightup 0.4s ease forwards; }
+    .hit:nth-of-type(1) { animation-delay: 0.9s; }
+    .h2s { animation-delay: 1.5s !important; }
+    .h3s { animation-delay: 2.1s !important; }
+    .h4s { animation-delay: 2.7s !important; }
+
+    .yara-result {
+      display: flex; align-items: center; gap: 0.6rem;
+      padding: 0.8rem 1.25rem;
+      border-top: 1px solid var(--panel-line);
+      font-family: var(--font-mono); font-size: 0.78rem;
+      color: var(--kw);
+      opacity: 0;
+      animation: fadein 0.5s ease 3.4s forwards;
+    }
+    @keyframes fadein { to { opacity: 1; } }
+    .yara-result .dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--kw); flex-shrink: 0;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .hit { background: rgba(123, 212, 184, 0.16); }
+      .yara-result { opacity: 1; }
+    }
+    @media (max-width: 480px) {
+      .yara pre { font-size: 0.72rem; padding: 1rem; }
+    }
+
+    /* ── Sections ────────────────────────────────── */
+    section { padding: 4.5rem 0; border-top: 1px solid var(--line); }
+    .section-label {
+      font-family: var(--font-mono); font-size: 0.78rem;
+      color: var(--muted); margin-bottom: 0.6rem;
+    }
+    h2 {
+      font-family: var(--font-display);
+      font-weight: 700; font-size: 1.9rem;
+      letter-spacing: -0.02em;
+      margin-bottom: 2.5rem;
+    }
+
+    /* ── Experience ──────────────────────────────── */
+    .role { display: grid; grid-template-columns: 11rem 1fr; gap: 1.5rem; margin-bottom: 3rem; }
+    .role:last-child { margin-bottom: 0; }
+    @media (max-width: 720px) { .role { grid-template-columns: 1fr; gap: 0.4rem; } }
+    .role-when {
+      font-family: var(--font-mono); font-size: 0.8rem; color: var(--muted);
+      padding-top: 0.3rem;
+    }
+    .role h3 {
+      font-family: var(--font-display); font-weight: 700;
+      font-size: 1.25rem; letter-spacing: -0.01em;
+    }
+    .role-org { color: var(--muted); font-size: 0.95rem; margin-bottom: 0.9rem; }
+    .role ul { list-style: none; display: grid; gap: 0.8rem; }
+    .role li { padding-left: 1.2rem; position: relative; }
+    .role li::before {
+      content: ""; position: absolute; left: 0; top: 0.62em;
+      width: 7px; height: 7px; border-radius: 2px;
+      background: var(--match);
+    }
+    .role li strong { font-weight: 600; }
+    .metric { color: var(--match); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+    /* ── Projects ────────────────────────────────── */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+    @media (max-width: 720px) { .grid-2 { grid-template-columns: 1fr; } }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 1.5rem;
+      display: flex; flex-direction: column; gap: 0.75rem;
+      transition: border-color 0.15s ease;
+    }
+    .card:hover { border-color: var(--match); }
+    .card h3 {
+      font-family: var(--font-display); font-weight: 700; font-size: 1.15rem;
+      letter-spacing: -0.01em;
+    }
+    .card p { color: var(--muted); font-size: 0.95rem; flex-grow: 1; }
+    .card p strong { color: var(--ink); font-weight: 600; }
+    .tags { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+    .tag {
+      font-family: var(--font-mono); font-size: 0.72rem;
+      color: var(--muted);
+      border: 1px solid var(--line); border-radius: 4px;
+      padding: 0.15rem 0.5rem;
+      background: var(--paper);
+    }
+    .badge {
+      font-family: var(--font-mono); font-size: 0.72rem;
+      color: var(--match); background: var(--match-soft);
+      border-radius: 4px; padding: 0.15rem 0.5rem;
+      align-self: flex-start;
+    }
+
+    /* ── Teaching ────────────────────────────────── */
+    .teach { border-top: 1px solid var(--line); padding: 1.4rem 0; display: grid; grid-template-columns: 11rem 1fr; gap: 1.5rem; }
+    .teach:last-of-type { border-bottom: 1px solid var(--line); }
+    @media (max-width: 720px) { .teach { grid-template-columns: 1fr; gap: 0.3rem; } }
+    .teach-when { font-family: var(--font-mono); font-size: 0.8rem; color: var(--muted); padding-top: 0.2rem; }
+    .teach h3 { font-size: 1.02rem; font-weight: 600; margin-bottom: 0.25rem; }
+    .teach p { color: var(--muted); font-size: 0.95rem; }
+
+    /* ── Education ───────────────────────────────── */
+    .edu { display: grid; gap: 1.75rem; }
+    .edu-item h3 { font-family: var(--font-display); font-weight: 700; font-size: 1.15rem; }
+    .edu-item .edu-deg { margin-top: 0.15rem; }
+    .edu-item .edu-note { color: var(--muted); font-size: 0.95rem; }
+    .edu-when { font-family: var(--font-mono); font-size: 0.8rem; color: var(--muted); }
+
+    /* ── Contact ─────────────────────────────────── */
+    .contact-list { display: grid; gap: 0.6rem; font-family: var(--font-mono); font-size: 0.9rem; }
+    .contact-list .k { color: var(--muted); display: inline-block; min-width: 7.5rem; }
+
+    footer {
+      border-top: 1px solid var(--line);
+      padding: 2rem 0 2.5rem;
+      font-family: var(--font-mono); font-size: 0.75rem; color: var(--muted);
+    }
   </style>
 </head>
 
-<body class="bg-gray-50 text-gray-800">
+<body>
 
-  <!-- NAVBAR -->
-  <nav class="w-full bg-white shadow-sm fixed top-0 z-50">
-    <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
-      <h1 class="font-semibold text-xl">Soumyajyoti Dutta</h1>
-      <div class="space-x-6 text-gray-700 hidden md:flex">
-        <a href="#about" class="hover:text-blue-600">About</a>
-        <a href="#experience" class="hover:text-blue-600">Experience</a>
-        <a href="#projects" class="hover:text-blue-600">Projects</a>
-        <a href="#education" class="hover:text-blue-600">Education</a>
-        <a href="#contact" class="hover:text-blue-600">Contact</a>
+  <nav>
+    <div class="wrap nav-inner">
+      <a class="nav-name" href="#top">Soumyajyoti Dutta</a>
+      <div class="nav-links">
+        <a href="#experience">experience</a>
+        <a href="#projects">projects</a>
+        <a href="#teaching">teaching</a>
+        <a href="#education">education</a>
+        <a href="#contact">contact</a>
       </div>
     </div>
   </nav>
 
-  <!-- HERO / ABOUT -->
-  <section id="about" class="pt-28 pb-16 bg-gradient-to-b from-white to-gray-50">
-    <div class="max-w-6xl mx-auto px-6">
-
-      <!-- Title -->
-      <h2 class="text-4xl font-bold mb-4">
-        Data Scientist / Machine Learning Engineer
-      </h2>
-
-      <!-- Subtitle -->
-      <p class="text-lg text-gray-700 leading-relaxed max-w-2xl">
-        Interests: Machine Learning for Cybersecurity, Small & Large Language Models, Syntax Aware Tokenization,
-        Reinforcement Learning, Automated Program Synthesis, Model Interpretability, Data Analysis, Statistics,
-        Distributed Training, and Systems Optimization.
-      </p>
-
-      <!-- Buttons -->
-      <div class="mt-8 flex flex-wrap gap-4">
-
-        <!-- CV Button -->
-        <a href="assets/SJDResume_Detailed.pdf" target="_blank"
-           class="px-5 py-3 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition">
-          📄 View Full CV (PDF)
-        </a>
-
-        <a href="mailto:soumyajyotidutta23@gmail.com"
-           class="px-5 py-3 bg-gray-800 text-white rounded-lg shadow hover:bg-gray-900 transition">
-          Email Me
-        </a>
-
-        <a href="https://github.com/xoumyax" target="_blank"
-           class="px-5 py-3 bg-white border border-gray-300 rounded-lg shadow hover:bg-gray-100 transition">
-          GitHub
-        </a>
-
-        <a href="https://www.linkedin.com/in/soumyajyotidutta/" target="_blank"
-           class="px-5 py-3 bg-white border border-gray-300 rounded-lg shadow hover:bg-gray-100 transition">
-          LinkedIn
-        </a>
-
-      </div>
-    </div>
-  </section>
-
-  <!-- EXPERIENCE -->
-  <section id="experience" class="py-16 bg-white border-t">
-    <div class="max-w-6xl mx-auto px-6">
-      <h3 class="text-3xl font-semibold mb-10">Professional Experience</h3>
-
-      <!-- Research Assistant -->
-      <div class="mb-16">
-  <h4 class="text-2xl font-bold">Research Assistant — Texas A&M University</h4>
-  <p class="text-gray-600 mb-4">Botacin’s Lab • Spring 2024 – Present</p>
-
-  <ul class="list-none space-y-6 text-gray-800 leading-relaxed">
-
-    <!-- Item 1 -->
-    <li class="p-5 bg-gray-50 border rounded-xl shadow-sm hover:shadow transition">
-      <span class="font-semibold text-blue-700">End-to-end LLM-based YARA Rule Generation Framework</span><br>
-      Built a next-generation pipeline integrating 
-      <span class="font-semibold text-gray-900">Reinforcement Learning</span>,
-      <span class="font-semibold text-pink-900">curriculum-based complexity scheduling</span>,
-      <span class="font-semibold text-green-700">AST-aware tokenization</span>, and 
-      <span class="font-semibold text-purple-700">Brownie & Puff evaluation function</span>
-      to generate structurally and semantically accurate rules and provided a rigorous evaluation / interpretability framework.
-    </li>
-
-
-    <!-- Item 2 -->
-    <li class="p-5 bg-gray-50 border rounded-xl shadow-sm hover:shadow transition">
-      <span class="font-semibold text-red-700">AutoPYara (Euro S&P 2026 Submission)</span><br>
-      Rebuilt and expanded the AutoYara biclustering engine with  
-      <span class="inline-block bg-red-100 text-red-800 px-2 py-0.5 rounded-md">Augmented K-means</span>,
-      optimal K-selection heuristics, and modular clustering strategies for robust rule generation.
-    </li>
-
-    <!-- Item 3 -->
-    <li class="p-5 bg-gray-50 border rounded-xl shadow-sm hover:shadow transition">
-      <span class="font-semibold text-gray-900">Performance Gains</span><br>
-      Achieved:
-      <ul class="ml-5 mt-2 space-y-1 text-gray-700">
-        <li>• <span class="font-semibold text-green-700">14% improvement</span> via optimized centroid selection</li>
-        <li>• <span class="font-semibold text-green-700">10% improvement</span> via sub-clustering heuristics</li>
-        <li>• <span class="font-semibold text-green-700">8% generalization boost</span> in low-sample threat-hunting settings</li>
-      </ul>
-    </li>
-
-  </ul>
-</div>
-
-
-      <!-- Graduate Researcher -->
-      <div class="mb-12">
-        <h4 class="text-2xl font-bold">Graduate Student Researcher — Texas A&M University</h4>
-        <p class="text-gray-600 mb-3">Summer 2023</p>
-        <p class="text-gray-700 leading-relaxed">
-          Conducted mathematical modeling of prostate cancer genomic signaling pathways, built
-          multi-drug interaction simulations, supported experimental biologists, and performed
-          sensitivity modeling for system stability analysis.
-        </p>
-      </div>
-
-      <!-- Cognizant -->
+  <!-- ── Hero ── -->
+  <header class="hero" id="top">
+    <div class="wrap hero-grid">
       <div>
-        <h4 class="text-2xl font-bold">Junior Software Engineer — Cognizant Technology Solutions</h4>
-        <p class="text-gray-600 mb-3">2021 – 2022</p>
-        <p class="text-gray-700 leading-relaxed">
-          Developed large-scale full-stack web applications for logistics automation (TJX),
-          optimized REST endpoints for high concurrency, improved latency, and collaborated with
-          DevOps teams on CI/CD pipelines.
+        <p class="eyebrow">// phd student · texas a&amp;m university · botacin's lab</p>
+        <h1>Teaching machines to <span class="accent">hunt malware</span>.</h1>
+        <p class="hero-role">Machine Learning · Cybersecurity · LLMs</p>
+        <p class="hero-bio">
+          I build ML systems for cyberdefense: LLM-driven YARA rule generation with
+          reinforcement learning and AST-aware tokenization, large-scale malware
+          classifiers, and the interpretability tooling that lets analysts trust them.
         </p>
+        <div class="btn-row">
+          <a class="btn btn-primary" href="assets/SJDResume_Detailed.pdf" target="_blank" rel="noopener">View CV (PDF)</a>
+          <a class="btn" href="mailto:soumyajyotidutta23@gmail.com">Email</a>
+          <a class="btn" href="https://github.com/xoumyax" target="_blank" rel="noopener">GitHub</a>
+          <a class="btn" href="https://www.linkedin.com/in/soumyajyotidutta/" target="_blank" rel="noopener">LinkedIn</a>
+        </div>
       </div>
 
+      <!-- Signature: the researcher, as a YARA rule -->
+      <div class="yara" aria-label="A YARA rule describing Soumyajyoti's research profile">
+        <div class="yara-bar">
+          <div class="yara-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+          profile.yar
+        </div>
+        <pre><code><span class="kw">rule</span> <span class="id">Soumyajyoti_Dutta</span> : <span class="dim">phd_researcher ml_security</span>
+{
+    <span class="kw">meta:</span>
+        <span class="dim">affiliation</span> = <span class="str">"Texas A&amp;M University"</span>
+        <span class="dim">thesis</span>      = <span class="str">"LLMs for automated rule
+                       generation and interpretability
+                       in cyberdefense"</span>
+
+    <span class="kw">strings:</span>
+        <span class="dim">$s1</span> = <span class="str"><span class="hit">"reinforcement learning"</span></span>
+        <span class="dim">$s2</span> = <span class="str"><span class="hit h2s">"AST-aware tokenization"</span></span>
+        <span class="dim">$s3</span> = <span class="str"><span class="hit h3s">"malware detection"</span></span>
+        <span class="dim">$s4</span> = <span class="str"><span class="hit h4s">"model interpretability"</span></span>
+
+    <span class="kw">condition:</span>
+        <span class="kw">all of them</span>
+}</code></pre>
+        <div class="yara-result">
+          <span class="dot" aria-hidden="true"></span>
+          $ yara profile.yar ./candidates &nbsp;→&nbsp; 1 match
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Experience ── -->
+  <section id="experience">
+    <div class="wrap">
+      <p class="section-label">// experience</p>
+      <h2>Research &amp; industry</h2>
+
+      <div class="role">
+        <div class="role-when">2024 — present</div>
+        <div>
+          <h3>Research Assistant</h3>
+          <p class="role-org">Botacin's Lab, Texas A&amp;M University</p>
+          <ul>
+            <li>
+              <strong>LLM-based YARA rule generation, end to end.</strong>
+              Built a pipeline combining reinforcement learning, curriculum-based
+              complexity scheduling, AST-aware tokenization, and the Brownie &amp; Puff
+              evaluation function to generate structurally and semantically accurate
+              detection rules — with a rigorous evaluation and interpretability framework.
+            </li>
+            <li>
+              <strong>AutoPYara</strong> (Euro S&amp;P 2026 submission). Rebuilt and expanded
+              the AutoYara biclustering engine with augmented k-means, optimal
+              k-selection heuristics, and modular clustering strategies for robust
+              rule generation.
+            </li>
+            <li>
+              Measured gains: <span class="metric">+14%</span> from optimized centroid
+              selection, <span class="metric">+10%</span> from sub-clustering heuristics,
+              and <span class="metric">+8%</span> generalization in low-sample
+              threat-hunting settings.
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="role">
+        <div class="role-when">summer 2023</div>
+        <div>
+          <h3>Graduate Student Researcher</h3>
+          <p class="role-org">Texas A&amp;M University</p>
+          <ul>
+            <li>
+              Modeled prostate-cancer genomic signaling pathways mathematically, built
+              multi-drug interaction simulations, and ran sensitivity analyses for system
+              stability in support of experimental biologists.
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="role">
+        <div class="role-when">2021 — 2022</div>
+        <div>
+          <h3>Junior Software Engineer</h3>
+          <p class="role-org">Cognizant Technology Solutions · TJX</p>
+          <ul>
+            <li>
+              Developed large-scale full-stack web applications for logistics automation,
+              optimized REST endpoints for high concurrency, and worked with DevOps teams
+              on CI/CD pipelines.
+            </li>
+          </ul>
+        </div>
+      </div>
     </div>
   </section>
 
-  <section id="projects" class="py-16 bg-gray-50 border-t">
-  <div class="max-w-6xl mx-auto px-6">
-    
-    <h3 class="text-3xl font-semibold mb-10">Highlighted Projects</h3>
+  <!-- ── Projects ── -->
+  <section id="projects">
+    <div class="wrap">
+      <p class="section-label">// projects</p>
+      <h2>Highlighted projects</h2>
 
-    <div class="grid md:grid-cols-2 gap-8">
-
-      <!-- Project 1 -->
-      <div class="p-6 bg-white border rounded-xl shadow-sm hover:shadow-lg transition group">
-        <div class="flex items-center mb-3">
-          <div class="w-10 h-10 bg-blue-100 text-blue-600 flex items-center justify-center rounded-lg text-xl">
-            🔒
+      <div class="grid-2">
+        <div class="card">
+          <h3>ML Malware Detection</h3>
+          <p>
+            End-to-end malware classification over <strong>2M+ PE files</strong> from
+            EMBER, BODMAS, and Benign-NET. Engineered PE-header and byte-level features;
+            a LightGBM / XGBoost / Random Forest / SVM ensemble reached
+            <strong>96.2% accuracy</strong> and <strong>0.97 F1</strong>.
+          </p>
+          <div class="tags">
+            <span class="tag">xgboost</span><span class="tag">lightgbm</span>
+            <span class="tag">svm</span><span class="tag">static analysis</span>
           </div>
-          <h4 class="text-xl font-semibold ml-3 group-hover:text-blue-700 transition">
-            ML Malware Detection
-          </h4>
         </div>
 
-        <p class="text-gray-700 leading-relaxed mb-3">
-          End-to-end malware classification pipeline integrating 
-          <span class="font-semibold">2M+ PE files</span> from EMBER, BODMAS, and Benign-NET. 
-          Engineered PE-header + byte-level features and built LightGBM, XGBoost, Random Forest, SVM ensemble achieving 
-          <span class="font-semibold text-green-700">96.2% accuracy</span> and 
-          <span class="font-semibold text-green-700">0.97 F1</span>.
-        </p>
+        <div class="card">
+          <h3>HelloPentagon</h3>
+          <p>
+            Explainable ML malware-defense assistant: classifiers handle triage while an
+            <strong>LLM rule-explanation layer</strong> gives analysts interpretable
+            reasoning. Built to speed up malware scanning and rule-generation workflows.
+          </p>
+          <div class="tags">
+            <span class="tag">explainable ml</span><span class="tag">llms</span>
+            <span class="tag">cybersecurity</span>
+          </div>
+        </div>
 
-        <div class="flex flex-wrap gap-2 mt-3">
-            
-          <span class="px-2 py-1 text-sm bg-blue-100 text-blue-700 rounded-md">XGBoost</span>
-          <span class="px-2 py-1 text-sm bg-blue-100 text-blue-700 rounded-md">Random Forest</span>
-          <span class="px-2 py-1 text-sm bg-blue-100 text-blue-700 rounded-md">SVM</span>
-          <span class="px-2 py-1 text-sm bg-blue-100 text-blue-700 rounded-md">Static Analysis</span>
+        <div class="card">
+          <h3>Multiperspective Hawkeye</h3>
+          <p>
+            Implemented the ISCA'16 <strong>Hawkeye cache replacement policy</strong> in
+            the zsim simulator, extended with PC-tracking and multi-policy evaluation.
+            Benchmarked under overlapping multi-threaded workloads.
+          </p>
+          <div class="tags">
+            <span class="tag">zsim</span><span class="tag">cache policies</span>
+            <span class="tag">systems</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <span class="badge">Springer chapter · 2022</span>
+          <h3>Carotid Artery USG Analysis</h3>
+          <p>
+            CNN pipeline for <strong>ultrasound artery image classification</strong>,
+            enabling automated risk scoring for carotid stenosis. Published as a
+            Springer book chapter.
+          </p>
+          <div class="tags">
+            <span class="tag">cnn</span><span class="tag">medical imaging</span>
+            <span class="tag">deep learning</span>
+          </div>
         </div>
       </div>
-
-      <!-- Project 2 -->
-      <div class="p-6 bg-white border rounded-xl shadow-sm hover:shadow-lg transition group">
-        <div class="flex items-center mb-3">
-          <div class="w-10 h-10 bg-green-100 text-green-600 flex items-center justify-center rounded-lg text-xl">
-            ⚙️
-          </div>
-          <h4 class="text-xl font-semibold ml-3 group-hover:text-green-700 transition">
-            Multiperspective Hawkeye
-          </h4>
-        </div>
-
-        <p class="text-gray-700 leading-relaxed mb-3">
-          Implemented the ISCA’16 <span class="font-semibold">Hawkeye cache replacement policy</span> in the 
-          zsim simulator, extended with <span class="font-semibold">PC-tracking</span> and 
-          multi-policy evaluation. Benchmarked performance under overlapping multi-threaded workloads.
-        </p>
-
-        <div class="flex flex-wrap gap-2 mt-3">
-          <span class="px-2 py-1 text-sm bg-green-100 text-green-700 rounded-md">zsim</span>
-          <span class="px-2 py-1 text-sm bg-green-100 text-green-700 rounded-md">Cache Policies</span>
-          <span class="px-2 py-1 text-sm bg-green-100 text-green-700 rounded-md">Systems</span>
-        </div>
-      </div>
-
-      <!-- Project 3 -->
-      <div class="p-6 bg-white border rounded-xl shadow-sm hover:shadow-lg transition group">
-        <div class="flex items-center mb-3">
-          <div class="w-10 h-10 bg-purple-100 text-purple-600 flex items-center justify-center rounded-lg text-xl">
-            🤖
-          </div>
-          <h4 class="text-xl font-semibold ml-3 group-hover:text-purple-700 transition">
-            HelloPentagon
-          </h4>
-        </div>
-
-        <p class="text-gray-700 leading-relaxed mb-3">
-          Built an explainable ML-based malware-defense assistant integrating 
-          <span class="font-semibold">ML classifiers</span> for triage with an 
-          <span class="font-semibold">LLM rule-explanation layer</span> for analyst interpretability. 
-          Designed to assist rapid malware scanning and rule generation workflows.
-        </p>
-
-        <div class="flex flex-wrap gap-2 mt-3">
-          <span class="px-2 py-1 text-sm bg-purple-100 text-purple-700 rounded-md">Explainable ML</span>
-          <span class="px-2 py-1 text-sm bg-purple-100 text-purple-700 rounded-md">LLMs</span>
-          <span class="px-2 py-1 text-sm bg-purple-100 text-purple-700 rounded-md">Cybersecurity</span>
-        </div>
-      </div>
-
-      <!-- Project 4 -->
-      <div class="p-6 bg-white border rounded-xl shadow-sm hover:shadow-lg transition group">
-        <div class="flex items-center mb-3">
-          <div class="w-10 h-10 bg-red-100 text-red-600 flex items-center justify-center rounded-lg text-xl">
-            🫀
-          </div>
-          <h4 class="text-xl font-semibold ml-3 group-hover:text-red-700 transition">
-            Carotid Artery USG Analysis
-          </h4>
-        </div>
-
-        <p class="text-gray-700 leading-relaxed mb-3">
-          Designed a CNN-based pipeline for <span class="font-semibold">ultrasound artery image classification</span>,
-          enabling automated risk scoring for carotid stenosis. Published as a 
-          <span class="font-semibold">Springer Chapter (2022)</span>.
-        </p>
-
-        <div class="flex flex-wrap gap-2 mt-3">
-          <span class="px-2 py-1 text-sm bg-red-100 text-red-700 rounded-md">CNN</span>
-          <span class="px-2 py-1 text-sm bg-red-100 text-red-700 rounded-md">Medical Imaging</span>
-          <span class="px-2 py-1 text-sm bg-red-100 text-red-700 rounded-md">Deep Learning</span>
-        </div>
-      </div>
-
     </div>
-  </div>
-</section>
+  </section>
 
-<section id="teaching" class="py-16 bg-white border-t">
-  <div class="max-w-6xl mx-auto px-6">
-    
-    <h3 class="text-3xl font-semibold mb-10">Teaching & Outreach</h3>
+  <!-- ── Teaching ── -->
+  <section id="teaching">
+    <div class="wrap">
+      <p class="section-label">// teaching &amp; outreach</p>
+      <h2>Teaching &amp; outreach</h2>
 
-    <div class="space-y-8">
-
-      <!-- TA for CSCE 439 -->
-      <div class="p-6 bg-gray-50 border rounded-xl shadow-sm hover:shadow transition">
-        <h4 class="text-xl font-bold text-blue-700">Teaching Assistant — CSCE 439: Data Analytics for Cybersecurity</h4>
-        <p class="text-gray-500 mb-3">Spring 2026 (Upcoming)</p>
-
-        <p class="text-gray-700 leading-relaxed">
-          Supporting instruction for a security-focused data analytics course emphasizing:
-        </p>
-
-        <ul class="ml-5 mt-3 space-y-2 text-gray-800">
-          <li>• <span class="font-semibold">Clustering & Unsupervised ML</span></li>
-          <li>• <span class="font-semibold">Supervised Classification Models</span></li>
-          <li>• <span class="font-semibold">Anomaly Detection & Threat Pattern Discovery</span></li>
-          <li>• <span class="font-semibold">Security-Focused Data Visualization</span></li>
-          <li>• Applications to attacks, vulnerabilities, adversarial behaviors</li>
-        </ul>
-      </div>
-
-      <!-- ECEN 325 TA -->
-      <div class="p-6 bg-gray-50 border rounded-xl shadow-sm hover:shadow transition">
-        <h4 class="text-xl font-bold text-green-700">Teaching Assistant — ECEN 325: Electronics</h4>
-        <p class="text-gray-500 mb-3">Summer 2023</p>
-
-        <p class="text-gray-700 leading-relaxed">
-          Assisted with lectures, homework grading, lab coordination, and one-on-one student mentoring
-          for foundational analog electronics concepts.
-        </p>
-      </div>
-
-      <!-- TAMU CS Day Outreach -->
-      <div class="p-6 bg-gray-50 border rounded-xl shadow-sm hover:shadow transition">
-        <h4 class="text-xl font-bold text-purple-700">Partner & Presenter — TAMU CS Day</h4>
-        <p class="text-gray-500 mb-3">2024, 2025</p>
-
-        <p class="text-gray-700 leading-relaxed">
-          Designed and led interactive demos on <span class="font-semibold">AI for Cybersecurity</span> and 
-          <span class="font-semibold">ML-driven malware defense</span> for high school students, focused on 
-          accessibility and science outreach.
-        </p>
-      </div>
-
-      <!-- Student Research Week -->
-      <div class="p-6 bg-gray-50 border rounded-xl shadow-sm hover:shadow transition">
-        <h4 class="text-xl font-bold text-red-700">Technical Coordinator — TAMU Student Research Week</h4>
-        <p class="text-gray-500 mb-3">Spring 2023</p>
-
-        <p class="text-gray-700 leading-relaxed">
-          Automated judging and submission infrastructure for one of TAMU’s largest academic events, 
-          streamlining review workflows and improving platform usability for participants.
-        </p>
-      </div>
-
-    </div>
-  </div>
-</section>
-
-  <!-- EDUCATION -->
-  <section id="education" class="py-16 bg-white border-t">
-    <div class="max-w-6xl mx-auto px-6">
-      <h3 class="text-3xl font-semibold mb-10">Education</h3>
-
-      <div class="space-y-8">
+      <div class="teach">
+        <div class="teach-when">spring 2026</div>
         <div>
-          <h4 class="font-bold text-xl">Texas A&M University</h4>
-          <p class="text-gray-700 leading-relaxed">
-            Ph.D. in Computer Science (2024 – 2029)<br>
-            Thesis: LLMs for Automated Rule Generation and Interpretability in Cyberdefense.
+          <h3>Teaching Assistant — CSCE 439: Data Analytics for Cybersecurity</h3>
+          <p>
+            Security-focused data analytics: clustering and unsupervised ML, supervised
+            classification, anomaly detection and threat-pattern discovery, and
+            security-oriented data visualization.
           </p>
         </div>
+      </div>
 
+      <div class="teach">
+        <div class="teach-when">2024 — 2025</div>
         <div>
-          <h4 class="font-bold text-xl">Texas A&M University</h4>
-          <p class="text-gray-700">M.S. in Computer Engineering (2022 – 2023)</p>
+          <h3>Partner &amp; Presenter — TAMU CS Day</h3>
+          <p>
+            Designed and led interactive demos on AI for cybersecurity and ML-driven
+            malware defense for high school students, focused on accessibility and
+            science outreach.
+          </p>
         </div>
+      </div>
 
+      <div class="teach">
+        <div class="teach-when">summer 2023</div>
         <div>
-          <h4 class="font-bold text-xl">SRM University</h4>
-          <p class="text-gray-700">B.Tech. in Electronics & Communication Engineering (2017 – 2021)</p>
+          <h3>Teaching Assistant — ECEN 325: Electronics</h3>
+          <p>
+            Assisted with lectures, grading, lab coordination, and one-on-one mentoring
+            for foundational analog electronics.
+          </p>
+        </div>
+      </div>
+
+      <div class="teach">
+        <div class="teach-when">spring 2023</div>
+        <div>
+          <h3>Technical Coordinator — TAMU Student Research Week</h3>
+          <p>
+            Automated judging and submission infrastructure for one of TAMU's largest
+            academic events, streamlining review workflows for participants.
+          </p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- CONTACT -->
-  <section id="contact" class="py-16 bg-gray-50 border-t">
-    <div class="max-w-6xl mx-auto px-6">
-      <h3 class="text-3xl font-semibold mb-10">Contact</h3>
-      <p class="text-gray-700 text-lg">📧 Email:
-        <a href="mailto:soumyajyotidutta23@gmail.com" class="text-blue-600">soumyajyotidutta23@gmail.com</a>
-      </p>
-      <p class="text-gray-700 text-lg">💻 GitHub:
-        <a href="https://github.com/xoumyax" class="text-blue-600">github.com/xoumyax</a>
-      </p>
-      <p class="text-gray-700 text-lg">🔗 LinkedIn:
-        <a href="https://linkedin.com/in/soumyajyotidutta" class="text-blue-600">linkedin.com/in/soumyajyotidutta</a>
-      </p>
+  <!-- ── Education ── -->
+  <section id="education">
+    <div class="wrap">
+      <p class="section-label">// education</p>
+      <h2>Education</h2>
+
+      <div class="edu">
+        <div class="edu-item">
+          <span class="edu-when">2024 — 2029</span>
+          <h3>Texas A&amp;M University</h3>
+          <p class="edu-deg">Ph.D. in Computer Science</p>
+          <p class="edu-note">Thesis: LLMs for automated rule generation and interpretability in cyberdefense.</p>
+        </div>
+        <div class="edu-item">
+          <span class="edu-when">2022 — 2023</span>
+          <h3>Texas A&amp;M University</h3>
+          <p class="edu-deg">M.S. in Computer Engineering</p>
+        </div>
+        <div class="edu-item">
+          <span class="edu-when">2017 — 2021</span>
+          <h3>SRM University</h3>
+          <p class="edu-deg">B.Tech. in Electronics &amp; Communication Engineering</p>
+        </div>
+      </div>
     </div>
   </section>
 
-  <!-- FOOTER -->
-  <footer class="py-6 text-center text-gray-600 border-t">
-    © 2025 Soumyajyoti Dutta — All Rights Reserved
+  <!-- ── Contact ── -->
+  <section id="contact">
+    <div class="wrap">
+      <p class="section-label">// contact</p>
+      <h2>Get in touch</h2>
+      <div class="contact-list">
+        <p><span class="k">email</span><a href="mailto:soumyajyotidutta23@gmail.com">soumyajyotidutta23@gmail.com</a></p>
+        <p><span class="k">github</span><a href="https://github.com/xoumyax" target="_blank" rel="noopener">github.com/xoumyax</a></p>
+        <p><span class="k">linkedin</span><a href="https://linkedin.com/in/soumyajyotidutta" target="_blank" rel="noopener">linkedin.com/in/soumyajyotidutta</a></p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">© 2026 Soumyajyoti Dutta · no strings attached, except $s1–$s4</div>
   </footer>
 
 </body>
