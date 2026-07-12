@@ -1,0 +1,226 @@
+%-------------------------
+% Master / Comprehensive Resume — Soumyajyoti Dutta
+% Rebuilt template: uniform left edges across every section.
+%   - Section titles + entry headings: flush at the left margin (x = 0)
+%   - Every bullet (all sections, incl. Expertise): one shared indent (0.18in)
+%   - Sub-bullets: one small step in (0.36in)
+%   - Long project headings use a wrapping, page-atomic box (never cut off)
+%   - Bullets: concise (<= 2 lines), key facts highlighted in bold
+%-------------------------
+\documentclass[letterpaper,10pt]{article}
+\usepackage{latexsym}
+\usepackage[empty]{fullpage}
+\usepackage{titlesec}
+\usepackage{marvosym}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{fancyhdr}
+\usepackage[english]{babel}
+\usepackage{tabularx}
+\usepackage{needspace}
+\input{glyphtounicode}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+% Margins
+\addtolength{\oddsidemargin}{-0.5in}
+\addtolength{\evensidemargin}{-0.5in}
+\addtolength{\textwidth}{1in}
+\addtolength{\topmargin}{-.7in}
+\addtolength{\textheight}{2.1in}
+\urlstyle{same}
+\raggedbottom
+\raggedright
+\setlength{\tabcolsep}{0in}
+% Section rule
+\titleformat{\section}{
+  \vspace{-4pt}\scshape\raggedright\large
+}{}{0em}{}[\color{black}\titlerule \vspace{-4pt}]
+\pdfgentounicode=1
+%--- Uniform bullet geometry: identical left edge in EVERY section ---
+\setlist[itemize,1]{leftmargin=0.18in, topsep=2pt, partopsep=0pt, parsep=0pt, itemsep=1pt}
+\setlist[itemize,2]{leftmargin=0.18in, topsep=1pt, partopsep=0pt, parsep=0pt, itemsep=1pt}
+\renewcommand{\labelitemi}{\small$\bullet$}
+\renewcommand{\labelitemii}{$\vcenter{\hbox{\tiny$\bullet$}}$}
+%--- Entry heading with a date (Education / Experience / Teaching) ---
+\newcommand{\entryDated}[4]{%
+  \vspace{2pt}%
+  \begin{tabular*}{\textwidth}{@{}l@{\extracolsep{\fill}}r@{}}
+    \textbf{#1} & #2 \\
+    \textit{\small #3} & \textbf{\small #4} \\
+  \end{tabular*}\vspace{-2pt}%
+}
+%--- Project heading: title may wrap; date right-aligned; page-atomic ---
+\newcommand{\entryProject}[2]{%
+  \vspace{3pt}%
+  \begin{tabular*}{\textwidth}{@{}p{0.82\textwidth}@{\extracolsep{\fill}}r@{}}
+    \raggedright #1 & \small #2 \\
+  \end{tabular*}\vspace{-2pt}%
+}
+% Bullet helpers
+\newcommand{\bl}{\begin{itemize}\small}
+\newcommand{\ble}{\end{itemize}\vspace{-2pt}}
+\newcommand{\sbl}{\begin{itemize}\small}
+\newcommand{\sble}{\end{itemize}}
+%-------------------------------------------
+\begin{document}
+%----------HEADING----------
+\begin{center}
+    {\Huge \scshape Soumyajyoti Dutta} \\ \vspace{4pt}
+    \small (979) 326-2896 $|$
+    \href{mailto:soumyajyotidutta23@gmail.com}{\underline{soumyajyotidutta23@gmail.com}} $|$
+    \href{https://github.com/xoumyax}{\underline{github.com/xoumyax}} $|$
+    \href{https://www.linkedin.com/in/soumyajyotidutta/}{\underline{linkedin.com/in/soumyajyotidutta}}
+    \\ \vspace{3pt}
+    \small \textit{LLM Post-Training \& Alignment $|$ Evaluation Design $|$ Agentic \& RAG Systems $|$ Applied ML for Cyberdefense}
+\end{center}
+%-----------EDUCATION-----------
+\section{Education}
+\entryDated
+  {Texas A\&M University}{College Station, TX}
+  {Ph.D. in Computer Science, Department of CSCE}{Spring 2024 -- Present}
+  \bl
+    \item \textbf{Advisor:} Dr.\ Marcus Botacin (Botacin's Lab). \textbf{Thesis:} LLMs for automated rule generation and model interpretability in cyberdefense.
+  \ble
+\entryDated
+  {Texas A\&M University}{College Station, TX}
+  {M.S. in Computer Engineering, Department of ECE}{Fall 2022 -- Fall 2023}
+  \bl
+    \item \textbf{Coursework:} ML Theory, Deep Learning, Data Mining, Randomized Algorithms, ML-Based Cyberdefenses.
+  \ble
+\entryDated
+  {SRM University}{Chennai, India}
+  {B.Tech. in Electronics and Communication Engineering}{Fall 2017 -- Spring 2021}
+%-----------EXPERTISE-----------
+\section{Expertise}
+\textbf{Core Competencies:}
+\bl
+  \item \textbf{LLM post-training pipelines:} curriculum/staged SFT, structural reinforcement, reward-signal design, and behavioral shaping for fine-tuning and alignment.
+  \item \textbf{Evaluation frameworks:} custom reward metrics (lexical/syntactic/semantic), LLM-as-judge and user-simulation, human-curated benchmarking across \textbf{10+ LLM families} plus cross-modal vision-language eval.
+  \item \textbf{Distributed \& efficient training:} \textbf{140M--9B-param} families (incl.\ sparse-MoE) on multi-node SLURM clusters; DeepSpeed / FSDP / DDP-NCCL / CUDA; rank-stabilized LoRA; vLLM with multi-turn KV reuse.
+  \item \textbf{Agentic \& RAG systems:} multi-tool dispatcher architectures, layered query routing, confidence-threshold anti-hallucination with web-search fallback, MCP-based tool integration.
+  \item \textbf{Large-scale data pipelines:} multi-source dataset construction (\textbf{100M+ labeled examples}), tokenizer design, checkpoint management, and reproducible experiment tracking.
+  \item \textbf{Systems \& full-stack engineering:} CUDA profiling, memory-efficient loaders, FastAPI/React apps, local LLM orchestration, and ATS/scraper pipelines.
+\ble
+\vspace{3pt}
+\textbf{Technical Stack:}\\
+\small \textbf{ML:} PyTorch, TensorFlow, HuggingFace Transformers, TRL, scikit-learn, LightGBM/XGBoost, NumPy, Pandas, Matplotlib \quad
+\textbf{Distributed/Infra:} DeepSpeed, FSDP, DDP/NCCL, CUDA, SLURM, vLLM, AWS \quad
+\textbf{Serving/Agentic:} Ollama, MCP servers, RAG (FTS5 retrieval), Serper/Semantic Scholar tool backends \quad
+\textbf{Languages:} Python, C++, Rust \quad
+\textbf{Web/Tooling:} FastAPI, React/Vite/Tailwind, Django/Flask, SQLite, Git, CI/CD, Playwright \quad
+\textbf{Domain:} YARA, IOC/NER extraction, malware analysis (PE features)
+%-----------EXPERIENCE-----------
+\section{Professional Experience}
+\entryDated
+  {Texas A\&M University --- Botacin's Lab}{College Station, TX}
+  {Research Assistant / Machine Learning Engineer}{Spring 2024 -- Present}
+  \bl
+    \item Built curriculum-based post-training pipelines across \textbf{140M--9B-param} families (BART, T5, Gemma 3, LLaMA 3.x, Nemotron; incl.\ sparse-MoE) on \textbf{multi-node SLURM clusters} with DeepSpeed, FSDP, and CUDA.
+    \item \textbf{YaraGen} (\textbf{Booz Allen Hamilton}--sponsored) --- end-to-end LLM system for automated YARA threat-detection rule generation \textit{(USENIX Security 2026, in prep)}:
+    \sbl
+      \item Built a \textbf{20-tool agent dispatcher} with a \textbf{4-layer query router} and a RAG pipeline with confidence-threshold anti-hallucination, web-search fallback, and a Nemotron-4B synthesizer.
+      \item Constructed a \textbf{three-source dataset framework} (\textbf{100M+ labeled examples}): hand-written synthetic curriculum, grammar-parsed procedural rules, and \textbf{305K} crawled real-world rules.
+      \item Designed \textbf{YaraAST}, a hybrid AST-aware tokenizer (\textbf{10$\times$ token reduction}); post-trained models to \textbf{$\geq$99\% syntax} / \textbf{$\geq$95\% logical} validity on 22,655 held-out rules --- a floor held even by BART-base 140M.
+      \item Built \textbf{Scooper} (BiLSTM hex extractor) and \textbf{MultiRuleGen} (IR-level merger) for rules over the 1,024-token window, raising corpus coverage \textbf{83\%$\rightarrow$100\%}.
+      \item Designed \textit{\textbf{Brownie \& Puff}}, a reproducible reward/eval function (\textbf{BLEU + parsing + SAT semantics}) used as both training signal and quality gate; benchmarked \textbf{10+ LLM families} over \textbf{150+ runs}.
+      \item Built a custom \textbf{NER pipeline} for IOC extraction from unstructured analyst reports, reaching \textbf{92.5\% F1} across \textbf{25 IOC types}.
+    \sble
+    \item \textbf{AutoPYara} --- open-sourced rule-generation package (PyPI) \textit{(ACSAC 2026, submission)}:
+    \sbl
+      \item Re-implemented biclustering-based rule generation from raw binaries (\textbf{71K Windows PE samples}); benchmarked clustering algorithms with optimal-K heuristics.
+      \item Beat the \textbf{AutoYara SOTA} by \textbf{+14\% coverage}, \textbf{+10\% threat-hunting accuracy}, and \textbf{+8\% low-sample generalization}.
+    \sble
+  \ble
+\newpage
+\entryDated
+  {Cognizant Technology Solutions}{Kolkata, India}
+  {Junior Software Engineer --- Client-Embedded Consulting (Client: TJX Companies)}{2021 -- 2022}
+  \bl
+    \item \textbf{Client-embedded consultant} for TJX Companies (Fortune 500); coordinated with client engineering/product stakeholders to deliver a \textbf{logistics-automation platform}.
+    \item Optimized \textbf{REST API endpoints} for latency and concurrency; maintained \textbf{CI/CD} and led code review across cross-functional teams.
+  \ble
+%-----------PROJECTS-----------
+\section{Research \& Engineering Projects}
+\entryProject
+  {\textbf{Ambiguity-Aware / Proactive Research Agent} $|$ \textit{Co-authored --- led model development \& training}}{2026}
+  \bl
+    \item Added an explicit \textbf{``ask'' action} to a deep-research agent, teaching it to \textbf{pause on underspecified queries} and ask one clarifying question before answering.
+    \item Trained \textbf{Gemma-4-E4B} (sparse MoE, $\sim$9B/4B) on a \textbf{single 80GB GPU} (vLLM, KV reuse) on the Dr.\ Tulu scaffold with \textbf{MCP-exposed} web + Semantic Scholar tools.
+    \item Designed a \textbf{structured XML tag protocol} and an ambiguity taxonomy (language vs.\ task) to make the pause decision \textbf{supervisable}.
+    \item Ran a \textbf{four-stage SFT curriculum} (rank-stabilized LoRA): baseline $\rightarrow$ reflex pause (AmbigQA) $\rightarrow$ reasoned pause $\rightarrow$ mechanism-augmented distillation from \textbf{Claude Opus 4.6}.
+    \item Built a \textbf{176-query benchmark} with three-axis eval; lifted \textbf{pause-detection F1 0.168$\rightarrow$0.573} and diagnosed the remaining bottleneck as answer generation, not the decision to ask.
+  \ble
+\entryProject
+  {\textbf{Sturdy Fishstick --- Self-Built Job \& PhD Search Platform} $|$ \textit{FastAPI, React/Vite/Tailwind, Ollama}}{2025}
+  \bl
+    \item Built a self-hosted, \textbf{dual-mode} job-search dashboard scoring listings with \textbf{fully on-device local LLMs} (qwen3:1.7b, LFM2.5 via Ollama) --- no external inference API.
+    \item Integrated \textbf{multi-source ingestion}: Google Jobs, LinkedIn, GitHub repos, \textbf{ATS APIs} (Greenhouse, Lever, Ashby, +3), Playwright fallback, and academic boards.
+    \item Designed a \textbf{categorical-question scoring scheme} mapping deterministically to a 0--10 score --- far more reliable for small local models than direct numeric scoring.
+    \item Built an \textbf{FTS5-grounded RAG chat} that answers from exact DB counts (no hallucinated stats); added time-boxed scoring with model eviction, a Kanban tracker, and remote access.
+  \ble
+\entryProject
+  {\textbf{Multimodal \& Vision-Language Evaluation} $|$ \textit{ECEN 642 --- Digital Image Processing \& Computer Vision}}{2024}
+  \bl
+    \item Evaluated a \textbf{DeepSeek vision-language model} against \textbf{human-annotated ground truth}; built the comparison harness and error analysis --- a \textbf{cross-modal eval} exercise.
+  \ble
+\entryProject
+  {\textbf{Machine Learning Malware Detection Model} $|$ \textit{1st Place, CSCE 689 ML-Based Cyberdefenses Competition}}{2022}
+  \bl
+    \item Built an end-to-end \textbf{Windows PE classifier} (EMBER/BODMAS/Benign-NET, \textbf{2M+ samples}) with LightGBM/XGBoost --- \textbf{96.2\% accuracy, 0.97 F1} under 1GB/5s constraints.
+    \item Designed the competition's \textbf{best-performing adversarial evasion suite} against peer defense models.
+  \ble
+\entryProject
+  {\textbf{Multiperspective Hawkeye} $|$ \textit{Systems / Computer Architecture}}{}
+  \bl
+    \item Implemented the \textbf{ISCA'16 Hawkeye} cache-replacement policy in \texttt{zsim}; extended with PC-tracking and multi-policy benchmarking.
+  \ble
+\entryProject
+  {\textbf{HelloPentagon} $|$ \textit{Explainable ML Malware-Defense Chatbot}}{}
+  \bl
+    \item Built an interactive analyst tool combining an \textbf{ML malware classifier} with \textbf{LLM-based triage} and interpretability.
+  \ble
+\entryProject
+  {\textbf{Other Projects:}
+  \newline
+  WildFire (spatiotemporal ML for wildfire-spread prediction from climate + satellite data),
+  \newline
+  Carotid Artery USG Analysis (CNN ultrasound classification --- \textit{Springer book chapter, 2022}),
+  \newline
+  Fashion-MNIST (CNN classifier comparing ResNet/VGG with regularization analysis).}{}
+%-----------PUBLICATIONS-----------
+\section{Publications}
+\bl
+  \item \textbf{YaraGen} --- USENIX Security 2026 (submission in preparation).
+  \item \textbf{AutoPYara} --- ACSAC 2026 (submitted); open-sourced on PyPI.
+  \item \textbf{Training and Benchmarking Pro-active Deep Research Agents to Overcome Underspecificity in User Queries} --- manuscript in preparation, 2026 (co-authored, 4-person team).
+  \item Carotid-artery ultrasound CNN classification --- Springer book chapter, 2022.
+\ble
+%-----------TEACHING & OUTREACH-----------
+\section{Teaching \& Outreach}
+\entryDated
+  {Teaching Assistant, CSCE 439/704 --- Data Analytics for Cybersecurity}{Texas A\&M University}
+  {Clustering, supervised ML, anomaly detection, security-focused visualization}{Spring 2026}
+  \bl
+    \item Designed assignments and mentored student projects; supported lectures and grading.
+  \ble
+\entryDated
+  {Partner \& Presenter, TAMU CS Day}{Texas A\&M University}
+  {Interactive AI/cybersecurity demos for high-school students}{2024, 2025}
+  \bl
+    \item Designed and led hands-on demos introducing AI and cybersecurity concepts to non-specialist audiences.
+  \ble
+\entryDated
+  {Teaching Assistant, ECEN 325 --- Electronics}{Texas A\&M University}
+  {Lectures, grading, and lab sessions}{Spring 2023}
+
+\newpage
+\entryDated
+  {Technical Coordinator, TAMU Student Research Week}{Texas A\&M University}
+  {Automated judging and submission infrastructure}{Summer 2023}
+%-------------------------------------------
+\end{document}
