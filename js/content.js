@@ -8,10 +8,10 @@ export const ZONES = [
     tagline: 'Welcome! You found the start of the road.',
     points: [
       'I\'m <strong>Soumyajyoti Dutta</strong> — PhD student at Texas A&M, ML engineer, and your tour guide today.',
-      'Drive to each landmark to explore my work. <strong>WASD / arrow keys</strong> on desktop, the joystick on touch.',
+      '<strong>Keep scrolling</strong> and the car drives itself. Seven signposted stops between here and the mailbox.',
       'In a hurry? Everything here is also written down — take the <em>“skip the drive”</em> exit any time.',
     ],
-    tags: ['7 stops', 'no fuel needed'],
+    tags: ['7 stops', 'no fuel needed', 'scroll-powered'],
   },
   {
     id: 'ridge',

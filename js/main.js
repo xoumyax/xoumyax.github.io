@@ -1,68 +1,102 @@
-import { ZONES, ZONE_BY_ID } from './content.js';
+import { ZONES } from './content.js';
+import { buildScene } from './scene.js';
 
 const $ = (sel) => document.querySelector(sel);
-
-const shell = $('.world-shell');
-const canvas = $('#world-canvas');
-const overlay = $('#world-overlay');
-const startBtn = $('#start-drive');
-const fallbackPanel = $('#world-fallback');
-const hud = $('#hud');
-const progressEl = $('#hud-progress');
-const card = $('#zone-card');
-const joystick = $('#joystick');
-const stick = joystick.querySelector('.stick');
-const confettiCanvas = $('#confetti');
-
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const params = new URLSearchParams(location.search);
 
-let world = null;
-const visited = new Set();
-let cardOpenFor = null;
+/* ── Theme (day / night) ────────────────────────────────── */
+const themeBtn = $('#theme-toggle');
+const systemDark = window.matchMedia('(prefers-color-scheme: dark)');
+if (params.get('theme')) document.documentElement.dataset.theme = params.get('theme');
 
-/* ── HUD progress chips ─────────────────────────────────── */
-function renderProgress() {
-  progressEl.innerHTML = ZONES.map(z =>
-    `<span class="hud-chip ${visited.has(z.id) ? 'visited' : ''}" title="${z.title}">${z.emoji}<span class="chip-label">${visited.has(z.id) ? z.title : '?'}</span></span>`
-  ).join('');
+function effectiveTheme() {
+  const t = document.documentElement.dataset.theme;
+  if (t === 'dark' || t === 'light') return t;
+  return systemDark.matches ? 'dark' : 'light';
+}
+function paintThemeButton() {
+  const dark = effectiveTheme() === 'dark';
+  themeBtn.textContent = dark ? '☀️' : '🌙';
+  themeBtn.setAttribute('aria-label', dark ? 'Switch to day mode' : 'Switch to night mode');
+  themeBtn.title = dark ? 'Day drive' : 'Night drive';
+}
+themeBtn.addEventListener('click', () => {
+  const next = effectiveTheme() === 'dark' ? 'light' : 'dark';
+  document.documentElement.dataset.theme = next;
+  try { localStorage.setItem('theme', next); } catch { /* private mode */ }
+  paintThemeButton();
+});
+systemDark.addEventListener('change', paintThemeButton);
+paintThemeButton();
+
+/* ── Journey scaffolding ────────────────────────────────── */
+const track = $('#journey-track');
+const stage = $('#journey-stage');
+const layers = { far: $('#layer-far'), mid: $('#layer-mid'), front: $('#layer-front') };
+const carEl = $('#journey-car');
+const wheelEls = carEl.querySelectorAll('.wheel');
+const mapEl = $('#journey-map');
+const card = $('#cp-card');
+const confettiCanvas = $('#confetti');
+
+const scene = buildScene({ farEl: layers.far, midEl: layers.mid, frontEl: layers.front, zones: ZONES });
+
+const PARALLAX = { far: 0.22, mid: 0.55, front: 1 };
+const sceneScale = $('#scene-scale');
+const visited = new Set();
+let activeCp = null;
+let travel = 0, carScreenX = 0, lastWorldX = -1;
+
+function layout() {
+  // shrink the whole scene on short viewports so the road never clips
+  const s = Math.min(1, Math.max(0.55, (stage.clientHeight - 70) / scene.height));
+  sceneScale.style.transform = `scale(${s})`;
+  const vwWorld = stage.clientWidth / s;           // viewport width in world units
+  carScreenX = Math.min(vwWorld * 0.34, 620);
+  carEl.style.left = `${Math.round(carScreenX - 105)}px`; // center the 210px car on its axle line
+  travel = Math.max(scene.worldWidth - vwWorld + 140, 1);
+  track.style.height = `${Math.round(travel + window.innerHeight)}px`;
+  lastWorldX = -1;
+  update(true);
 }
 
-/* ── Zone card ──────────────────────────────────────────── */
-function openCard(id) {
-  const zone = ZONE_BY_ID[id];
-  if (!zone) return;
-  cardOpenFor = id;
+/* ── Mini-map ───────────────────────────────────────────── */
+function renderMap() {
+  mapEl.innerHTML = `
+    <div class="map-line"></div>
+    ${ZONES.map(z => `<span class="map-dot ${visited.has(z.id) ? 'visited' : ''} ${activeCp === z.id ? 'here' : ''}" title="${z.title}">${z.emoji}</span>`).join('')}
+    <span class="map-car" id="map-car" aria-hidden="true">🚙</span>`;
+  positionMapCar();
+}
+function positionMapCar() {
+  const mc = $('#map-car');
+  if (!mc) return;
+  const p = travel ? Math.min(Math.max(progress(), 0), 1) : 0;
+  mc.style.left = `${6 + p * 88}%`;
+}
+
+/* ── Checkpoint card ────────────────────────────────────── */
+function showCard(zone) {
   card.innerHTML = `
     <div class="zone-card-head"><span class="emoji" aria-hidden="true">${zone.emoji}</span><h3>${zone.title}</h3></div>
     <p class="zone-tagline">${zone.tagline}</p>
     <ul class="zone-points">${zone.points.map(p => `<li>${p}</li>`).join('')}</ul>
     <div class="zone-tags">${zone.tags.map(t => `<span>${t}</span>`).join('')}</div>
-    ${visited.size === ZONES.length ? `<p class="zone-complete">🎉 That's all seven landmarks! Thanks for driving along — <a href="mailto:soumyajyotidutta23@gmail.com">email me</a> and let's plan the next trip together.</p>` : ''}
-    <button class="btn btn-primary" id="card-close">Keep driving 🚙</button>`;
+    ${visited.size === ZONES.length ? `<p class="zone-complete">🎉 That's all seven stops! Thanks for riding along — <a href="mailto:soumyajyotidutta23@gmail.com">email me</a> and let's plan the next trip together.</p>` : ''}`;
   card.hidden = false;
-  $('#card-close').addEventListener('click', closeCard);
-  $('#card-close').focus({ preventScroll: true });
+  requestAnimationFrame(() => card.classList.add('show'));
 }
-
-function closeCard() {
+function hideCard() {
+  card.classList.remove('show');
   card.hidden = true;
-  cardOpenFor = null;
-  canvas.focus({ preventScroll: true });
 }
 
-function onEnterZone(id) {
-  if (cardOpenFor) return;
-  const first = !visited.has(id);
-  visited.add(id);
-  renderProgress();
-  openCard(id);
-  if (first && visited.size === ZONES.length) celebrate();
-}
-
-/* ── Completion celebration ─────────────────────────────── */
+/* ── Completion confetti ────────────────────────────────── */
+let celebrated = false;
 function celebrate() {
-  if (reducedMotion) return;
+  if (celebrated || reducedMotion) return;
+  celebrated = true;
   confettiCanvas.style.display = 'block';
   const ctx = confettiCanvas.getContext('2d');
   confettiCanvas.width = innerWidth; confettiCanvas.height = innerHeight;
@@ -83,114 +117,85 @@ function celebrate() {
       ctx.restore();
     }
     if (now - t0 < 3200) requestAnimationFrame(tick);
-    else { confettiCanvas.style.display = 'none'; }
+    else confettiCanvas.style.display = 'none';
   })(t0);
 }
 
-/* ── Input: keyboard ────────────────────────────────────── */
-const keys = {};
-const KEYMAP = {
-  KeyW: 'up', ArrowUp: 'up', KeyS: 'down', ArrowDown: 'down',
-  KeyA: 'left', ArrowLeft: 'left', KeyD: 'right', ArrowRight: 'right',
-};
-function applyKeys() {
-  if (!world) return;
-  world.input.throttle = (keys.up ? 1 : 0) - (keys.down ? 1 : 0);
-  world.input.steer = (keys.right ? 1 : 0) - (keys.left ? 1 : 0);
-}
-document.addEventListener('keydown', (e) => {
-  if (e.code === 'Escape' && cardOpenFor) { closeCard(); return; }
-  const k = KEYMAP[e.code];
-  if (!k || !world || card.hidden === false) return;
-  // only steer while the world is on screen
-  const r = shell.getBoundingClientRect();
-  if (r.bottom < 80 || r.top > innerHeight - 80) return;
-  keys[k] = true; applyKeys();
-  if (e.code.startsWith('Arrow')) e.preventDefault();
-});
-document.addEventListener('keyup', (e) => {
-  const k = KEYMAP[e.code];
-  if (!k) return;
-  keys[k] = false; applyKeys();
-});
+/* ── Scroll → world ─────────────────────────────────────── */
+// ?pin=0.4 freezes the journey at a fixed progress (headless visual testing)
+const PIN = params.has('pin') ? Math.min(Math.max(parseFloat(params.get('pin')) || 0, 0), 1) : null;
 
-/* ── Input: joystick (touch) ────────────────────────────── */
-let joyActive = false;
-function joyVector(e) {
-  const r = joystick.getBoundingClientRect();
-  const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
-  let dx = (e.clientX - cx) / (r.width / 2), dy = (e.clientY - cy) / (r.height / 2);
-  const m = Math.hypot(dx, dy);
-  if (m > 1) { dx /= m; dy /= m; }
-  stick.style.transform = `translate(calc(-50% + ${dx * 30}px), calc(-50% + ${dy * 30}px))`;
-  if (world) { world.input.steer = dx; world.input.throttle = -dy; }
-}
-joystick.addEventListener('pointerdown', (e) => { joyActive = true; joystick.setPointerCapture(e.pointerId); joyVector(e); });
-joystick.addEventListener('pointermove', (e) => { if (joyActive) joyVector(e); });
-['pointerup', 'pointercancel'].forEach(ev => joystick.addEventListener(ev, () => {
-  joyActive = false;
-  stick.style.transform = 'translate(-50%, -50%)';
-  if (world) { world.input.steer = 0; world.input.throttle = 0; }
-}));
-
-/* ── Boot ───────────────────────────────────────────────── */
-function webglOK() {
-  try {
-    const c = document.createElement('canvas');
-    return !!(c.getContext('webgl2') || c.getContext('webgl'));
-  } catch { return false; }
+function progress() {
+  if (PIN !== null) return PIN;
+  const rect = track.getBoundingClientRect();
+  const total = track.offsetHeight - window.innerHeight;
+  if (total <= 0) return 0;
+  return Math.min(Math.max(-rect.top / total, 0), 1);
 }
 
-const dbg = (m) => { if (params.has('debug')) document.title = `[${m}]`; };
-window.addEventListener('error', (e) => dbg('ERR ' + e.message));
+let wheelAngle = 0;
+function update(force = false) {
+  const p = progress();
+  const worldX = p * travel;                       // how far the car has driven
+  if (!force && Math.abs(worldX - lastWorldX) < 0.1) return;
+  const delta = lastWorldX < 0 ? 0 : worldX - lastWorldX;
+  lastWorldX = worldX;
 
-async function startDrive() {
-  overlay.classList.add('hidden');
-  dbg('start');
-  if (!webglOK()) {
-    fallbackPanel.classList.add('show');
-    dbg('no-webgl');
-    return;
+  for (const key of Object.keys(layers)) {
+    layers[key].style.transform = `translate3d(${-worldX * PARALLAX[key]}px, 0, 0)`;
   }
-  startBtn.disabled = true;
-  try {
-    dbg('importing');
-    const { createWorld } = await import('./world.js');
-    dbg('imported');
-    // signposts draw text to canvas — wait briefly for fonts, but never hang
-    await Promise.race([document.fonts.ready, new Promise(r => setTimeout(r, 1500))]);
-    dbg('fonts-ok');
-    world = createWorld({
-      canvas,
-      zones: ZONES,
-      onEnterZone,
-      spawnZone: params.get('zone') || undefined,
-    });
-    dbg('world-created');
-    shell.classList.add('world-active');
-    document.body.classList.add('world-active');
-    hud.hidden = false;
-    renderProgress();
-    world.start();
-    world.resize();
-    canvas.setAttribute('tabindex', '0');
-    canvas.focus({ preventScroll: true });
-    new ResizeObserver(() => world && world.resize()).observe(shell);
-    document.addEventListener('visibilitychange', () => {
-      if (!world) return;
-      if (document.hidden) world.stop(); else world.start();
-    });
-  } catch (err) {
-    console.error('World failed to load:', err);
-    fallbackPanel.classList.add('show');
+
+  // wheels roll with the road (r ≈ 17px in the car SVG)
+  wheelAngle += delta / 17;
+  const deg = wheelAngle * 57.29;
+  wheelEls.forEach(w => { w.style.transform = `rotate(${deg}deg)`; });
+  if (!reducedMotion) {
+    carEl.style.transform = `translateY(${Math.sin(worldX * 0.09) * 1.6}px)`;
   }
+
+  // checkpoint detection: which signpost is the car beside?
+  const carWorldX = worldX + carScreenX;
+  let found = null;
+  for (const c of scene.checkpoints) {
+    if (Math.abs(c.x - carWorldX) < 300) { found = c; break; }
+  }
+  if (found && activeCp !== found.id) {
+    activeCp = found.id;
+    visited.add(found.id);
+    showCard(found);
+    renderMap();
+    if (visited.size === ZONES.length) celebrate();
+  } else if (!found && activeCp) {
+    activeCp = null;
+    hideCard();
+    renderMap();
+  }
+  positionMapCar();
 }
 
-startBtn.addEventListener('click', startDrive);
-$('#hud-exit').addEventListener('click', () => {
-  if (world) world.stop();
-  document.getElementById('story').scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth' });
-});
+let ticking = false;
+addEventListener('scroll', () => {
+  if (ticking) return;
+  ticking = true;
+  requestAnimationFrame(() => { ticking = false; update(); });
+}, { passive: true });
+addEventListener('resize', () => layout());
 
-// Deep-link helpers (also used for headless visual testing)
-if (params.has('autostart')) startDrive();
+if (PIN !== null) {
+  for (const sel of ['.topbar', '.hero', '#drive .wrap']) $(sel).style.display = 'none';
+}
+renderMap();
+layout();
+if (PIN !== null) track.style.height = '100svh';
+
+// Debug/deep-link: ?p=0.42 scrolls the journey to that progress
+if (params.has('p')) {
+  const p = Math.min(Math.max(parseFloat(params.get('p')) || 0, 0), 1);
+  requestAnimationFrame(() => {
+    const top = track.offsetTop + p * (track.offsetHeight - window.innerHeight);
+    scrollTo({ top, behavior: 'instant' });
+    if (params.has('debug')) requestAnimationFrame(() => {
+      document.title = `[y=${Math.round(scrollY)} want=${Math.round(top)} trackTop=${track.offsetTop} h=${track.offsetHeight}]`;
+    });
+  });
+}

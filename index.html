@@ -14,11 +14,15 @@
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito+Sans:opsz,wght@6..12,400;6..12,700;6..12,800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
 
-  <script type="importmap">
-    { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js" } }
+  <script>
+    // Apply the saved theme before first paint to avoid a flash
+    (function () {
+      try {
+        var t = localStorage.getItem('theme');
+        if (t === 'dark' || t === 'light') document.documentElement.dataset.theme = t;
+      } catch (e) { /* private mode */ }
+    })();
   </script>
-  <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js" />
-  <link rel="modulepreload" href="js/world.js" />
 </head>
 
 <body>
@@ -33,6 +37,7 @@
         <a href="#projects">Projects</a>
         <a href="#contact">Contact</a>
         <a class="nav-cta" href="mailto:soumyajyotidutta23@gmail.com">Email me</a>
+        <button class="theme-toggle" id="theme-toggle" aria-label="Switch theme">🌙</button>
       </nav>
     </div>
   </div>
@@ -87,36 +92,70 @@
     <div class="wrap">
       <div class="drive-invite">
         <p>🗺️ My work, as a tiny road trip.
-          <span class="sub">Drive to seven landmarks — research, projects, industry, teaching — at your own pace.</span>
+          <span class="sub">Just keep scrolling — the car drives itself past seven stops. Hit 🌙 up top for a night drive.</span>
         </p>
         <a class="btn btn-outline" href="#story">Skip the drive, just read ↓</a>
       </div>
+    </div>
 
-      <div class="world-shell">
-        <canvas id="world-canvas" aria-label="A drivable 3D world containing Soumyajyoti's portfolio. Use WASD or arrow keys to drive. All content is also available in the text sections below."></canvas>
+    <div class="journey-track" id="journey-track">
+      <div class="journey-stage" id="journey-stage" role="img" aria-label="An illustrated road trip: as the page scrolls, a small car drives past seven signposted stops covering research, projects, industry, teaching, and contact. Every stop is also written out in the sections below.">
 
-        <div class="world-overlay" id="world-overlay">
-          <h2>Ready for a little detour?</h2>
-          <p>Take the wheel of a very small, very trusty 4Runner and explore my work across seven landmarks. Two minutes, no fuel costs.</p>
-          <button class="btn btn-primary btn-big" id="start-drive">🚙 Start the engine</button>
-          <p><a href="#story">or skip straight to the reading version ↓</a></p>
+        <div class="sky-sun day-only" aria-hidden="true"></div>
+        <span class="sky-cloud c1 day-only" aria-hidden="true"></span>
+        <span class="sky-cloud c2 day-only" aria-hidden="true"></span>
+        <span class="sky-cloud c3 day-only" aria-hidden="true"></span>
+
+        <div class="sky-moon night-only" aria-hidden="true"></div>
+        <div class="sky-stars night-only" aria-hidden="true"></div>
+        <span class="firefly night-only" style="left:16%; bottom:190px" aria-hidden="true"></span>
+        <span class="firefly night-only" style="left:33%; bottom:150px; animation-delay:-2s" aria-hidden="true"></span>
+        <span class="firefly night-only" style="left:52%; bottom:230px; animation-delay:-4s" aria-hidden="true"></span>
+        <span class="firefly night-only" style="left:68%; bottom:160px; animation-delay:-1s" aria-hidden="true"></span>
+        <span class="firefly night-only" style="left:84%; bottom:210px; animation-delay:-5s" aria-hidden="true"></span>
+
+        <div class="scene-scale" id="scene-scale">
+          <div class="layer" id="layer-far"></div>
+          <div class="layer" id="layer-mid"></div>
+          <div class="layer" id="layer-front"></div>
+
+          <div class="journey-car" id="journey-car" aria-hidden="true">
+            <svg viewBox="0 0 340 190" xmlns="http://www.w3.org/2000/svg">
+              <polygon points="302,102 560,64 560,158 302,128" fill="var(--sc-beam)" />
+              <ellipse cx="170" cy="180" rx="132" ry="8" fill="#101c24" opacity="0.18" />
+              <rect x="40" y="86" width="260" height="52" rx="16" fill="#e96842" />
+              <path d="M84 90 L106 48 Q110 40 120 40 H210 Q220 40 224 48 L246 90 Z" fill="#e96842" />
+              <path d="M172 48 H206 Q214 48 217 54 L233 88 H172 Z" fill="#9fd3e8" />
+              <path d="M124 52 Q126 48 132 48 H160 V88 H106 Z" fill="#9fd3e8" />
+              <rect x="100" y="30" width="130" height="10" rx="5" fill="#2e3b45" />
+              <rect x="24" y="82" width="16" height="34" rx="8" fill="#27313a" />
+              <rect x="18" y="118" width="26" height="16" rx="6" fill="#d8d2c6" />
+              <rect x="296" y="118" width="26" height="16" rx="6" fill="#d8d2c6" />
+              <rect x="288" y="102" width="14" height="11" rx="4" fill="#fff3c4" />
+              <rect x="56" y="122" width="228" height="6" rx="3" fill="#c8502b" opacity="0.55" />
+              <g transform="translate(105 152)">
+                <g class="wheel">
+                  <circle r="26" fill="#27313a" />
+                  <rect x="-2.5" y="-19" width="5" height="38" rx="2" fill="#7f8b93" />
+                  <rect x="-19" y="-2.5" width="38" height="5" rx="2" fill="#7f8b93" />
+                  <circle r="9" fill="#c9ced3" />
+                </g>
+              </g>
+              <g transform="translate(237 152)">
+                <g class="wheel">
+                  <circle r="26" fill="#27313a" />
+                  <rect x="-2.5" y="-19" width="5" height="38" rx="2" fill="#7f8b93" />
+                  <rect x="-19" y="-2.5" width="38" height="5" rx="2" fill="#7f8b93" />
+                  <circle r="9" fill="#c9ced3" />
+                </g>
+              </g>
+            </svg>
+          </div>
         </div>
 
-        <div class="world-fallback" id="world-fallback">
-          <h2>This device skipped the scenic route 🏞️</h2>
-          <p>3D isn't available here — but nothing is lost. Everything in the world is written out right below.</p>
-          <a class="btn btn-primary" href="#story">Read it all ↓</a>
-        </div>
-
-        <div class="hud" id="hud" hidden>
-          <div class="hud-progress" id="hud-progress" aria-label="Landmarks visited"></div>
-          <button class="hud-exit" id="hud-exit">Skip the drive ↓</button>
-          <p class="hud-help">⌨️ WASD / arrows to drive · drive up to a signpost to stop there</p>
-        </div>
-
-        <aside class="zone-card" id="zone-card" hidden aria-live="polite"></aside>
-
-        <div class="joystick" id="joystick" aria-hidden="true"><div class="stick"></div></div>
+        <div class="journey-map" id="journey-map" aria-label="Trip progress"></div>
+        <a class="hud-exit" href="#story">Skip the drive ↓</a>
+        <aside class="zone-card" id="cp-card" hidden aria-live="polite"></aside>
       </div>
     </div>
   </section>
