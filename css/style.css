@@ -343,6 +343,7 @@ a:hover { color: var(--ink); }
   will-change: transform;
 }
 .journey-car svg { display: block; width: 100%; height: auto; overflow: visible; transition: transform 0.25s var(--ease-out); }
+.journey-stage.drive-left .journey-car svg { transform: scaleX(-1); }
 .wheel { transform-box: fill-box; transform-origin: center; }
 
 /* Sky décor */
@@ -443,8 +444,10 @@ a:hover { color: var(--ink); }
 .map-car {
   position: absolute; top: -1.1rem; z-index: 2;
   font-size: 1.15rem;
-  transition: left 0.15s linear;
+  transform: scaleX(-1); /* the emoji faces left by default; flip it to drive right */
+  transition: left 0.15s linear, transform 0.25s var(--ease-out);
 }
+.journey-stage.drive-left .map-car { transform: scaleX(1); }
 
 .hud-exit {
   position: absolute; top: max(4.6rem, 6%); right: 0.9rem; z-index: var(--z-hud);
@@ -598,5 +601,6 @@ footer { padding: var(--space-lg) 0 var(--space-xl); color: var(--muted); font-s
   .sky-cloud, .sky-stars, .firefly { animation: none; }
   .journey-stage svg * { transition: none; }
   .journey-car svg { transition: none; }
+  .map-car { transition: none; }
   .zone-card { transition: opacity 0.15s linear; translate: 0 0; }
 }
