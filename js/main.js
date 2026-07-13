@@ -46,7 +46,10 @@ const PARALLAX = { far: 0.22, mid: 0.55, front: 1 };
 const sceneScale = $('#scene-scale');
 const visited = new Set();
 const skipPill = $('#skip-pill');
+const carSvg = carEl.querySelector('svg');
 let skipDir = 'down';
+let facing = 'right';
+carSvg.style.transform = 'scaleX(-1)'; // the drawing faces left; start ready to drive right
 let activeCp = null;
 let travel = 0, carScreenX = 0, lastWorldX = -1;
 
@@ -181,6 +184,15 @@ function update(force = false) {
   wheelEls.forEach(w => { w.style.transform = `rotate(${deg}deg)`; });
   if (!reducedMotion) {
     carEl.style.transform = `translateY(${Math.sin(worldX * 0.09) * 1.6}px)`;
+  }
+
+  // face where you're going: mirrored (right) when driving on, unmirrored (left) when backing up
+  if (delta > 0.5 && facing !== 'right') {
+    facing = 'right';
+    carSvg.style.transform = 'scaleX(-1)';
+  } else if (delta < -0.5 && facing !== 'left') {
+    facing = 'left';
+    carSvg.style.transform = 'scaleX(1)';
   }
 
   // direction-aware skip: scrolling up offers the way back out

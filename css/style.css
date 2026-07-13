@@ -342,7 +342,7 @@ a:hover { color: var(--ink); }
   position: absolute; bottom: 34px; width: 210px;
   will-change: transform;
 }
-.journey-car svg { display: block; width: 100%; height: auto; overflow: visible; }
+.journey-car svg { display: block; width: 100%; height: auto; overflow: visible; transition: transform 0.25s var(--ease-out); }
 .wheel { transform-box: fill-box; transform-origin: center; }
 
 /* Sky décor */
@@ -597,5 +597,6 @@ footer { padding: var(--space-lg) 0 var(--space-xl); color: var(--muted); font-s
   .proj:hover { transform: none; }
   .sky-cloud, .sky-stars, .firefly { animation: none; }
   .journey-stage svg * { transition: none; }
+  .journey-car svg { transition: none; }
   .zone-card { transition: opacity 0.15s linear; translate: 0 0; }
 }

@@ -4,9 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Soumyajyoti Dutta — ML Engineer, Open to Work</title>
-  <meta name="description" content="Soumyajyoti Dutta — versatile ML engineer and Texas A&M PhD student. LLM post-training & alignment, agentic & RAG systems, applied ML for cyberdefense. Open to work — and yes, you can drive a little car around my resume." />
+  <meta name="description" content="Soumyajyoti Dutta: ML engineer and Texas A&M PhD student. LLM post-training & alignment, agentic & RAG systems, applied ML for cyberdefense. Open to work, and yes, you can drive a little car around my resume." />
   <meta property="og:title" content="Soumyajyoti Dutta — ML Engineer, Open to Work" />
-  <meta property="og:description" content="Explore my work as a tiny road trip: drive a low-poly 4Runner through my research, projects, and experience." />
+  <meta property="og:description" content="My work as a tiny road trip: scroll and a little 4Runner drives past seven stops of research, projects, and experience." />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚙</text></svg>" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -46,13 +46,13 @@
   <header class="hero" id="top">
     <div class="wrap hero-grid">
       <div>
-        <p class="badge-open"><span class="dot" aria-hidden="true"></span> Open to work — ML engineering &amp; research roles</p>
+        <p class="badge-open"><span class="dot" aria-hidden="true"></span> Open to work · ML engineering &amp; research roles</p>
         <h1>Hi, I'm Soumyajyoti.<br />I build ML systems <span class="accent">that ship</span>.</h1>
         <p class="hero-sub">
           CS PhD student at <strong>Texas A&amp;M</strong> (Botacin's Lab) working on
           <strong>LLM post-training &amp; alignment</strong>, <strong>evaluation design</strong>,
-          <strong>agentic &amp; RAG systems</strong>, and <strong>applied ML for cyberdefense</strong>:
-          from 140M to 9B params, from SLURM clusters to tools people actually use.
+          <strong>agentic &amp; RAG systems</strong>, and <strong>applied ML for cyberdefense</strong>.
+          Models from 140M to 9B params, trained on SLURM clusters, shipped as tools people actually use.
         </p>
         <div class="hero-ctas">
           <a class="btn btn-primary btn-big" href="mailto:soumyajyotidutta23@gmail.com">✉️ Email me</a>
@@ -219,7 +219,7 @@
       <div class="wrap">
         <div class="section-head">
           <h2>🧭 What I do</h2>
-          <p>The short version: I take language models from "pretrained" to "useful, aligned, and measured" — and I've done it on real clusters, real datasets, and real security problems.</p>
+          <p>The short version: I make language models useful after pretraining, then measure whether they actually are. Most of that work runs on multi-node clusters, and most of it is aimed at security problems.</p>
         </div>
         <ul class="skill-list">
           <li><strong>LLM post-training pipelines:</strong> curriculum/staged SFT, structural reinforcement, reward-signal design, and behavioral shaping for fine-tuning and alignment.</li>
@@ -248,17 +248,17 @@
             <p class="xp-org">Botacin's Lab, Texas A&amp;M University</p>
             <ul>
               <li>Built curriculum-based post-training pipelines across <strong>140M–9B-param</strong> families (BART, T5, Gemma 3, LLaMA 3.x, Nemotron; incl. sparse-MoE) on multi-node SLURM clusters with DeepSpeed, FSDP, and CUDA.</li>
-              <li><strong>YaraGen</strong> — Booz Allen Hamilton–sponsored, end-to-end LLM system for automated YARA threat-detection rule generation <em>(USENIX Security 2026, in prep)</em>:
+              <li><strong>YaraGen</strong>, a Booz Allen Hamilton sponsored, end-to-end LLM system for automated YARA threat-detection rule generation <em>(USENIX Security 2026, in prep)</em>:
                 <ul>
                   <li>A <strong>20-tool agent dispatcher</strong> with a 4-layer query router and a RAG pipeline with confidence-threshold anti-hallucination, web-search fallback, and a Nemotron-4B synthesizer.</li>
                   <li>A three-source dataset framework of <strong>100M+ labeled examples</strong>, including <strong>305K</strong> crawled real-world rules.</li>
-                  <li><strong>YaraAST</strong>, a hybrid AST-aware tokenizer (<strong>10× token reduction</strong>); post-trained models to <strong>≥99% syntax / ≥95% logical validity</strong> on 22,655 held-out rules — a floor held even by BART-base 140M.</li>
+                  <li><strong>YaraAST</strong>, a hybrid AST-aware tokenizer (<strong>10× token reduction</strong>); post-trained models to <strong>≥99% syntax / ≥95% logical validity</strong> on 22,655 held-out rules, a floor held even by BART-base 140M.</li>
                   <li><strong>Scooper</strong> (BiLSTM hex extractor) and <strong>MultiRuleGen</strong> (IR-level merger) raised corpus coverage <strong>83% → 100%</strong>.</li>
                   <li><em>Brownie &amp; Puff</em>, a reproducible reward/eval function (BLEU + parsing + SAT semantics) used as both training signal and quality gate; benchmarked <strong>10+ LLM families over 150+ runs</strong>.</li>
                   <li>A custom NER pipeline for IOC extraction from analyst reports: <strong>92.5% F1 across 25 IOC types</strong>.</li>
                 </ul>
               </li>
-              <li><strong>AutoPYara</strong> — open-sourced rule-generation package on PyPI <em>(ACSAC 2026, submitted)</em>: re-implemented biclustering-based rule generation from <strong>71K Windows PE samples</strong>; beat the AutoYara SOTA by <strong>+14% coverage, +10% threat-hunting accuracy, +8% low-sample generalization</strong>.</li>
+              <li><strong>AutoPYara</strong>, an open-sourced rule-generation package on PyPI <em>(ACSAC 2026, submitted)</em>: re-implemented biclustering-based rule generation from <strong>71K Windows PE samples</strong>; beat the AutoYara SOTA by <strong>+14% coverage, +10% threat-hunting accuracy, +8% low-sample generalization</strong>.</li>
             </ul>
           </div>
         </div>
@@ -267,7 +267,7 @@
           <div class="xp-when">2021 — 2022</div>
           <div>
             <h3>Junior Software Engineer</h3>
-            <p class="xp-org">Cognizant Technology Solutions — client-embedded at TJX Companies (Fortune 500)</p>
+            <p class="xp-org">Cognizant Technology Solutions, client-embedded at TJX Companies (Fortune 500)</p>
             <ul>
               <li>Delivered a logistics-automation platform with client engineering and product stakeholders.</li>
               <li>Optimized REST endpoints for latency and concurrency; maintained CI/CD and led code review across cross-functional teams.</li>
@@ -281,7 +281,7 @@
       <div class="wrap">
         <div class="section-head">
           <h2>🌲 Projects</h2>
-          <p>Built because I wanted them to exist — most of them are still running.</p>
+          <p>Built because I wanted them to exist. Most of them are still running.</p>
         </div>
         <div class="proj-grid">
           <article class="proj">
@@ -323,7 +323,7 @@
 
           <article class="proj wide">
             <h3>Also on the shelf</h3>
-            <p><strong>WildFire</strong> — spatiotemporal ML for wildfire-spread prediction from climate + satellite data · <strong>Carotid Artery USG Analysis</strong> — CNN ultrasound classification, published as a Springer book chapter (2022) · <strong>Fashion-MNIST</strong> — ResNet/VGG comparison with regularization analysis.</p>
+            <p><strong>WildFire</strong>: spatiotemporal ML for wildfire-spread prediction from climate and satellite data · <strong>Carotid Artery USG Analysis</strong>: CNN ultrasound classification, published as a Springer book chapter (2022) · <strong>Fashion-MNIST</strong>: ResNet/VGG comparison with regularization analysis.</p>
           </article>
         </div>
       </div>
