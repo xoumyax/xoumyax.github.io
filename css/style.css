@@ -498,6 +498,7 @@ a:hover { color: var(--ink); }
   border-radius: 12px; padding: 0.8rem 1rem;
   font-size: 0.97rem; margin-top: var(--space-md);
 }
+.zone-card .btn { width: 100%; justify-content: center; margin-top: var(--space-md); }
 
 /* ── Content sections ───────────────────────────────────── */
 section { padding-block: var(--space-xl); }

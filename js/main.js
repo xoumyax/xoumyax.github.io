@@ -45,6 +45,8 @@ const scene = buildScene({ farEl: layers.far, midEl: layers.mid, frontEl: layers
 const PARALLAX = { far: 0.22, mid: 0.55, front: 1 };
 const sceneScale = $('#scene-scale');
 const visited = new Set();
+const skipPill = $('#skip-pill');
+let skipDir = 'down';
 let activeCp = null;
 let travel = 0, carScreenX = 0, lastWorldX = -1;
 
@@ -55,7 +57,7 @@ function layout() {
   const vwWorld = stage.clientWidth / s;           // viewport width in world units
   carScreenX = Math.min(vwWorld * 0.34, 620);
   carEl.style.left = `${Math.round(carScreenX - 105)}px`; // center the 210px car on its axle line
-  travel = Math.max(scene.worldWidth - vwWorld + 140, 1);
+  travel = Math.max(scene.finishX - 60 - carScreenX, 1);  // the drive ends AT the finish line
   track.style.height = `${Math.round(travel + window.innerHeight)}px`;
   lastWorldX = -1;
   update(true);
@@ -66,6 +68,7 @@ function renderMap() {
   mapEl.innerHTML = `
     <div class="map-line"></div>
     ${ZONES.map(z => `<span class="map-dot ${visited.has(z.id) ? 'visited' : ''} ${activeCp === z.id ? 'here' : ''}" title="${z.title}">${z.emoji}</span>`).join('')}
+    <span class="map-dot ${visited.has('finish') ? 'visited' : ''} ${activeCp === 'finish' ? 'here' : ''}" title="The End">🏁</span>
     <span class="map-car" id="map-car" aria-hidden="true">🚙</span>`;
   positionMapCar();
 }
@@ -77,15 +80,42 @@ function positionMapCar() {
 }
 
 /* ── Checkpoint card ────────────────────────────────────── */
+const allStopsSeen = () => ZONES.every(z => visited.has(z.id));
+
 function showCard(zone) {
   card.innerHTML = `
     <div class="zone-card-head"><span class="emoji" aria-hidden="true">${zone.emoji}</span><h3>${zone.title}</h3></div>
     <p class="zone-tagline">${zone.tagline}</p>
     <ul class="zone-points">${zone.points.map(p => `<li>${p}</li>`).join('')}</ul>
     <div class="zone-tags">${zone.tags.map(t => `<span>${t}</span>`).join('')}</div>
-    ${visited.size === ZONES.length ? `<p class="zone-complete">🎉 That's all seven stops! Thanks for riding along — <a href="mailto:soumyajyotidutta23@gmail.com">email me</a> and let's plan the next trip together.</p>` : ''}`;
+    ${zone.id !== 'finish' && allStopsSeen() ? `<p class="zone-complete">🎉 That's all seven stops! The finish line is just up the road.</p>` : ''}
+    ${zone.cta ? `<a class="btn btn-primary" href="${zone.cta.href}">${zone.cta.label}</a>` : ''}`;
   card.hidden = false;
   requestAnimationFrame(() => card.classList.add('show'));
+}
+
+function finishZone() {
+  const stops = ZONES.filter(z => visited.has(z.id)).length;
+  const bonus = stops === ZONES.length ? 100 : 0;
+  const pts = stops === 0 ? 50 : stops * 100 + bonus;
+  const points = stops === 0 ? [
+    'You teleported straight to the finish line. Bold strategy, and honestly, efficient.',
+    `As the designer of the <em>Brownie &amp; Puff</em> reward function, I'm fully qualified to issue rewards, so I'll spot you <strong>50 Brownie Points</strong> for finding The End. The other 800 are waiting back up the road.`,
+    `Brownie points are absolutely redeemable: <strong>mention them in an email</strong> and I'll know you were here.`,
+  ] : [
+    `You drove the whole road${stops === ZONES.length ? ' and caught <strong>every single stop</strong>' : ` and caught <strong>${stops} of ${ZONES.length}</strong> stops`}. Respect.`,
+    `As the designer of the <em>Brownie &amp; Puff</em> reward function, I'm fully qualified to issue rewards, so I hereby award you <strong>${pts} Brownie Points</strong> (${stops} stops × 100${bonus ? ', plus a 100-point full-tour bonus' : ''}).`,
+    `Brownie points are absolutely redeemable: <strong>mention them in an email</strong> and I'll know you actually did the drive.`,
+  ];
+  return {
+    id: 'finish',
+    emoji: '🏁',
+    title: 'You reached The End!',
+    tagline: stops === 0 ? 'Speedrun acknowledged.' : 'Most visitors take the shortcut. Not you.',
+    points,
+    tags: ['🏁 finish line', `🍫 +${pts} brownie points`],
+    cta: { href: 'mailto:soumyajyotidutta23@gmail.com?subject=Redeeming%20my%20brownie%20points%20🍫', label: '✉️ Redeem via email' },
+  };
 }
 function hideCard() {
   card.classList.remove('show');
@@ -153,18 +183,32 @@ function update(force = false) {
     carEl.style.transform = `translateY(${Math.sin(worldX * 0.09) * 1.6}px)`;
   }
 
+  // direction-aware skip: scrolling up offers the way back out
+  if (delta > 2 && skipDir !== 'down') {
+    skipDir = 'down';
+    skipPill.textContent = 'Skip the drive ↓';
+    skipPill.href = '#story';
+  } else if (delta < -2 && skipDir !== 'up') {
+    skipDir = 'up';
+    skipPill.textContent = 'Skip back up ↑';
+    skipPill.href = '#top';
+  }
+
   // checkpoint detection: which signpost is the car beside?
   const carWorldX = worldX + carScreenX;
   let found = null;
   for (const c of scene.checkpoints) {
     if (Math.abs(c.x - carWorldX) < 300) { found = c; break; }
   }
+  if (!found && carWorldX > scene.finishX - 320) found = finishZone();
   if (found && activeCp !== found.id) {
     activeCp = found.id;
+    const first = !visited.has(found.id);
     visited.add(found.id);
+    if (found.id === 'finish') found = finishZone(); // recount points now that finish is tallied
     showCard(found);
     renderMap();
-    if (visited.size === ZONES.length) celebrate();
+    if (found.id === 'finish' && first) celebrate();
   } else if (!found && activeCp) {
     activeCp = null;
     hideCard();

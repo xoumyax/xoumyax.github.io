@@ -132,7 +132,8 @@ function hills(width, baseY, amp, wl, phase) {
 /* ── Build ──────────────────────────────────────────────── */
 export function buildScene({ farEl, midEl, frontEl, zones }) {
   const checkpoints = zones.map((z, i) => ({ ...z, x: CP_START + i * CP_SPACING }));
-  const worldWidth = CP_START + (zones.length - 1) * CP_SPACING + 950;
+  const finishX = CP_START + (zones.length - 1) * CP_SPACING + 700;
+  const worldWidth = finishX + 2000; // scenery keeps rolling behind the finish line
   const GY = H - 96;           // ground line where props stand (road top)
   const cp = Object.fromEntries(checkpoints.map(c => [c.id, c.x]));
 
@@ -161,7 +162,7 @@ export function buildScene({ farEl, midEl, frontEl, zones }) {
   // sprinkle ambient props between checkpoints
   for (let i = 0; i < Math.floor(worldWidth / 300); i++) {
     const x = i * 300 + seed(i + 90) * 180;
-    const nearCp = checkpoints.some(c => Math.abs(c.x - x) < 300);
+    const nearCp = checkpoints.some(c => Math.abs(c.x - x) < 300) || Math.abs(finishX - x) < 340;
     if (nearCp) continue;
     const pick = seed(i + 13);
     if (pick < 0.35) f += pine(x, GY, 0.7 + seed(i) * 0.5);
@@ -189,15 +190,17 @@ export function buildScene({ farEl, midEl, frontEl, zones }) {
   /* signposts last, on top */
   checkpoints.forEach(c => { f += signpost(c.x, GY, c.emoji, c.title); });
 
-  /* the end marker */
-  f += `<g transform="translate(${worldWidth - 320} ${GY})">
+  /* the finish line */
+  f += flagBanner(finishX - 170, GY) + flagBanner(finishX + 170, GY);
+  f += `<g transform="translate(${finishX} ${GY})">
     <rect x="-5" y="-96" width="10" height="96" rx="4" fill="var(--sc-trunk)"/>
-    <rect x="-96" y="-158" width="192" height="64" rx="16" fill="var(--sc-board)" stroke="var(--sc-board-edge)" stroke-width="5"/>
-    <text x="0" y="-116" text-anchor="middle" font-family="'Baloo 2', sans-serif" font-weight="700" font-size="26" fill="var(--sc-board-ink)">The End 🌻</text>
+    <rect x="-104" y="-158" width="208" height="64" rx="16" fill="var(--sc-board)" stroke="var(--sc-board-edge)" stroke-width="5"/>
+    <text x="0" y="-116" text-anchor="middle" font-family="'Baloo 2', sans-serif" font-weight="700" font-size="26" fill="var(--sc-board-ink)">🏁 The End 🌻</text>
   </g>`;
+  f += fence(finishX + 240, GY, 6) + roundTree(finishX + 430, GY, 1.1) + pine(finishX + 620, GY, 1);
   frontEl.innerHTML = svg(worldWidth, f);
 
-  return { worldWidth, checkpoints, height: H };
+  return { worldWidth, checkpoints, height: H, finishX };
 }
 
 function svg(w, inner) {
