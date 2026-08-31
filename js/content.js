@@ -68,9 +68,10 @@ export const ZONES = [
     id: 'campus',
     emoji: '🎓',
     title: 'Campus Quad',
-    tagline: 'Degrees earned, students taught.',
+    // Education hidden for now: original tagline was 'Degrees earned, students taught.'
+    tagline: 'Students taught, demos given.',
     points: [
-      '<strong>Ph.D. Computer Science</strong>, Texas A&M (2024–present), advised by Dr. Marcus Botacin. <strong>M.S. Computer Engineering</strong>, Texas A&M (2022–2023). <strong>B.Tech. ECE</strong>, SRM University (2017–2021).',
+      // '<strong>Ph.D. Computer Science</strong>, Texas A&M (2024–present), advised by Dr. Marcus Botacin. <strong>M.S. Computer Engineering</strong>, Texas A&M (2022–2023). <strong>B.Tech. ECE</strong>, SRM University (2017–2021).',
       '<strong>TA, CSCE 439/704 Data Analytics for Cybersecurity</strong> (Spring 2026): designing assignments and mentoring student projects.',
       '<strong>TAMU CS Day</strong> (2024, 2025): hands-on AI &amp; cybersecurity demos for high-schoolers. <strong>TA, ECEN 325 Electronics</strong> (Spring 2023). Technical coordinator, <strong>Student Research Week</strong> (2023).',
     ],
