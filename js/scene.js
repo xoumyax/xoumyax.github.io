@@ -181,7 +181,7 @@ export function buildScene({ farEl, midEl, frontEl, zones }) {
 
   f += pine(cp.park - 220, GY, 1.15) + pine(cp.park - 150, GY, 0.9) + trophy(cp.park + 140, GY) + pine(cp.park + 200, GY, 1.2) + pine(cp.park + 265, GY, 0.85);
 
-  f += building(cp.district - 215, GY, 90, 170) + building(cp.district - 120, GY, 70, 120) + building(cp.district + 135, GY, 84, 200) + building(cp.district + 225, GY, 64, 140);
+  if (cp.district !== undefined) f += building(cp.district - 215, GY, 90, 170) + building(cp.district - 120, GY, 70, 120) + building(cp.district + 135, GY, 84, 200) + building(cp.district + 225, GY, 64, 140);
 
   f += hall(cp.campus - 180, GY) + roundTree(cp.campus + 160, GY, 0.9) + fence(cp.campus + 215, GY, 4);
 

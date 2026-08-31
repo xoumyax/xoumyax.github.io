@@ -52,17 +52,18 @@ export const ZONES = [
     ],
     tags: ['1st place 🏆', 'local LLMs', 'systems', 'Springer'],
   },
-  {
-    id: 'district',
-    emoji: '🏢',
-    title: 'Industry District',
-    tagline: 'Shipping software for a Fortune 500, before the PhD.',
-    points: [
-      '<strong>Cognizant Technology Solutions</strong> (2021–2022), client-embedded consultant for <strong>TJX Companies</strong>: delivered a logistics-automation platform with client engineering and product stakeholders.',
-      'Optimized <strong>REST endpoints</strong> for latency and concurrency; maintained <strong>CI/CD</strong> and led code review across cross-functional teams.',
-    ],
-    tags: ['Fortune 500 client', 'full-stack', 'CI/CD'],
-  },
+  // Hidden for now: pre-PhD industry experience
+  // {
+  //   id: 'district',
+  //   emoji: '🏢',
+  //   title: 'Industry District',
+  //   tagline: 'Shipping software for a Fortune 500, before the PhD.',
+  //   points: [
+  //     '<strong>Cognizant Technology Solutions</strong> (2021–2022), client-embedded consultant for <strong>TJX Companies</strong>: delivered a logistics-automation platform with client engineering and product stakeholders.',
+  //     'Optimized <strong>REST endpoints</strong> for latency and concurrency; maintained <strong>CI/CD</strong> and led code review across cross-functional teams.',
+  //   ],
+  //   tags: ['Fortune 500 client', 'full-stack', 'CI/CD'],
+  // },
   {
     id: 'campus',
     emoji: '🎓',
