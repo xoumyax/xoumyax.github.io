@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSCE 313 — SSH Setup Guide: Mac → VM → GitHub</title>
+<style>
+  :root {
+    --maroon: #500000;
+    --maroon-light: #732F2F;
+    --maroon-wash: #F7F1F1;
+    --ink: #1F1A17;
+    --paper: #FDFBF8;
+    --terminal-bg: #1C1B1A;
+    --terminal-fg: #E8E3DC;
+    --prompt-mac: #7FB4A2;
+    --prompt-vm: #C9A45C;
+    --ok: #2E6E4E;
+    --ok-wash: #EAF3EE;
+    --warn: #8A5A00;
+    --warn-wash: #FBF3E2;
+    --err: #8C2B2B;
+    --err-wash: #F9ECEC;
+    --why: #3B5B7E;
+    --why-wash: #EDF2F7;
+    --rule: #E2D9D3;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+  body {
+    font-family: "Charter", "Iowan Old Style", Georgia, serif;
+    background: var(--paper);
+    color: var(--ink);
+    line-height: 1.65;
+    font-size: 17px;
+  }
+
+  .page { max-width: 780px; margin: 0 auto; padding: 0 24px 96px; }
+
+  /* ---------- Header ---------- */
+  header {
+    border-bottom: 4px solid var(--maroon);
+    padding: 56px 0 28px;
+    margin-bottom: 8px;
+  }
+  .course {
+    font-family: "Avenir Next", "Helvetica Neue", Arial, sans-serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--maroon);
+    letter-spacing: 0.02em;
+    margin-bottom: 10px;
+  }
+  h1 {
+    font-size: 2.3rem;
+    line-height: 1.15;
+    font-weight: 700;
+    color: var(--maroon);
+    margin-bottom: 14px;
+  }
+  .subtitle { font-size: 1.08rem; color: #574C46; max-width: 60ch; }
+
+  /* ---------- Route diagram ---------- */
+  .route {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    margin: 34px 0 10px;
+    font-family: "Avenir Next", "Helvetica Neue", Arial, sans-serif;
+  }
+  .route .node {
+    flex: 1;
+    border: 2px solid var(--maroon);
+    border-radius: 10px;
+    padding: 14px 12px;
+    text-align: center;
+    background: #fff;
+  }
+  .route .node b { display: block; font-size: 1rem; color: var(--maroon); }
+  .route .node span { font-size: 0.82rem; color: #6B5F58; }
+  .route .hop {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 0 10px;
+    min-width: 92px;
+  }
+  .route .hop .arrow { font-size: 1.4rem; color: var(--maroon); line-height: 1; }
+  .route .hop .lbl { font-size: 0.74rem; color: #6B5F58; text-align: center; margin-top: 2px; }
+
+  /* ---------- Section structure ---------- */
+  section { margin-top: 52px; }
+  h2 {
+    font-family: "Avenir Next", "Helvetica Neue", Arial, sans-serif;
+    font-size: 1.45rem;
+    color: var(--maroon);
+    border-bottom: 2px solid var(--rule);
+    padding-bottom: 8px;
+    margin-bottom: 6px;
+  }
+  .part-goal {
+    font-style: italic;
+    color: #574C46;
+    margin-bottom: 22px;
+  }
+  h3 {
+    font-family: "Avenir Next", "Helvetica Neue", Arial, sans-serif;
+    font-size: 1.08rem;
+    margin: 30px 0 10px;
+    color: var(--ink);
+  }
+  .stepnum {
+    display: inline-block;
+    background: var(--maroon);
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 700;
+    width: 1.7em; height: 1.7em;
+    line-height: 1.7em;
+    text-align: center;
+    border-radius: 50%;
+    margin-right: 10px;
+    vertical-align: 1px;
+  }
+  p { margin-bottom: 14px; max-width: 72ch; }
+  code {
+    font-family: "SF Mono", "Menlo", "Consolas", monospace;
+    font-size: 0.86em;
+    background: var(--maroon-wash);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 1px 5px;
+  }
+
+  /* ---------- Terminal blocks ---------- */
+  .term {
+    background: var(--terminal-bg);
+    border-radius: 8px;
+    margin: 14px 0 18px;
+    overflow-x: auto;
+  }
+  .term .bar {
+    font-family: "Avenir Next", "Helvetica Neue", Arial, sans-serif;
+    font-size: 0.76rem;
+    font-weight: 600;
+    padding: 7px 14px;
+    border-bottom: 1px solid #33302E;
+    color: var(--terminal-fg);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .term .bar .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+  .term.on-mac .bar .dot { background: var(--prompt-mac); }
+  .term.on-vm  .bar .dot { background: var(--prompt-vm); }
+  .term pre {
+    padding: 13px 16px;
+    font-family: "SF Mono", "Menlo", "Consolas", monospace;
+    font-size: 0.84rem;
+    line-height: 1.55;
+    color: var(--terminal-fg);
+    white-space: pre;
+  }
+  .term .cmt { color: #9A928A; }
+  .term .out { color: #B8AFA6; }
+
+  /* ---------- Callout boxes ---------- */
+  .box {
+    border-left: 4px solid;
+    border-radius: 0 8px 8px 0;
+    padding: 13px 18px;
+    margin: 18px 0;
+    max-width: 72ch;
+  }
+  .box .tag {
+    font-family: "Avenir Next", "Helvetica Neue", Arial, sans-serif;
+    font-weight: 700;
+    font-size: 0.85rem;
+    display: block;
+    margin-bottom: 4px;
+  }
+  .box.why  { background: var(--why-wash);  border-color: var(--why); }
+  .box.why .tag { color: var(--why); }
+  .box.warn { background: var(--warn-wash); border-color: var(--warn); }
+  .box.warn .tag { color: var(--warn); }
+  .box.ok   { background: var(--ok-wash);   border-color: var(--ok); }
+  .box.ok .tag { color: var(--ok); }
+  .box.err  { background: var(--err-wash);  border-color: var(--err); }
+  .box.err .tag { color: var(--err); }
+  .box p:last-child { margin-bottom: 0; }
+  .box code { background: rgba(255,255,255,0.65); }
+
+  /* ---------- Key-direction rule ---------- */
+  .keyrule {
+    background: var(--maroon);
+    color: #F4EDE8;
+    border-radius: 10px;
+    padding: 22px 26px;
+    margin: 26px 0;
+    font-size: 1.05rem;
+  }
+  .keyrule b { color: #fff; }
+
+  /* ---------- Triage table ---------- */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.92rem;
+    margin: 16px 0;
+  }
+  th {
+    font-family: "Avenir Next", "Helvetica Neue", Arial, sans-serif;
+    text-align: left;
+    background: var(--maroon);
+    color: #fff;
+    padding: 9px 12px;
+    font-size: 0.85rem;
+  }
+  td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+  }
+  tr:nth-child(even) td { background: var(--maroon-wash); }
+  td code { white-space: nowrap; }
+
+  footer {
+    margin-top: 64px;
+    padding-top: 18px;
+    border-top: 2px solid var(--rule);
+    font-size: 0.85rem;
+    color: #6B5F58;
+    font-family: "Avenir Next", "Helvetica Neue", Arial, sans-serif;
+  }
+
+  @media (max-width: 640px) {
+    body { font-size: 16px; }
+    h1 { font-size: 1.7rem; }
+    .route { flex-direction: column; }
+    .route .hop { min-width: 0; padding: 6px 0; }
+    .route .hop .arrow { transform: rotate(90deg); }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+<header>
+  <div class="course">CSCE 313 · Introduction to Computer Systems · Fall 2026</div>
+  <h1>SSH Setup: Mac → Ubuntu VM → GitHub</h1>
+  <p class="subtitle">A complete walkthrough for connecting your Mac terminal to your VMware Fusion VM, logging in with keys instead of passwords, and cloning course repositories from GitHub inside the VM.</p>
+
+  <div class="route">
+    <div class="node"><b>Your Mac</b><span>Terminal / VS Code</span></div>
+    <div class="hop"><div class="arrow">⟶</div><div class="lbl">SSH #1<br>Mac is client</div></div>
+    <div class="node"><b>Ubuntu VM</b><span>VMware Fusion (NAT)</span></div>
+    <div class="hop"><div class="arrow">⟶</div><div class="lbl">SSH #2<br>VM is client</div></div>
+    <div class="node"><b>GitHub</b><span>git clone</span></div>
+  </div>
+  <p style="font-size:0.9rem; color:#6B5F58;">Two <em>separate</em> SSH relationships. Keeping them straight is half the battle — see the key rule at the end of Part 2.</p>
+</header>
+
+<!-- ================= PART 1 ================= -->
+<section id="part1">
+  <h2>Part 1 — Get the VM ready to accept SSH</h2>
+  <p class="part-goal">Goal: the VM runs an SSH server and you know its IP address. Do these steps in the VMware Fusion console window — you can't SSH in until this is done.</p>
+
+  <h3><span class="stepnum">1</span>Install and start the SSH server</h3>
+  <div class="term on-vm">
+    <div class="bar"><span class="dot"></span>VM console</div>
+    <pre>sudo apt update &amp;&amp; sudo apt install -y openssh-server</pre>
+  </div>
+  <div class="term on-vm">
+    <div class="bar"><span class="dot"></span>VM console</div>
+    <pre>sudo systemctl enable --now ssh</pre>
+  </div>
+  <div class="box why">
+    <span class="tag">Why this works</span>
+    <p>Ubuntu <em>Server</em> usually ships with <code>openssh-server</code> preinstalled, but the command is idempotent — running it again changes nothing if it's already there. <code>enable --now</code> does two jobs at once: starts the service immediately <em>and</em> registers it to start at every boot. Skip the <code>enable</code> half and SSH silently dies after your next reboot.</p>
+  </div>
+
+  <h3><span class="stepnum">2</span>Find the VM's IP address</h3>
+  <div class="term on-vm">
+    <div class="bar"><span class="dot"></span>VM console</div>
+    <pre>ip -4 addr show</pre>
+  </div>
+  <p>Look for the network interface (usually <code>ens160</code> on Fusion) and note its address — typically something like <code>192.168.x.x</code>.</p>
+  <div class="box why">
+    <span class="tag">What's happening</span>
+    <p>Fusion's default networking mode is <b>NAT ("Share with my Mac")</b>. The VM gets a private IP that only your Mac can reach — exactly what you want for a lab machine. The IP usually survives reboots via its DHCP lease, but it <em>can</em> change. "SSH suddenly stopped working after a reboot" is almost always a changed IP.</p>
+  </div>
+
+  <h3><span class="stepnum">3</span>Sanity-check the network path from the Mac</h3>
+  <div class="term on-mac">
+    <div class="bar"><span class="dot"></span>Mac terminal</div>
+    <pre>ping -c 3 192.168.x.x</pre>
+  </div>
+  <div class="box ok">
+    <span class="tag">Triage trick</span>
+    <p>If ping succeeds, the network path is fine — so any SSH failure after this is an <em>SSH</em> problem (service, keys, permissions), not a <em>network</em> problem (IP, adapter mode). This one check cuts your debugging space in half.</p>
+  </div>
+</section>
+
+<!-- ================= PART 2 ================= -->
+<section id="part2">
+  <h2>Part 2 — Connect from your Mac</h2>
+  <p class="part-goal">Goal: log in from your own terminal, then switch to key-based login so you never type the VM password again — and VS Code Remote-SSH works out of the box.</p>
+
+  <h3><span class="stepnum">4</span>First connection (password login)</h3>
+  <div class="term on-mac">
+    <div class="bar"><span class="dot"></span>Mac terminal</div>
+    <pre>ssh yourusername@192.168.x.x</pre>
+  </div>
+  <p>You'll be asked to confirm the server's host-key fingerprint. Type <code>yes</code>.</p>
+  <div class="box why">
+    <span class="tag">What's happening</span>
+    <p>Your Mac has never seen this server before, so SSH asks you to trust its public <em>host key</em>, then stores it in <code>~/.ssh/known_hosts</code>. On every future connection it silently verifies you're talking to the <em>same machine</em> — this is SSH's defense against man-in-the-middle attacks.</p>
+  </div>
+  <div class="box err">
+    <span class="tag">If you see: REMOTE HOST IDENTIFICATION HAS CHANGED!</span>
+    <p>This is the mechanism above firing. It happens when you re-create your VM — the new VM has a new host key, and your Mac still remembers the old one. Fix by forgetting the old entry, then connect again:</p>
+    <div class="term on-mac"><div class="bar"><span class="dot"></span>Mac terminal</div><pre>ssh-keygen -R 192.168.x.x</pre></div>
+  </div>
+
+  <h3><span class="stepnum">5</span>Set up key-based login</h3>
+  <p>Generate a keypair on the <b>Mac</b> (skip if you already have one — check with <code>ls ~/.ssh</code>):</p>
+  <div class="term on-mac">
+    <div class="bar"><span class="dot"></span>Mac terminal</div>
+    <pre>ssh-keygen -t ed25519 -C "name@email.address"</pre>
+  </div>
+  <p>Accept the default path (<code>~/.ssh/id_ed25519</code>). A passphrase is optional. Then copy the <em>public</em> key to the VM:</p>
+  <div class="term on-mac">
+    <div class="bar"><span class="dot"></span>Mac terminal</div>
+    <pre>ssh-copy-id yourusername@192.168.x.x</pre>
+  </div>
+  <div class="box why">
+    <span class="tag">Why this works</span>
+    <p><code>ssh-copy-id</code> appends your public key to <code>~/.ssh/authorized_keys</code> on the VM with the correct permissions. Your private key never leaves your Mac. From now on, the server issues a mathematical challenge that only your private key can answer — no password crosses the wire at all. We use <code>ed25519</code> because it's the modern default: fast, secure, and short keys.</p>
+  </div>
+
+  <h3><span class="stepnum">6</span>Make it convenient (and unlock VS Code)</h3>
+  <p>On the Mac, create or edit <code>~/.ssh/config</code>:</p>
+  <div class="term on-mac">
+    <div class="bar"><span class="dot"></span>Mac terminal — ~/.ssh/config</div>
+    <pre>Host csce313
+    HostName 192.168.x.x
+    User yourusername
+    IdentityFile ~/.ssh/id_ed25519</pre>
+  </div>
+  <p>Now <code>ssh csce313</code> just works — no IP, no username, no flags.</p>
+  <div class="box ok">
+    <span class="tag">Bonus: VS Code Remote-SSH</span>
+    <p>VS Code's Remote-SSH extension reads this exact file. Once the config entry exists, <b>csce313</b> shows up by name in the Remote Explorer sidebar, and you can open folders on the VM directly in VS Code. This is the piece that makes the whole workflow seamless.</p>
+  </div>
+
+  <div class="keyrule">
+    <b>The key-direction rule.</b> There are two independent SSH relationships in this lab: Mac → VM and VM → GitHub. The <b>public key goes wherever you are connecting TO</b>; the <b>private key stays wherever you are connecting FROM</b>. Pasting the wrong key in the wrong place is the single most common setup mistake.
+  </div>
+</section>
+
+<!-- ================= PART 3 ================= -->
+<section id="part3">
+  <h2>Part 3 — Git clone from GitHub inside the VM</h2>
+  <p class="part-goal">Goal: the VM can clone course repositories. The VM is a separate machine from your Mac — it needs its own identity to GitHub.</p>
+
+  <h3><span class="stepnum">7</span>Option A — HTTPS clone (zero setup for public repos)</h3>
+  <div class="term on-vm">
+    <div class="bar"><span class="dot"></span>VM (over SSH)</div>
+    <pre>git clone https://github.com/org/repo.git</pre>
+  </div>
+  <p>Public repos clone with no credentials at all. Private repos over HTTPS will prompt for a personal access token — clunkier, which is why Option B exists.</p>
+
+  <h3><span class="stepnum">8</span>Option B — SSH key for GitHub, generated on the VM</h3>
+  <div class="term on-vm">
+    <div class="bar"><span class="dot"></span>VM (over SSH)</div>
+    <pre>ssh-keygen -t ed25519 -C "name@email.address"</pre>
+  </div>
+  <div class="term on-vm">
+    <div class="bar"><span class="dot"></span>VM (over SSH)</div>
+    <pre>cat ~/.ssh/id_ed25519.pub</pre>
+  </div>
+  <p>Copy the entire output line, then in a browser: <b>GitHub → Settings → SSH and GPG keys → New SSH key</b> → paste → save.</p>
+
+  <h3><span class="stepnum">9</span>Verify, then clone</h3>
+  <div class="term on-vm">
+    <div class="bar"><span class="dot"></span>VM (over SSH)</div>
+    <pre>ssh -T git@github.com</pre>
+  </div>
+  <div class="box warn">
+    <span class="tag">This is NOT an error</span>
+    <p>The expected output is <code>Hi username! You've successfully authenticated, but GitHub does not provide shell access.</code> Students routinely misread the second half as a failure. It isn't — GitHub is simply telling you it only speaks git, not interactive shells. If you see your username, you're done.</p>
+  </div>
+  <div class="term on-vm">
+    <div class="bar"><span class="dot"></span>VM (over SSH)</div>
+    <pre>git clone git@github.com:org/repo.git</pre>
+  </div>
+</section>
+
+<!-- ================= TRIAGE ================= -->
+<section id="triage">
+  <h2>When it breaks — triage table</h2>
+  <p class="part-goal">Match the exact error message to its cause. Most SSH problems are one of these five.</p>
+  <table>
+    <tr><th style="width:34%">Symptom</th><th style="width:30%">Root cause</th><th>Fix</th></tr>
+    <tr>
+      <td><code>Connection refused</code></td>
+      <td>sshd not running on the VM, or wrong IP</td>
+      <td>On the VM console: <code>sudo systemctl status ssh</code>; restart with <code>sudo systemctl restart ssh</code></td>
+    </tr>
+    <tr>
+      <td><code>Connection timed out</code></td>
+      <td>Wrong IP, or VM network adapter not in NAT mode</td>
+      <td>Re-check <code>ip -4 addr show</code> on the VM; verify Fusion → Settings → Network Adapter → "Share with my Mac"</td>
+    </tr>
+    <tr>
+      <td><code>Permission denied (publickey)</code> from GitHub</td>
+      <td>Key not added to GitHub, or key was generated on the Mac while cloning from the VM</td>
+      <td>Run <code>cat ~/.ssh/id_ed25519.pub</code> <em>on the VM</em> and add that key to GitHub</td>
+    </tr>
+    <tr>
+      <td>Password still asked after <code>ssh-copy-id</code></td>
+      <td>Broken permissions — sshd refuses keys in world-readable files by design</td>
+      <td>On the VM: <code>chmod 700 ~/.ssh &amp;&amp; chmod 600 ~/.ssh/authorized_keys</code></td>
+    </tr>
+    <tr>
+      <td>SSH worked yesterday, fails after reboot</td>
+      <td>DHCP handed the VM a new IP</td>
+      <td>Get the new IP with <code>ip -4 addr show</code>, update <code>~/.ssh/config</code></td>
+    </tr>
+  </table>
+</section>
+
+<footer>
+  CSCE 313 · Texas A&amp;M University · Prepared by the TA team · Commands verified on Ubuntu Server 26.04 LTS (arm64) under VMware Fusion on Apple Silicon.
+</footer>
+
+</div>
+</body>
+</html>
