@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<!-- saved from url=(0038)https://csce-313-fa26.github.io/lab-2/ -->
+<html lang="en" class=""><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lab 2 — The Process Abstraction and Creating Processes · CSCE 313</title>
+  <meta name="description" content="Build the client of a client-server financial system: fork and exec three server processes, watch what each process inherits, and talk to the servers over a ...">
+  <meta name="color-scheme" content="light dark">
+  <link rel="stylesheet" href="./Lab 2 — The Process Abstraction and Creating Processes · CSCE 313_files/main.css">
+  <link rel="canonical" href="https://csce-313-fa26.github.io/lab-2/">
+</head>
+<body data-new-gr-c-s-check-loaded="14.1326.0" data-gr-ext-installed="">
+  <a class="skip-link" href="https://csce-313-fa26.github.io/lab-2/#main">Skip to main content</a>
+
+  <header class="site-header">
+    <div class="wrap site-header__inner">
+      <a class="site-header__brand" href="https://csce-313-fa26.github.io/">
+        <span class="site-header__course">CSCE 313</span>
+        <span class="site-header__tagline">Introduction to Computer Systems</span>
+      </a>
+    </div>
+  </header>
+
+  <main id="main" class="wrap" tabindex="-1">
+    <article class="prose lab">
+
+  <header class="lab-head">
+    <p class="lab-head__eyebrow">Lab 2</p>
+    <h1 class="lab-head__title">The Process Abstraction and Creating Processes</h1>
+    <p class="lab-head__course">CSCE 313 · Introduction to Computer Systems</p>
+    <p class="lab-head__byline">Fall 2026 · Instructor: David Kebo Houngninou</p>
+
+    <dl class="lab-dates">
+      
+      <div class="lab-dates__item">
+        <dt>Released</dt>
+        <dd>Tuesday, September 8, 2026, 9:00 AM CT</dd>
+      </div>
+      
+      
+      <div class="lab-dates__item lab-dates__item--due">
+        <dt>Due</dt>
+        <dd><strong>Monday, September 21, 2026, 11:59 PM CT</strong></dd>
+      </div>
+      
+    </dl>
+  </header>
+
+  <nav class="toc" aria-labelledby="toc-heading">
+  <h2 id="toc-heading" class="toc__heading no_toc">On this page</h2>
+
+<ol id="markdown-toc">
+  <li><a href="https://csce-313-fa26.github.io/lab-2/#1-objectives" id="markdown-toc-1-objectives">1. Objectives</a></li>
+  <li><a href="https://csce-313-fa26.github.io/lab-2/#2-background" id="markdown-toc-2-background">2. Background</a>    <ol>
+      <li><a href="https://csce-313-fa26.github.io/lab-2/#21-the-client-server-model" id="markdown-toc-21-the-client-server-model">2.1 The client-server model</a></li>
+      <li><a href="https://csce-313-fa26.github.io/lab-2/#22-requests-and-responses" id="markdown-toc-22-requests-and-responses">2.2 Requests and responses</a></li>
+      <li><a href="https://csce-313-fa26.github.io/lab-2/#23-fork-and-execvp" id="markdown-toc-23-fork-and-execvp">2.3 <code class="language-plaintext highlighter-rouge">fork()</code> and <code class="language-plaintext highlighter-rouge">execvp()</code></a></li>
+      <li><a href="https://csce-313-fa26.github.io/lab-2/#24-the-requestchannel" id="markdown-toc-24-the-requestchannel">2.4 The RequestChannel</a></li>
+    </ol>
+  </li>
+  <li><a href="https://csce-313-fa26.github.io/lab-2/#3-environment-setup" id="markdown-toc-3-environment-setup">3. Environment setup</a>    <ol>
+      <li><a href="https://csce-313-fa26.github.io/lab-2/#31-accept-the-assignment" id="markdown-toc-31-accept-the-assignment">3.1 Accept the assignment</a></li>
+      <li><a href="https://csce-313-fa26.github.io/lab-2/#32-install-clang" id="markdown-toc-32-install-clang">3.2 Install clang</a></li>
+      <li><a href="https://csce-313-fa26.github.io/lab-2/#33-repository-layout" id="markdown-toc-33-repository-layout">3.3 Repository layout</a></li>
+      <li><a href="https://csce-313-fa26.github.io/lab-2/#34-build" id="markdown-toc-34-build">3.4 Build</a></li>
+      <li><a href="https://csce-313-fa26.github.io/lab-2/#35-running-the-servers-by-hand" id="markdown-toc-35-running-the-servers-by-hand">3.5 Running the servers by hand</a></li>
+    </ol>
+  </li>
+  <li><a href="https://csce-313-fa26.github.io/lab-2/#4-walkthrough" id="markdown-toc-4-walkthrough">4. Walkthrough</a>    <ol>
+      <li><a href="https://csce-313-fa26.github.io/lab-2/#41-the-finance-server" id="markdown-toc-41-the-finance-server">4.1 The finance server</a></li>
+      <li><a href="https://csce-313-fa26.github.io/lab-2/#42-the-file-server" id="markdown-toc-42-the-file-server">4.2 The file server</a></li>
+      <li><a href="https://csce-313-fa26.github.io/lab-2/#43-the-logging-server" id="markdown-toc-43-the-logging-server">4.3 The logging server</a></li>
+      <li><a href="https://csce-313-fa26.github.io/lab-2/#44-the-session-you-are-aiming-at" id="markdown-toc-44-the-session-you-are-aiming-at">4.4 The session you are aiming at</a></li>
+    </ol>
+  </li>
+  <li><a href="https://csce-313-fa26.github.io/lab-2/#5-to-do" id="markdown-toc-5-to-do">5. To-do</a>    <ol>
+      <li><a href="https://csce-313-fa26.github.io/lab-2/#51-task-1--run-the-servers-as-child-processes-45-points" id="markdown-toc-51-task-1--run-the-servers-as-child-processes-45-points">5.1 Task 1 — Run the servers as child processes (45 points)</a></li>
+      <li><a href="https://csce-313-fa26.github.io/lab-2/#52-task-2--print-process-details-15-points" id="markdown-toc-52-task-2--print-process-details-15-points">5.2 Task 2 — Print process details (15 points)</a></li>
+      <li><a href="https://csce-313-fa26.github.io/lab-2/#53-task-3--client-server-communication-30-points" id="markdown-toc-53-task-3--client-server-communication-30-points">5.3 Task 3 — Client-server communication (30 points)</a></li>
+      <li><a href="https://csce-313-fa26.github.io/lab-2/#54-task-4--close-the-channels-10-points" id="markdown-toc-54-task-4--close-the-channels-10-points">5.4 Task 4 — Close the channels (10 points)</a></li>
+      <li><a href="https://csce-313-fa26.github.io/lab-2/#55-test-your-work" id="markdown-toc-55-test-your-work">5.5 Test your work</a></li>
+    </ol>
+  </li>
+  <li><a href="https://csce-313-fa26.github.io/lab-2/#6-deliverables" id="markdown-toc-6-deliverables">6. Deliverables</a>    <ol>
+      <li><a href="https://csce-313-fa26.github.io/lab-2/#61-mistakes-that-cost-points" id="markdown-toc-61-mistakes-that-cost-points">6.1 Mistakes that cost points</a></li>
+    </ol>
+  </li>
+  <li><a href="https://csce-313-fa26.github.io/lab-2/#7-getting-help" id="markdown-toc-7-getting-help">7. Getting help</a></li>
+  <li><a href="https://csce-313-fa26.github.io/lab-2/#revision-history" id="markdown-toc-revision-history">Revision history</a></li>
+</ol>
+
+</nav>
+
+<h2 id="1-objectives">1. Objectives<a class="heading-anchor" href="https://csce-313-fa26.github.io/lab-2/#1-objectives" aria-label="Link to this section: 1. Objectives">#</a></h2>
+
+<p>By the end of this lab you will be able to:</p>
+
+<ol>
+  <li>Create a child process with <code class="language-plaintext highlighter-rouge">fork()</code> and tell parent from child by its return value.</li>
+  <li>Replace a child’s process image with <code class="language-plaintext highlighter-rouge">execvp()</code>, passing arguments the way the shell would.</li>
+  <li>Explain what a child inherits from its parent, and what it does not.</li>
+  <li>Observe process isolation directly, by printing the same variables from both processes.</li>
+  <li>Drive a client-server exchange: build a request, send it, and read the response.</li>
+  <li>Shut a system down cleanly, so that no process is left running and no parent waits forever.</li>
+</ol>
+
+<p>Every lab this term builds on one project: a financial management system. This is
+where it starts. You write the <strong>client</strong>. The three servers are written for you.</p>
+
+<h2 id="2-background">2. Background<a class="heading-anchor" href="https://csce-313-fa26.github.io/lab-2/#2-background" aria-label="Link to this section: 2. Background">#</a></h2>
+
+<h3 id="21-the-client-server-model">2.1 The client-server model<a class="heading-anchor" href="https://csce-313-fa26.github.io/lab-2/#21-the-client-server-model" aria-label="Link to this section: 2.1 The client-server model">#</a></h3>
+
+<p>A <strong>client</strong> handles the user. A <strong>server</strong> owns a resource and answers requests about
+it. The client never touches the resource itself; it asks. That buys two things:
+the resource lives in one place, and each server can be understood, changed, and
+crashed on its own.</p>
+
+<p>This lab has one client and three servers, each owning a different resource.</p>
+
+<figure class="diagram diagram--wide">
+<div class="diagram-scroll">
+<svg viewBox="0 0 760 416" role="img" aria-labelledby="fig1-title" xmlns="http://www.w3.org/2000/svg">
+  <title id="fig1-title">Architecture of the lab 2 system: one client process forks three server processes, each owning one resource</title>
+  <desc>The client process sits at the bottom. Three arrows labelled RequestChannel run from it to three server processes above: the file server, the logging server and the finance server. Each server has a two-way arrow to the resource it owns: the file server to the storage directory, the logging server to the log file, and the finance server to its array of accounts. The channel names are file, logging and finance.</desc>
+  <defs>
+    <marker id="f1arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" class="d-arrow"></path>
+    </marker>
+  </defs>
+
+  <rect x="40" y="25" width="180" height="80" rx="6" class="d-box"></rect>
+  <text x="130" y="47" text-anchor="middle" class="d-title">storage/</text>
+  <text x="130" y="68" text-anchor="middle" class="d-text--mono">example.log</text>
+  <text x="130" y="86" text-anchor="middle" class="d-text--mono">example_execution.txt</text>
+
+  <rect x="290" y="25" width="180" height="80" rx="6" class="d-box"></rect>
+  <text x="380" y="47" text-anchor="middle" class="d-title">log file</text>
+  <text x="380" y="68" text-anchor="middle" class="d-text--mono">system.log</text>
+  <text x="380" y="86" text-anchor="middle" class="d-text--sm">survives between runs</text>
+
+  <rect x="540" y="25" width="180" height="80" rx="6" class="d-box"></rect>
+  <text x="630" y="47" text-anchor="middle" class="d-title">accounts array</text>
+  <text x="630" y="68" text-anchor="middle" class="d-text--mono">accounts[0 .. max]</text>
+  <text x="630" y="86" text-anchor="middle" class="d-text--sm">lost when it exits</text>
+
+  <path d="M 130 108 L 130 162" class="d-edge" marker-start="url(#f1arrow)" marker-end="url(#f1arrow)"></path>
+  <path d="M 380 108 L 380 162" class="d-edge" marker-start="url(#f1arrow)" marker-end="url(#f1arrow)"></path>
+  <path d="M 630 108 L 630 162" class="d-edge" marker-start="url(#f1arrow)" marker-end="url(#f1arrow)"></path>
+
+  <rect x="40" y="165" width="180" height="56" rx="6" class="d-box--busy"></rect>
+  <text x="130" y="188" text-anchor="middle" class="d-title">file server</text>
+  <text x="130" y="208" text-anchor="middle" class="d-text--mono">./fileserver</text>
+
+  <rect x="290" y="165" width="180" height="56" rx="6" class="d-box--busy"></rect>
+  <text x="380" y="188" text-anchor="middle" class="d-title">logging server</text>
+  <text x="380" y="208" text-anchor="middle" class="d-text--mono">./logging</text>
+
+  <rect x="540" y="165" width="180" height="56" rx="6" class="d-box--busy"></rect>
+  <text x="630" y="188" text-anchor="middle" class="d-title">finance server</text>
+  <text x="630" y="208" text-anchor="middle" class="d-text--mono">./finance</text>
+
+  <path d="M 340 310 L 150 224" class="d-edge" marker-start="url(#f1arrow)" marker-end="url(#f1arrow)"></path>
+  <path d="M 380 310 L 380 224" class="d-edge" marker-start="url(#f1arrow)" marker-end="url(#f1arrow)"></path>
+  <path d="M 420 310 L 610 224" class="d-edge" marker-start="url(#f1arrow)" marker-end="url(#f1arrow)"></path>
+
+  <text x="150" y="272" text-anchor="middle" class="d-text--edge">"file"</text>
+  <text x="393" y="262" text-anchor="start" class="d-text--edge">"logging"</text>
+  <text x="612" y="272" text-anchor="middle" class="d-text--edge">"finance"</text>
+  <text x="380" y="408" text-anchor="middle" class="d-text--sm">three RequestChannels, one per server</text>
+
+  <rect x="290" y="313" width="180" height="56" rx="6" class="d-box--brand"></rect>
+  <text x="380" y="336" text-anchor="middle" class="d-title">client process</text>
+  <text x="380" y="356" text-anchor="middle" class="d-text--mono">./client</text>
+</svg>
+</div>
+<figcaption>Figure 1 — The client forks and execs all three servers, then talks to each over its own channel. A channel is identified by name, and the name in the client must match the name in the server exactly.</figcaption>
+</figure>
+
+<p>Notice what each server owns. The logging server’s file <strong>survives</strong> the run; the
+finance server’s accounts do not, because they live in that process’s memory and
+die with it. That difference is the whole reason the log file exists.</p>
+
+<h3 id="22-requests-and-responses">2.2 Requests and responses<a class="heading-anchor" href="https://csce-313-fa26.github.io/lab-2/#22-requests-and-responses" aria-label="Link to this section: 2.2 Requests and responses">#</a></h3>
+
+<p>Both types are in <code class="language-plaintext highlighter-rouge">common.h</code>. A <strong>request</strong> carries everything a server might need;
+most fields go unused for any given request type.</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">struct</span> <span class="nc">Request</span> <span class="p">{</span>
+    <span class="n">RequestType</span> <span class="n">type</span><span class="p">;</span>      <span class="c1">// QUIT, DEPOSIT, WITHDRAW, BALANCE,</span>
+                           <span class="c1">// UPLOAD_FILE, DOWNLOAD_FILE, LOGIN, LOGOUT</span>
+    <span class="kt">int</span>         <span class="n">user_id</span><span class="p">;</span>
+    <span class="kt">double</span>      <span class="n">amount</span><span class="p">;</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">filename</span><span class="p">;</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">data</span><span class="p">;</span>
+
+    <span class="n">Request</span><span class="p">(</span><span class="n">RequestType</span> <span class="n">t</span><span class="p">,</span> <span class="kt">int</span> <span class="n">uid</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kt">double</span> <span class="n">amt</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+            <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">fname</span> <span class="o">=</span> <span class="s">""</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">d</span> <span class="o">=</span> <span class="s">""</span><span class="p">);</span>
+<span class="p">};</span>
+</code></pre></div></div>
+
+<p>Only <code class="language-plaintext highlighter-rouge">type</code> is required; the rest default. So a quit is just <code class="language-plaintext highlighter-rouge">Request(QUIT)</code>, and a
+balance enquiry is <code class="language-plaintext highlighter-rouge">Request(BALANCE, user_id)</code>.</p>
+
+<p>A <strong>response</strong> comes back with four fields, and again only some are filled:</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">struct</span> <span class="nc">Response</span> <span class="p">{</span>
+    <span class="kt">bool</span>        <span class="n">success</span><span class="p">;</span>   <span class="c1">// did the server do what was asked?</span>
+    <span class="kt">double</span>      <span class="n">balance</span><span class="p">;</span>   <span class="c1">// finance server only</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">data</span><span class="p">;</span>      <span class="c1">// file contents, on a download</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">message</span><span class="p">;</span>   <span class="c1">// short explanation, useful when success is false</span>
+<span class="p">};</span>
+</code></pre></div></div>
+
+<aside class="callout callout--warn" aria-labelledby="resp-heading">
+<h2 class="callout__title" id="resp-heading">A response is not a request</h2>
+<p>A <code>Response</code> has no <code>user_id</code>, no <code>amount</code> and no
+<code>filename</code>. If you need to know which user or which file a reply refers to,
+you already know it: you are the one who asked. Read <code>success</code> first, and
+<code>message</code> when it is false.</p>
+</aside>
+
+<h3 id="23-fork-and-execvp">2.3 <code class="language-plaintext highlighter-rouge">fork()</code> and <code class="language-plaintext highlighter-rouge">execvp()</code><a class="heading-anchor" href="https://csce-313-fa26.github.io/lab-2/#23-fork-and-execvp" aria-label="Link to this section: 2.3 fork() and execvp()">#</a></h3>
+
+<p><code class="language-plaintext highlighter-rouge">fork()</code> is called once and returns twice, because after it there are two processes.
+The return value is the only thing that differs, and it is how each process learns
+which one it is:</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">pid_t</span> <span class="n">pid</span> <span class="o">=</span> <span class="n">fork</span><span class="p">();</span>
+<span class="k">if</span> <span class="p">(</span><span class="n">pid</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span>  <span class="p">{</span> <span class="cm">/* fork failed  */</span> <span class="p">}</span>
+<span class="k">if</span> <span class="p">(</span><span class="n">pid</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span> <span class="cm">/* the child    */</span> <span class="p">}</span>
+<span class="k">if</span> <span class="p">(</span><span class="n">pid</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>  <span class="p">{</span> <span class="cm">/* the parent   */</span> <span class="p">}</span>
+</code></pre></div></div>
+
+<p>The child is a copy: same code, same variables, same next line to execute. What it
+is <em>not</em> is the same memory. Change a variable in the child and the parent’s copy
+does not move. Task 2 has you prove that to yourself.</p>
+
+<p><code class="language-plaintext highlighter-rouge">execvp()</code> then throws that copy away and loads a different program into the process:</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">char</span><span class="o">*</span> <span class="n">args</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{(</span><span class="kt">char</span><span class="o">*</span><span class="p">)</span><span class="s">"./program"</span><span class="p">,</span> <span class="p">(</span><span class="kt">char</span><span class="o">*</span><span class="p">)</span><span class="s">"arg1"</span><span class="p">,</span> <span class="p">(</span><span class="kt">char</span><span class="o">*</span><span class="p">)</span><span class="s">"arg2"</span><span class="p">,</span> <span class="nb">nullptr</span><span class="p">};</span>
+<span class="n">execvp</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">args</span><span class="p">);</span>
+<span class="n">perror</span><span class="p">(</span><span class="s">"execvp"</span><span class="p">);</span>   <span class="c1">// only reached if execvp FAILED</span>
+<span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+</code></pre></div></div>
+
+<p>Two things to hold on to. The array must end with <code class="language-plaintext highlighter-rouge">nullptr</code>, and <code class="language-plaintext highlighter-rouge">args[0]</code> is by
+convention the program’s own name. And a successful <code class="language-plaintext highlighter-rouge">execvp</code> <strong>never returns</strong> —
+there is no longer any code to return to. So any line after it runs only on failure,
+which is exactly why the two lines above are there.</p>
+
+<aside class="callout callout--warn" aria-labelledby="dangle-heading">
+<h2 class="callout__title" id="dangle-heading">Keep the strings alive</h2>
+<p>A temporary <code>std::string</code> dies at the end of the statement that made it,
+so this leaves <code>args[2]</code> pointing at freed memory:</p>
+<p><code>char* args[] = {..., (char*)std::to_string(n).c_str(), nullptr};</code></p>
+<p>Store it in a named variable first, then take <code>.c_str()</code>. It often appears
+to work, which is what makes it worth avoiding.</p>
+</aside>
+
+<h3 id="24-the-requestchannel">2.4 The RequestChannel<a class="heading-anchor" href="https://csce-313-fa26.github.io/lab-2/#24-the-requestchannel" aria-label="Link to this section: 2.4 The RequestChannel">#</a></h3>
+
+<p><code class="language-plaintext highlighter-rouge">channel.h</code> gives you the whole interface you need:</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">RequestChannel</span><span class="p">(</span><span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">process_name</span><span class="p">,</span> <span class="k">const</span> <span class="n">Side</span> <span class="n">side</span><span class="p">);</span>
+<span class="n">Response</span> <span class="nf">send_request</span><span class="p">(</span><span class="k">const</span> <span class="n">Request</span><span class="o">&amp;</span> <span class="n">req</span><span class="p">);</span>
+</code></pre></div></div>
+
+<p>A channel is identified by its <strong>name</strong>. The client and the server must construct it
+with the same string, or they are not talking to each other. The names the servers
+use are in their source: <code class="language-plaintext highlighter-rouge">"finance"</code>, <code class="language-plaintext highlighter-rouge">"file"</code>, <code class="language-plaintext highlighter-rouge">"logging"</code>. Note the file server’s
+channel is called <code class="language-plaintext highlighter-rouge">"file"</code> even though its executable is <code class="language-plaintext highlighter-rouge">./fileserver</code>.</p>
+
+<p>Each name must be opened exactly once from each side — one <code class="language-plaintext highlighter-rouge">CLIENT_SIDE</code>, one
+<code class="language-plaintext highlighter-rouge">SERVER_SIDE</code>. Opening the same side twice is undefined behaviour.</p>
+
+<p>You only ever call <code class="language-plaintext highlighter-rouge">send_request</code>. <code class="language-plaintext highlighter-rouge">receive_request</code> and <code class="language-plaintext highlighter-rouge">send_response</code> are the
+servers’ half of the conversation, and they are already written.</p>
+
+<h2 id="3-environment-setup">3. Environment setup<a class="heading-anchor" href="https://csce-313-fa26.github.io/lab-2/#3-environment-setup" aria-label="Link to this section: 3. Environment setup">#</a></h2>
+
+<h3 id="31-accept-the-assignment">3.1 Accept the assignment<a class="heading-anchor" href="https://csce-313-fa26.github.io/lab-2/#31-accept-the-assignment" aria-label="Link to this section: 3.1 Accept the assignment">#</a></h3>
+
+<ol>
+  <li>Sign in to <a href="https://classroom50.org/">classroom50.org</a> with your GitHub account.</li>
+  <li>Accept Lab 2:
+<a href="https://classroom50.org/CSCE-313-FA26/csce-313-fa26/assignments/lab-2/accept">https://classroom50.org/CSCE-313-FA26/csce-313-fa26/assignments/lab-2/accept</a>.
+Your repository is created for you.</li>
+  <li>Clone it:</li>
+</ol>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git clone https://github.com/CSCE-313-FA26/&lt;your-lab-2-repository&gt;.git
+<span class="nb">cd</span> &lt;your-lab-2-repository&gt;
+</code></pre></div></div>
+
+<aside class="callout callout--note" aria-labelledby="roster-heading">
+<h2 class="callout__title" id="roster-heading">If accepting fails</h2>
+<p>If your name is missing from the roster, or you signed in with the wrong GitHub
+account, contact the instructor or a TA — do not create a second account.</p>
+</aside>
+
+<h3 id="32-install-clang">3.2 Install clang<a class="heading-anchor" href="https://csce-313-fa26.github.io/lab-2/#32-install-clang" aria-label="Link to this section: 3.2 Install clang">#</a></h3>
+
+<p>The <code class="language-plaintext highlighter-rouge">RequestChannel</code> implementation ships as LLVM IR, which <code class="language-plaintext highlighter-rouge">clang</code> assembles:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>apt update
+<span class="nb">sudo </span>apt <span class="nb">install </span>clang
+</code></pre></div></div>
+
+<p>You do not need clang for anything else in this lab, and you never edit the IR.</p>
+
+<h3 id="33-repository-layout">3.3 Repository layout<a class="heading-anchor" href="https://csce-313-fa26.github.io/lab-2/#33-repository-layout" aria-label="Link to this section: 3.3 Repository layout">#</a></h3>
+
+<div class="table-scroll"><table>
+  <thead>
+    <tr>
+      <th scope="col">Path</th>
+      <th scope="col">What it is</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">client.cpp</code></td>
+      <td><strong>The only file you modify.</strong> Every <code class="language-plaintext highlighter-rouge">TODO</code> is here.</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">finance.cpp</code></td>
+      <td>Finance server. Complete — do not modify.</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">file.cpp</code></td>
+      <td>File server. Complete — do not modify.</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">logging.cpp</code></td>
+      <td>Logging server. Complete — do not modify.</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">channel.h</code></td>
+      <td>The <code class="language-plaintext highlighter-rouge">RequestChannel</code> interface you call</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">channel.ll</code>, <code class="language-plaintext highlighter-rouge">channel.ll.arm</code></td>
+      <td>Its implementation, as LLVM IR, for x86-64 and ARM</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">common.h</code>, <code class="language-plaintext highlighter-rouge">common.cpp</code></td>
+      <td><code class="language-plaintext highlighter-rouge">Request</code>, <code class="language-plaintext highlighter-rouge">Response</code>, <code class="language-plaintext highlighter-rouge">RequestType</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Makefile</code></td>
+      <td>Builds all four programs</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">lab2-tests.sh</code></td>
+      <td>The same tests the autograder runs. Run them yourself.</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">storage/example_execution.txt</code></td>
+      <td>A full session, showing exactly what correct output looks like</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">storage/example.log</code></td>
+      <td>The log that session should have produced</td>
+    </tr>
+  </tbody>
+</table></div>
+
+<h3 id="34-build">3.4 Build<a class="heading-anchor" href="https://csce-313-fa26.github.io/lab-2/#34-build" aria-label="Link to this section: 3.4 Build">#</a></h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>make
+</code></pre></div></div>
+
+<p>That produces four executables: <code class="language-plaintext highlighter-rouge">client</code>, <code class="language-plaintext highlighter-rouge">finance</code>, <code class="language-plaintext highlighter-rouge">fileserver</code>, <code class="language-plaintext highlighter-rouge">logging</code>.</p>
+
+<aside class="callout callout--note" aria-labelledby="arch-heading">
+<h2 class="callout__title" id="arch-heading">x86-64, ARM, and which clang you need</h2>
+<p>The Makefile reads <code>uname -m</code> and picks <code>channel.ll</code> or
+<code>channel.ll.arm</code> by itself. <strong>Do not rename either file.</strong> In
+previous semesters students renamed them by hand and had to remember to rename them
+back before submitting; forgetting meant failing every test. There is nothing to undo
+now.</p>
+<p>On <strong>x86-64</strong>, any clang from 18 onwards works, which is what
+<code>apt install clang</code> gives you on Ubuntu 24.04.</p>
+<p>On <strong>ARM</strong>, <code>channel.ll.arm</code> was generated by a newer
+compiler and needs <strong>clang 20 or later</strong>. Ubuntu 24.04's default clang is
+18 and will stop with <code>error: expected type</code>. Install a newer one:</p>
+<p><code>sudo apt install clang-20</code> — then build with
+<code>make CLANG=clang-20</code>.</p>
+<p>If that is not available to you, work on a lab machine or any x86-64 Linux box
+instead, and tell the instructor.</p>
+</aside>
+
+<p>Note the file server’s executable is <strong><code class="language-plaintext highlighter-rouge">fileserver</code></strong>, not <code class="language-plaintext highlighter-rouge">file</code> — <code class="language-plaintext highlighter-rouge">file</code> is already
+a standard Unix command. Its <em>channel</em>, however, is named <code class="language-plaintext highlighter-rouge">"file"</code>. The two are
+different things and both spellings are correct in their own place.</p>
+
+<h3 id="35-running-the-servers-by-hand">3.5 Running the servers by hand<a class="heading-anchor" href="https://csce-313-fa26.github.io/lab-2/#35-running-the-servers-by-hand" aria-label="Link to this section: 3.5 Running the servers by hand">#</a></h3>
+
+<p>The finished client starts the servers itself. While you are still building it, you
+can run each one in its own terminal and drive it from a fourth:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>./finance <span class="nt">-m</span> 1000            <span class="c"># accounts 0 through 1000</span>
+./logging <span class="nt">-f</span> system.log      <span class="c"># log to system.log</span>
+./fileserver .txt .h         <span class="c"># allow uploads of .txt and .h only</span>
+./client
+</code></pre></div></div>
+
+<p>This is a debugging aid, not the deliverable. <strong>The autograder fails every test if
+the client does not start the servers itself</strong>, so implement Task 1 first.</p>
+
+<h2 id="4-walkthrough">4. Walkthrough<a class="heading-anchor" href="https://csce-313-fa26.github.io/lab-2/#4-walkthrough" aria-label="Link to this section: 4. Walkthrough">#</a></h2>
+
+<p>You do not have to read the servers line by line, but you do have to know which
+fields each one reads out of your request. These three diagrams are that summary.</p>
+
+<h3 id="41-the-finance-server">4.1 The finance server<a class="heading-anchor" href="https://csce-313-fa26.github.io/lab-2/#41-the-finance-server" aria-label="Link to this section: 4.1 The finance server">#</a></h3>
+
+<p>Started as <code class="language-plaintext highlighter-rouge">./finance -m &lt;max_account_num&gt;</code>. Accounts <code class="language-plaintext highlighter-rouge">0</code> through <code class="language-plaintext highlighter-rouge">max_account_num</code>
+inclusive are valid; anything else is refused. Accounts are created on first use with
+a balance of zero.</p>
+
+<figure class="diagram diagram--wide">
+<div class="diagram-scroll">
+<svg viewBox="0 0 760 480" role="img" aria-labelledby="fig2-title" xmlns="http://www.w3.org/2000/svg">
+  <title id="fig2-title">How the finance server handles one request</title>
+  <desc>A request arrives on the finance channel. If its type is QUIT the server calls exit zero and sends no response at all. Otherwise, if the user id is outside zero to max the server replies with success false and the message Invalid account ID. Otherwise it creates the account if needed and branches on request type: DEPOSIT adds the amount to the balance; WITHDRAW subtracts it only if the balance is greater than or equal to the amount, and otherwise fails with Insufficient funds; BALANCE just reports the balance; any other type fails with Unknown RequestType. All four branches then send the response back.</desc>
+  <defs>
+    <marker id="f2arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" class="d-arrow"></path>
+    </marker>
+  </defs>
+
+  <rect x="250" y="18" width="260" height="44" rx="6" class="d-box--brand"></rect>
+  <text x="380" y="38" text-anchor="middle" class="d-title">receive_request()</text>
+  <text x="380" y="55" text-anchor="middle" class="d-text--edge">channel "finance"</text>
+  <path d="M 380 62 L 380 92" class="d-edge" marker-end="url(#f2arrow)"></path>
+
+  <path d="M 380 94 L 468 124 L 380 154 L 292 124 Z" class="d-box"></path>
+  <text x="380" y="128" text-anchor="middle" class="d-text--mono">r.type == QUIT ?</text>
+  <path d="M 468 124 L 556 124" class="d-edge" marker-end="url(#f2arrow)"></path>
+  <text x="512" y="117" text-anchor="middle" class="d-text--sm">yes</text>
+  <rect x="558" y="100" width="186" height="48" rx="6" class="d-box--warn"></rect>
+  <text x="651" y="120" text-anchor="middle" class="d-text--mono">exit(0)</text>
+  <text x="651" y="138" text-anchor="middle" class="d-text--sm">no response is sent</text>
+
+  <path d="M 380 154 L 380 184" class="d-edge" marker-end="url(#f2arrow)"></path>
+  <text x="391" y="174" text-anchor="start" class="d-text--sm">no</text>
+
+  <path d="M 380 186 L 468 216 L 380 246 L 292 216 Z" class="d-box"></path>
+  <text x="380" y="213" text-anchor="middle" class="d-text--mono">0 &lt;= r.user_id</text>
+  <text x="380" y="228" text-anchor="middle" class="d-text--mono">&lt;= max ?</text>
+  <path d="M 468 216 L 556 216" class="d-edge" marker-end="url(#f2arrow)"></path>
+  <text x="512" y="209" text-anchor="middle" class="d-text--sm">no</text>
+  <rect x="558" y="192" width="186" height="48" rx="6" class="d-box--warn"></rect>
+  <text x="651" y="212" text-anchor="middle" class="d-text--mono">success = false</text>
+  <text x="651" y="230" text-anchor="middle" class="d-text--sm">"Invalid account ID"</text>
+
+  <path d="M 380 246 L 380 274" class="d-edge" marker-end="url(#f2arrow)"></path>
+  <text x="391" y="266" text-anchor="start" class="d-text--sm">yes</text>
+
+  <path d="M 100 292 L 660 292" class="d-edge"></path>
+  <path d="M 380 274 L 380 292" class="d-edge"></path>
+  <path d="M 100 292 L 100 316" class="d-edge" marker-end="url(#f2arrow)"></path>
+  <path d="M 287 292 L 287 316" class="d-edge" marker-end="url(#f2arrow)"></path>
+  <path d="M 473 292 L 473 316" class="d-edge" marker-end="url(#f2arrow)"></path>
+  <path d="M 660 292 L 660 316" class="d-edge" marker-end="url(#f2arrow)"></path>
+
+  <rect x="20" y="318" width="160" height="76" rx="6" class="d-box--busy"></rect>
+  <text x="100" y="338" text-anchor="middle" class="d-title">DEPOSIT</text>
+  <text x="100" y="360" text-anchor="middle" class="d-text--mono">balance +=</text>
+  <text x="100" y="376" text-anchor="middle" class="d-text--mono">r.amount</text>
+
+  <rect x="207" y="318" width="160" height="76" rx="6" class="d-box--busy"></rect>
+  <text x="287" y="338" text-anchor="middle" class="d-title">WITHDRAW</text>
+  <text x="287" y="360" text-anchor="middle" class="d-text--mono">balance &gt;= amount</text>
+  <text x="287" y="376" text-anchor="middle" class="d-text--sm">else "Insufficient funds"</text>
+
+  <rect x="393" y="318" width="160" height="76" rx="6" class="d-box--busy"></rect>
+  <text x="473" y="338" text-anchor="middle" class="d-title">BALANCE</text>
+  <text x="473" y="360" text-anchor="middle" class="d-text--mono">resp.balance =</text>
+  <text x="473" y="376" text-anchor="middle" class="d-text--mono">acc.balance</text>
+
+  <rect x="580" y="318" width="160" height="76" rx="6" class="d-box--warn"></rect>
+  <text x="660" y="338" text-anchor="middle" class="d-title">any other type</text>
+  <text x="660" y="360" text-anchor="middle" class="d-text--mono">success = false</text>
+  <text x="660" y="376" text-anchor="middle" class="d-text--sm">"Unknown RequestType"</text>
+
+  <path d="M 100 394 L 100 416 L 660 416 L 660 394" class="d-edge"></path>
+  <path d="M 287 394 L 287 416" class="d-edge"></path>
+  <path d="M 473 394 L 473 416" class="d-edge"></path>
+  <path d="M 380 416 L 380 438" class="d-edge" marker-end="url(#f2arrow)"></path>
+  <rect x="250" y="440" width="260" height="34" rx="6" class="d-box--brand"></rect>
+  <text x="380" y="462" text-anchor="middle" class="d-title">send_response(resp)</text>
+</svg>
+</div>
+<figcaption>Figure 2 — The finance server. Note the two things that catch people out: QUIT returns nothing at all, and a withdrawal of exactly the balance succeeds, because the test is <code>&gt;=</code>.</figcaption>
+</figure>
+
+<p><code class="language-plaintext highlighter-rouge">resp.balance</code> is set on all three successful operations, so you can print the new
+balance straight from the response without asking again.</p>
+
+<h3 id="42-the-file-server">4.2 The file server<a class="heading-anchor" href="https://csce-313-fa26.github.io/lab-2/#42-the-file-server" aria-label="Link to this section: 4.2 The file server">#</a></h3>
+
+<p>Started as <code class="language-plaintext highlighter-rouge">./fileserver &lt;ext_1&gt; ... &lt;ext_n&gt;</code>. It owns the <code class="language-plaintext highlighter-rouge">storage/</code> directory.</p>
+
+<figure class="diagram diagram--wide">
+<div class="diagram-scroll">
+<svg viewBox="-45 0 855 440" role="img" aria-labelledby="fig3-title" xmlns="http://www.w3.org/2000/svg">
+  <title id="fig3-title">How the file server handles one request</title>
+  <desc>A request arrives on the file channel. QUIT exits immediately with no response. An UPLOAD_FILE request is checked against the allowed extension list, but only if that list is non-empty; a matching or unchecked file is written into the storage directory, and a non-matching one fails with File extension not allowed. A DOWNLOAD_FILE request looks for the named file in the storage directory and, if found, copies its bytes into the response data field, otherwise fails with File not found. Any other type fails. All paths except QUIT send a response.</desc>
+  <defs>
+    <marker id="f3arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" class="d-arrow"></path>
+    </marker>
+  </defs>
+
+  <rect x="250" y="14" width="260" height="44" rx="6" class="d-box--brand"></rect>
+  <text x="380" y="34" text-anchor="middle" class="d-title">receive_request()</text>
+  <text x="380" y="51" text-anchor="middle" class="d-text--edge">channel "file"</text>
+
+  <path d="M 510 36 L 596 36" class="d-edge" marker-end="url(#f3arrow)"></path>
+  <text x="553" y="29" text-anchor="middle" class="d-text--sm">QUIT</text>
+  <rect x="598" y="12" width="150" height="48" rx="6" class="d-box--warn"></rect>
+  <text x="673" y="32" text-anchor="middle" class="d-text--mono">exit(0)</text>
+  <text x="673" y="50" text-anchor="middle" class="d-text--sm">no response</text>
+
+  <path d="M 380 58 L 380 78" class="d-edge"></path>
+  <path d="M 190 78 L 570 78" class="d-edge"></path>
+  <path d="M 190 78 L 190 102" class="d-edge" marker-end="url(#f3arrow)"></path>
+  <path d="M 570 78 L 570 102" class="d-edge" marker-end="url(#f3arrow)"></path>
+  <text x="176" y="96" text-anchor="end" class="d-text--sm">UPLOAD_FILE</text>
+  <text x="584" y="96" text-anchor="start" class="d-text--sm">DOWNLOAD_FILE</text>
+
+  <path d="M 190 104 L 300 141 L 190 178 L 80 141 Z" class="d-box"></path>
+  <text x="190" y="132" text-anchor="middle" class="d-text--sm">extension list empty,</text>
+  <text x="190" y="148" text-anchor="middle" class="d-text--sm">or filename matches?</text>
+
+  <path d="M 570 104 L 680 141 L 570 178 L 460 141 Z" class="d-box"></path>
+  <text x="570" y="132" text-anchor="middle" class="d-text--sm">storage/&lt;filename&gt;</text>
+  <text x="570" y="148" text-anchor="middle" class="d-text--sm">exists?</text>
+
+  <path d="M 190 178 L 190 214" class="d-edge" marker-end="url(#f3arrow)"></path>
+  <text x="199" y="200" text-anchor="start" class="d-text--sm">yes</text>
+  <path d="M 80 141 L 40 141 L 40 214" class="d-edge" marker-end="url(#f3arrow)"></path>
+  <text x="47" y="200" text-anchor="start" class="d-text--sm">no</text>
+
+  <path d="M 570 178 L 570 214" class="d-edge" marker-end="url(#f3arrow)"></path>
+  <text x="579" y="200" text-anchor="start" class="d-text--sm">yes</text>
+  <path d="M 680 141 L 720 141 L 720 214" class="d-edge" marker-end="url(#f3arrow)"></path>
+  <text x="727" y="200" text-anchor="start" class="d-text--sm">no</text>
+
+  <rect x="120" y="216" width="150" height="66" rx="6" class="d-box--busy"></rect>
+  <text x="195" y="238" text-anchor="middle" class="d-text--sm">write r.data to</text>
+  <text x="195" y="255" text-anchor="middle" class="d-text--mono">storage/</text>
+  <text x="195" y="272" text-anchor="middle" class="d-text--sm">success = true</text>
+
+  <rect x="-25" y="216" width="130" height="66" rx="6" class="d-box--warn"></rect>
+  <text x="40" y="245" text-anchor="middle" class="d-text--sm">success = false</text>
+  <text x="40" y="264" text-anchor="middle" class="d-text--sm">"not allowed"</text>
+
+  <rect x="495" y="216" width="150" height="66" rx="6" class="d-box--busy"></rect>
+  <text x="570" y="238" text-anchor="middle" class="d-text--sm">read the file into</text>
+  <text x="570" y="255" text-anchor="middle" class="d-text--mono">resp.data</text>
+  <text x="570" y="272" text-anchor="middle" class="d-text--sm">success = true</text>
+
+  <rect x="660" y="216" width="130" height="66" rx="6" class="d-box--warn"></rect>
+  <text x="725" y="245" text-anchor="middle" class="d-text--sm">success = false</text>
+  <text x="725" y="264" text-anchor="middle" class="d-text--sm">"File not found"</text>
+
+  <path d="M 40 282 L 40 316 L 725 316 L 725 282" class="d-edge"></path>
+  <path d="M 195 282 L 195 316" class="d-edge"></path>
+  <path d="M 570 282 L 570 316" class="d-edge"></path>
+  <path d="M 380 316 L 380 346" class="d-edge" marker-end="url(#f3arrow)"></path>
+  <rect x="250" y="348" width="260" height="34" rx="6" class="d-box--brand"></rect>
+  <text x="380" y="370" text-anchor="middle" class="d-title">send_response(resp)</text>
+
+  <text x="380" y="410" text-anchor="middle" class="d-text--sm">The server never writes to your working directory. On a download it returns</text>
+  <text x="380" y="424" text-anchor="middle" class="d-text--sm">the bytes, and the client is what saves them to a file.</text>
+</svg>
+</div>
+<figcaption>Figure 3 — The file server. Started with no extension arguments it performs no extension check at all, so every upload is accepted — the opposite of the restriction you might expect.</figcaption>
+</figure>
+
+<aside class="callout callout--warn" aria-labelledby="cap-heading">
+<h2 class="callout__title" id="cap-heading">Upload small files only — about 1 KB</h2>
+<p>A whole request has to fit in a <strong>1024-byte</strong> buffer, and that budget
+covers the request type, the user id, the amount, the filename <em>and</em> the file
+contents. Roughly a thousand bytes of file.</p>
+<p>Go over it and two things happen, neither of them obvious. The upload is silently
+truncated, and <strong>the client still prints <code>File upload successful</code></strong>.
+Go far enough over and the truncated request no longer parses at all, which the channel
+reports as a <code>QUIT</code> — so <strong>the file server exits</strong>, and every
+later upload or download does nothing at all, with no error.</p>
+<p>The example in <code>storage/example_execution.txt</code> uploads
+<code>channel.h</code>, which is 579 bytes. Keep your own test files that small. This is
+a limit of the provided channel, not something you can fix in the client.</p>
+<p>The same buffer is why a file containing a <code>|</code> character is cut off at the
+first one: <code>|</code> is the field separator in the wire format.</p>
+</aside>
+
+<h3 id="43-the-logging-server">4.3 The logging server<a class="heading-anchor" href="https://csce-313-fa26.github.io/lab-2/#43-the-logging-server" aria-label="Link to this section: 4.3 The logging server">#</a></h3>
+
+<p>Started as <code class="language-plaintext highlighter-rouge">./logging -f &lt;log_filename&gt;</code>. It appends one line per request, and the
+file survives between runs.</p>
+
+<figure class="diagram">
+<div class="diagram-scroll">
+<svg viewBox="0 0 620 350" role="img" aria-labelledby="fig4-title" xmlns="http://www.w3.org/2000/svg">
+  <title id="fig4-title">How the logging server handles one request</title>
+  <desc>The logging server waits for a request. If the type is QUIT it calls exit zero immediately, logging nothing and sending nothing back, which is why a quit never appears in the log file. For every other type it appends one line beginning with the user id in square brackets followed by a description of the action, replies with success, and loops back to waiting.</desc>
+  <defs>
+    <marker id="f4arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" class="d-arrow"></path>
+    </marker>
+  </defs>
+
+  <rect x="200" y="14" width="220" height="42" rx="21" class="d-box--brand"></rect>
+  <text x="310" y="41" text-anchor="middle" class="d-title">waiting for a request</text>
+  <path d="M 310 56 L 310 84" class="d-edge" marker-end="url(#f4arrow)"></path>
+
+  <path d="M 310 86 L 400 116 L 310 146 L 220 116 Z" class="d-box"></path>
+  <text x="310" y="120" text-anchor="middle" class="d-text--mono">r.type == QUIT ?</text>
+
+  <path d="M 400 116 L 454 116" class="d-edge" marker-end="url(#f4arrow)"></path>
+  <text x="427" y="109" text-anchor="middle" class="d-text--sm">yes</text>
+  <rect x="456" y="89" width="160" height="54" rx="6" class="d-box--warn"></rect>
+  <text x="536" y="111" text-anchor="middle" class="d-text--mono">exit(0)</text>
+  <text x="536" y="131" text-anchor="middle" class="d-text--sm">nothing logged or sent</text>
+
+  <path d="M 310 146 L 310 180" class="d-edge" marker-end="url(#f4arrow)"></path>
+  <text x="321" y="170" text-anchor="start" class="d-text--sm">no</text>
+
+  <rect x="140" y="182" width="340" height="76" rx="6" class="d-box--busy"></rect>
+  <text x="310" y="204" text-anchor="middle" class="d-text--sm">append one line to the log file:</text>
+  <text x="310" y="226" text-anchor="middle" class="d-text--mono">[r.user_id]: &lt;action&gt;</text>
+  <text x="310" y="246" text-anchor="middle" class="d-text--sm">the action text depends on r.type</text>
+
+  <path d="M 310 258 L 310 288" class="d-edge" marker-end="url(#f4arrow)"></path>
+  <rect x="185" y="290" width="250" height="42" rx="6" class="d-box--brand"></rect>
+  <text x="310" y="317" text-anchor="middle" class="d-title">send_response(success)</text>
+
+  <path d="M 185 311 L 100 311 L 100 35 L 196 35" class="d-edge--muted" marker-end="url(#f4arrow)"></path>
+  <text x="110" y="180" text-anchor="start" class="d-text--sm">loop</text>
+</svg>
+</div>
+<figcaption>Figure 4 — The logging server. A QUIT is the one request it does not log, because it exits before reaching the logging code.</figcaption>
+</figure>
+
+<p>Which field the log line uses depends on the request type, and getting this wrong is
+the most common way to lose points on Task 3:</p>
+
+<div class="table-scroll"><table>
+  <thead>
+    <tr>
+      <th scope="col">Request</th>
+      <th scope="col">Line written</th>
+      <th scope="col">Field it reads</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">LOGIN</code></td>
+      <td><code class="language-plaintext highlighter-rouge">[7]: logged in</code></td>
+      <td><code class="language-plaintext highlighter-rouge">user_id</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">LOGOUT</code></td>
+      <td><code class="language-plaintext highlighter-rouge">[7]: logged out</code></td>
+      <td><code class="language-plaintext highlighter-rouge">user_id</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">DEPOSIT</code></td>
+      <td><code class="language-plaintext highlighter-rouge">[7]: deposited 500</code></td>
+      <td><code class="language-plaintext highlighter-rouge">amount</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">WITHDRAW</code></td>
+      <td><code class="language-plaintext highlighter-rouge">[7]: withdrew 200</code></td>
+      <td><code class="language-plaintext highlighter-rouge">amount</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">BALANCE</code></td>
+      <td><code class="language-plaintext highlighter-rouge">[7]: viewed balance: 300</code></td>
+      <td><strong><code class="language-plaintext highlighter-rouge">amount</code></strong>, not <code class="language-plaintext highlighter-rouge">balance</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">UPLOAD_FILE</code></td>
+      <td><code class="language-plaintext highlighter-rouge">[7]: uploaded file: channel.h</code></td>
+      <td><code class="language-plaintext highlighter-rouge">filename</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">DOWNLOAD_FILE</code></td>
+      <td><code class="language-plaintext highlighter-rouge">[7]: downloaded file: example.log</code></td>
+      <td><code class="language-plaintext highlighter-rouge">filename</code></td>
+    </tr>
+  </tbody>
+</table></div>
+
+<aside class="callout callout--warn" aria-labelledby="balance-heading">
+<h2 class="callout__title" id="balance-heading">The BALANCE line reads <code>amount</code></h2>
+<p>The logging server prints <code>r.amount</code> for a <code>BALANCE</code> request, not
+<code>r.balance</code> — a <code>Request</code> has no <code>balance</code> field at all. So
+after the finance server tells you the balance, you have to put that number into the
+<code>amount</code> field of the request you then send to the logging server. Send a
+default-constructed request instead and your log reads <code>viewed balance: 0</code>.</p>
+</aside>
+
+<h3 id="44-the-session-you-are-aiming-at">4.4 The session you are aiming at<a class="heading-anchor" href="https://csce-313-fa26.github.io/lab-2/#44-the-session-you-are-aiming-at" aria-label="Link to this section: 4.4 The session you are aiming at">#</a></h3>
+
+<p><code class="language-plaintext highlighter-rouge">storage/example_execution.txt</code> is a complete correct run, and <code class="language-plaintext highlighter-rouge">storage/example.log</code>
+is the log it produced:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[1]: logged in
+[1]: deposited 500
+[1]: withdrew 200
+[1]: viewed balance: 300
+[1]: uploaded file: channel.h
+[1]: downloaded file: example.log
+[1]: logged out
+</code></pre></div></div>
+
+<p>Reproduce that log exactly and Task 3’s logging half is done.</p>
+
+<h2 id="5-to-do">5. To-do<a class="heading-anchor" href="https://csce-313-fa26.github.io/lab-2/#5-to-do" aria-label="Link to this section: 5. To-do">#</a></h2>
+
+<p>Everything you write goes in <code class="language-plaintext highlighter-rouge">client.cpp</code>, at the <code class="language-plaintext highlighter-rouge">TODO</code> comments. Do the tasks in
+this order: nothing else can be tested until Task 1 works.</p>
+
+<h3 id="51-task-1--run-the-servers-as-child-processes-45-points">5.1 Task 1 — Run the servers as child processes (45 points)<a class="heading-anchor" href="https://csce-313-fa26.github.io/lab-2/#51-task-1--run-the-servers-as-child-processes-45-points" aria-label="Link to this section: 5.1 Task 1 — Run the servers as child processes (45 points)">#</a></h3>
+
+<p>Start <code class="language-plaintext highlighter-rouge">finance</code>, <code class="language-plaintext highlighter-rouge">logging</code> and <code class="language-plaintext highlighter-rouge">fileserver</code> as children of the client, so that
+running <code class="language-plaintext highlighter-rouge">./client</code> in one terminal brings the whole system up.</p>
+
+<p>For each of the three, at its <code class="language-plaintext highlighter-rouge">TODO</code>:</p>
+
+<ol>
+  <li><code class="language-plaintext highlighter-rouge">fork()</code>, and check for failure.</li>
+  <li>In the <strong>child only</strong>, run the block already written there — it changes the three
+variables and calls <code class="language-plaintext highlighter-rouge">print_process_info</code> — and then <code class="language-plaintext highlighter-rouge">execvp</code> the server.</li>
+  <li>The parent does nothing here and carries on to start the next server.</li>
+</ol>
+
+<p>The command lines are:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>./finance   -m &lt;max_account&gt;
+./logging   -f &lt;log_file_name&gt;
+./fileserver &lt;extension1&gt; &lt;extension2&gt; ...
+</code></pre></div></div>
+
+<p>The file server’s argument count is not known until run time, so build its <code class="language-plaintext highlighter-rouge">argv</code>
+on the heap. Every array must end with <code class="language-plaintext highlighter-rouge">nullptr</code>.</p>
+
+<aside class="callout callout--warn" aria-labelledby="indent-heading">
+<h2 class="callout__title" id="indent-heading">The block below each TODO is indented, but it is not inside anything</h2>
+<p>In the starter, the lines that bump <code>global_var</code> and call
+<code>print_process_info</code> are indented as though they sit in an
+<code>if</code> block. They do not — there is no <code>if</code> yet. That is your job.
+Leave them where they are and put the <code>if (pid == 0) { ... }</code> around them.
+If you forget, the <em>parent</em> changes those variables and writes those files, and
+every process-info check fails while everything looks superficially fine.</p>
+</aside>
+
+<h3 id="52-task-2--print-process-details-15-points">5.2 Task 2 — Print process details (15 points)<a class="heading-anchor" href="https://csce-313-fa26.github.io/lab-2/#52-task-2--print-process-details-15-points" aria-label="Link to this section: 5.2 Task 2 — Print process details (15 points)">#</a></h3>
+
+<p>Fill in <code class="language-plaintext highlighter-rouge">print_process_info</code> so each line carries a real value:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Parent process before fork:
+PID: 48120
+PPID: 3310
+Global variable address: 0x5b1f0a2c4010 value: 100
+Stack variable address: 0x7ffd41b2ec44 value: 200
+Heap variable address: 0x5b1f0b3d52c0 value: 300
+----------------------------------------
+</code></pre></div></div>
+
+<p>Use <code class="language-plaintext highlighter-rouge">getpid()</code> and <code class="language-plaintext highlighter-rouge">getppid()</code>. Print the <strong>address</strong> and then the <strong>value</strong> for each
+of the global, stack and heap variables. Do not change the label strings or the line
+order — the tests read these files by line.</p>
+
+<p>This is the part of the lab that shows you the process abstraction directly. Each
+child bumps the three variables by a different amount before <code class="language-plaintext highlighter-rouge">exec</code>, so afterwards
+compare <code class="language-plaintext highlighter-rouge">parent_attributes.txt</code> against the three child files:</p>
+
+<ul>
+  <li>Every child’s <code class="language-plaintext highlighter-rouge">PPID</code> is the parent’s <code class="language-plaintext highlighter-rouge">PID</code>. They really are its children.</li>
+  <li>Every child’s <strong>values</strong> differ from the parent’s, and from each other’s.</li>
+  <li>Every child’s <strong>addresses</strong> are the same as the parent’s, or nearly so.</li>
+</ul>
+
+<p>That last one is the point worth sitting with. Two processes report the same address
+holding different values, because the address is virtual: each process has its own
+mapping from those numbers to physical memory. Nothing is shared, and nothing needed
+to be copied until it was written to.</p>
+
+<h3 id="53-task-3--client-server-communication-30-points">5.3 Task 3 — Client-server communication (30 points)<a class="heading-anchor" href="https://csce-313-fa26.github.io/lab-2/#53-task-3--client-server-communication-30-points" aria-label="Link to this section: 5.3 Task 3 — Client-server communication (30 points)">#</a></h3>
+
+<p>Create the three channels after the servers are running:</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">RequestChannel</span> <span class="nf">finance</span><span class="p">(</span><span class="s">"finance"</span><span class="p">,</span> <span class="n">RequestChannel</span><span class="o">::</span><span class="n">CLIENT_SIDE</span><span class="p">);</span>
+<span class="n">RequestChannel</span> <span class="nf">file</span><span class="p">(</span><span class="s">"file"</span><span class="p">,</span>       <span class="n">RequestChannel</span><span class="o">::</span><span class="n">CLIENT_SIDE</span><span class="p">);</span>
+<span class="n">RequestChannel</span> <span class="nf">logging</span><span class="p">(</span><span class="s">"logging"</span><span class="p">,</span> <span class="n">RequestChannel</span><span class="o">::</span><span class="n">CLIENT_SIDE</span><span class="p">);</span>
+</code></pre></div></div>
+
+<p>Then fill in each menu action. Save every reply into the <code class="language-plaintext highlighter-rouge">resp</code> variable the starter
+already tests, and use <code class="language-plaintext highlighter-rouge">send_request</code> for all of them.</p>
+
+<div class="table-scroll"><table>
+  <thead>
+    <tr>
+      <th scope="col">Menu action</th>
+      <th scope="col">Send to finance</th>
+      <th scope="col">Send to logging</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Login</td>
+      <td>—</td>
+      <td><code class="language-plaintext highlighter-rouge">LOGIN</code></td>
+    </tr>
+    <tr>
+      <td>Deposit</td>
+      <td><code class="language-plaintext highlighter-rouge">DEPOSIT</code> with <code class="language-plaintext highlighter-rouge">amount</code></td>
+      <td><code class="language-plaintext highlighter-rouge">DEPOSIT</code> with the same <code class="language-plaintext highlighter-rouge">amount</code></td>
+    </tr>
+    <tr>
+      <td>Withdraw</td>
+      <td><code class="language-plaintext highlighter-rouge">WITHDRAW</code> with <code class="language-plaintext highlighter-rouge">amount</code></td>
+      <td><code class="language-plaintext highlighter-rouge">WITHDRAW</code> with the same <code class="language-plaintext highlighter-rouge">amount</code></td>
+    </tr>
+    <tr>
+      <td>View balance</td>
+      <td><code class="language-plaintext highlighter-rouge">BALANCE</code></td>
+      <td><code class="language-plaintext highlighter-rouge">BALANCE</code> with the <strong>returned balance</strong> in <code class="language-plaintext highlighter-rouge">amount</code></td>
+    </tr>
+    <tr>
+      <td>Upload file</td>
+      <td><code class="language-plaintext highlighter-rouge">UPLOAD_FILE</code> with <code class="language-plaintext highlighter-rouge">filename</code> and <code class="language-plaintext highlighter-rouge">data</code> → <strong>file server</strong></td>
+      <td><code class="language-plaintext highlighter-rouge">UPLOAD_FILE</code> with <code class="language-plaintext highlighter-rouge">filename</code></td>
+    </tr>
+    <tr>
+      <td>Download file</td>
+      <td><code class="language-plaintext highlighter-rouge">DOWNLOAD_FILE</code> with <code class="language-plaintext highlighter-rouge">filename</code> → <strong>file server</strong></td>
+      <td><code class="language-plaintext highlighter-rouge">DOWNLOAD_FILE</code> with <code class="language-plaintext highlighter-rouge">filename</code></td>
+    </tr>
+    <tr>
+      <td>Logout</td>
+      <td>—</td>
+      <td><code class="language-plaintext highlighter-rouge">LOGOUT</code></td>
+    </tr>
+  </tbody>
+</table></div>
+
+<p>Every action that succeeds is logged, and only after it succeeded — the audit line
+goes inside the <code class="language-plaintext highlighter-rouge">if (resp.success)</code> branch that is already written for you.</p>
+
+<p>Read every response. A request whose reply you never read leaves the channel out of
+step, and the next reply you read will be the wrong one.</p>
+
+<h3 id="54-task-4--close-the-channels-10-points">5.4 Task 4 — Close the channels (10 points)<a class="heading-anchor" href="https://csce-313-fa26.github.io/lab-2/#54-task-4--close-the-channels-10-points" aria-label="Link to this section: 5.4 Task 4 — Close the channels (10 points)">#</a></h3>
+
+<p>Before the client returns, send <code class="language-plaintext highlighter-rouge">Request(QUIT)</code> down <strong>all three</strong> channels.</p>
+
+<p>The client’s last act is <code class="language-plaintext highlighter-rouge">while (wait(NULL) &gt; 0);</code>, which returns only once every
+child has exited — and a server exits only when it receives QUIT. So a client that
+misses even one QUIT does not crash or complain. It hangs, forever, with no output.
+If your program stops responding at exit, this is why.</p>
+
+<h3 id="55-test-your-work">5.5 Test your work<a class="heading-anchor" href="https://csce-313-fa26.github.io/lab-2/#55-test-your-work" aria-label="Link to this section: 5.5 Test your work">#</a></h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>make <span class="nb">test</span>
+</code></pre></div></div>
+
+<p>That runs <code class="language-plaintext highlighter-rouge">lab2-tests.sh</code>, which is the same set of checks the autograder runs, out
+of 100. Run it before you push; it is much faster than waiting for the grader.</p>
+
+<p>If the script reports a hang, run the client by hand and compare against
+<code class="language-plaintext highlighter-rouge">storage/example_execution.txt</code>.</p>
+
+<h2 id="6-deliverables">6. Deliverables<a class="heading-anchor" href="https://csce-313-fa26.github.io/lab-2/#6-deliverables" aria-label="Link to this section: 6. Deliverables">#</a></h2>
+
+<p>Commit and push your work to your assignment repository:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git add client.cpp
+git commit <span class="nt">-m</span> <span class="s2">"lab 2"</span>
+git push
+</code></pre></div></div>
+
+<div class="table-scroll"><table>
+  <thead>
+    <tr>
+      <th scope="col">#</th>
+      <th scope="col">Path</th>
+      <th scope="col">Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td><code class="language-plaintext highlighter-rouge">client.cpp</code></td>
+      <td>Your completed client: all four tasks</td>
+    </tr>
+  </tbody>
+</table></div>
+
+<p>That is the whole submission. The programs’ output files — <code class="language-plaintext highlighter-rouge">*_attributes.txt</code>, your
+log file, and anything uploaded into <code class="language-plaintext highlighter-rouge">storage/</code> — are produced when the grader runs
+your code, and are deliberately ignored by <code class="language-plaintext highlighter-rouge">.gitignore</code>. Do not commit them, and do
+not commit the built executables.</p>
+
+<p>The autograder runs on every push, so you can push as often as you like and read the
+result.</p>
+
+<h3 id="61-mistakes-that-cost-points">6.1 Mistakes that cost points<a class="heading-anchor" href="https://csce-313-fa26.github.io/lab-2/#61-mistakes-that-cost-points" aria-label="Link to this section: 6.1 Mistakes that cost points">#</a></h3>
+
+<div class="table-scroll"><table>
+  <thead>
+    <tr>
+      <th scope="col">Symptom</th>
+      <th scope="col">Cause</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Every test fails at once</td>
+      <td>The servers are not being started by the client. Task 1 first.</td>
+    </tr>
+    <tr>
+      <td>Client prints nothing and never exits</td>
+      <td>A QUIT was not sent to one of the three servers</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">viewed balance: 0</code> in the log</td>
+      <td>The balance was not copied into the request’s <code class="language-plaintext highlighter-rouge">amount</code> field</td>
+    </tr>
+    <tr>
+      <td>Process info values all equal the parent’s</td>
+      <td>The <code class="language-plaintext highlighter-rouge">if (pid == 0)</code> block does not wrap the given lines</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">execvp</code> “No such file or directory”</td>
+      <td>The file server is <code class="language-plaintext highlighter-rouge">./fileserver</code>, not <code class="language-plaintext highlighter-rouge">./file</code></td>
+    </tr>
+    <tr>
+      <td>Log file empty</td>
+      <td>The logging server was started, but no requests were sent to it</td>
+    </tr>
+    <tr>
+      <td>Deposits succeed but nothing is logged</td>
+      <td>The audit request was placed outside the <code class="language-plaintext highlighter-rouge">if (resp.success)</code> branch</td>
+    </tr>
+    <tr>
+      <td>Works alone, fails in the grader</td>
+      <td>You renamed <code class="language-plaintext highlighter-rouge">channel.ll</code>. Do not — the Makefile picks the right one</td>
+    </tr>
+    <tr>
+      <td>Uploads and downloads stop doing anything</td>
+      <td>An earlier upload was over ~1 KB and killed the file server. Restart the client and use a smaller file</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">error: expected type</code> from clang</td>
+      <td>You are on ARM with clang 18. See §3.4 — ARM needs clang 20</td>
+    </tr>
+  </tbody>
+</table></div>
+
+<h2 id="7-getting-help">7. Getting help<a class="heading-anchor" href="https://csce-313-fa26.github.io/lab-2/#7-getting-help" aria-label="Link to this section: 7. Getting help">#</a></h2>
+
+<p>Ask on <strong>Discord</strong>. Bring the exact command you ran and the exact output, not a
+description of it. The Canvas inbox is not monitored.</p>
+
+<p>Office hours and TA contact details are in the syllabus.</p>
+
+<h2 id="revision-history">Revision history<a class="heading-anchor" href="https://csce-313-fa26.github.io/lab-2/#revision-history" aria-label="Link to this section: Revision history">#</a></h2>
+
+<div class="table-scroll"><table>
+  <thead>
+    <tr>
+      <th scope="col">Date</th>
+      <th scope="col">Change</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>2026-09-07</td>
+      <td>Migrated from the Google Doc to this page. Due date corrected from June 14 (a leftover from a summer offering) to Monday, September 21. GitHub Classroom replaced by classroom50. <code class="language-plaintext highlighter-rouge">./file</code> corrected to <code class="language-plaintext highlighter-rouge">./fileserver</code> throughout. The file server’s request types corrected from “three” to two. Figure numbering corrected: the old handout skipped Figure 4. The <code class="language-plaintext highlighter-rouge">Response</code> field list corrected — it carries <code class="language-plaintext highlighter-rouge">success</code>, <code class="language-plaintext highlighter-rouge">balance</code>, <code class="language-plaintext highlighter-rouge">data</code>, <code class="language-plaintext highlighter-rouge">message</code>, not <code class="language-plaintext highlighter-rouge">user_id</code>/<code class="language-plaintext highlighter-rouge">amount</code>/<code class="language-plaintext highlighter-rouge">filename</code>. The en dash in <code class="language-plaintext highlighter-rouge">./logging –f</code> corrected to a hyphen. The <code class="language-plaintext highlighter-rouge">pid_t p = fork()</code> snippet corrected to use one variable name. Figures 2, 3 and 4 corrected against the server sources: QUIT sends no response, a withdrawal of exactly the balance succeeds, the file server returns bytes rather than moving files, and <code class="language-plaintext highlighter-rouge">r.user_id</code> is not <code class="language-plaintext highlighter-rouge">r.id</code>. Added the ARM/x86 note now that the Makefile selects the IR automatically, the <code class="language-plaintext highlighter-rouge">BALANCE</code> logging warning, and §5.5 on running the tests locally.</td>
+    </tr>
+  </tbody>
+</table></div>
+
+</article>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <p>CSCE 313 — Introduction to Computer Systems — Fall 2026</p>
+    </div>
+  </footer>
+
+  <script src="./Lab 2 — The Process Abstraction and Creating Processes · CSCE 313_files/enhance.js" defer=""></script>
+
+
+</body><grammarly-desktop-integration data-grammarly-shadow-root="true" style="visibility: visible !important;"><template shadowrootmode="open"><style>
+      div.grammarly-desktop-integration {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+        -moz-user-select: none;
+        -webkit-user-select: none;
+        -ms-user-select:none;
+        user-select:none;
+      }
+
+      div.grammarly-desktop-integration:before {
+        content: attr(data-content);
+      }
+    </style><div aria-label="grammarly-integration" role="group" tabindex="-1" class="grammarly-desktop-integration" data-content="{&quot;mode&quot;:&quot;full&quot;,&quot;isActive&quot;:true,&quot;isUserDisabled&quot;:false}"></div></template></grammarly-desktop-integration></html>
