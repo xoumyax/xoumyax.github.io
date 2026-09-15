@@ -121,7 +121,7 @@
   {Research Assistant / Machine Learning Engineer}{Spring 2024 -- Present}
   \bl
     \item Built curriculum-based post-training pipelines across \textbf{140M--9B-param} families (BART, T5, Gemma 3, LLaMA 3.x, Nemotron; incl.\ sparse-MoE) on \textbf{multi-node SLURM clusters} with DeepSpeed, FSDP, and CUDA.
-    \item \textbf{YaraGen} (\textbf{Booz Allen Hamilton}--sponsored) --- end-to-end LLM system for automated YARA threat-detection rule generation \textit{(USENIX Security 2026, in prep)}:
+    \item \textbf{YaraGen} (\textbf{Booz Allen Hamilton}--sponsored) --- end-to-end LLM system for automated YARA threat-detection rule generation \textit{(USENIX Security 2027, submitted)}:
     \sbl
       \item Built a \textbf{20-tool agent dispatcher} with a \textbf{4-layer query router} and a RAG pipeline with confidence-threshold anti-hallucination, web-search fallback, and a Nemotron-4B synthesizer.
       \item Constructed a \textbf{three-source dataset framework} (\textbf{100M+ labeled examples}): hand-written synthetic curriculum, grammar-parsed procedural rules, and \textbf{305K} crawled real-world rules.
@@ -130,7 +130,7 @@
       \item Designed \textit{\textbf{Brownie \& Puff}}, a reproducible reward/eval function (\textbf{BLEU + parsing + SAT semantics}) used as both training signal and quality gate; benchmarked \textbf{10+ LLM families} over \textbf{150+ runs}.
       \item Built a custom \textbf{NER pipeline} for IOC extraction from unstructured analyst reports, reaching \textbf{92.5\% F1} across \textbf{25 IOC types}.
     \sble
-    \item \textbf{AutoPYara} --- open-sourced rule-generation package (PyPI) \textit{(ACSAC 2026, submission)}:
+    \item \textbf{AutoPYara} --- open-sourced rule-generation package (PyPI) \textit{(ACSAC 2026, accepted)}:
     \sbl
       \item Re-implemented biclustering-based rule generation from raw binaries (\textbf{71K Windows PE samples}); benchmarked clustering algorithms with optimal-K heuristics.
       \item Beat the \textbf{AutoYara SOTA} by \textbf{+14\% coverage}, \textbf{+10\% threat-hunting accuracy}, and \textbf{+8\% low-sample generalization}.
@@ -195,8 +195,8 @@
 %-----------PUBLICATIONS-----------
 \section{Publications}
 \bl
-  \item \textbf{YaraGen} --- USENIX Security 2026 (submission in preparation).
-  \item \textbf{AutoPYara} --- ACSAC 2026 (submitted); open-sourced on PyPI.
+  \item \textbf{YaraGen} --- USENIX Security 2027 (submitted).
+  \item \textbf{AutoPYara} --- ACSAC 2026 (accepted); open-sourced on PyPI.
   \item \textbf{Training and Benchmarking Pro-active Deep Research Agents to Overcome Underspecificity in User Queries} --- manuscript in preparation, 2026 (co-authored, 4-person team).
   \item Carotid-artery ultrasound CNN classification --- Springer book chapter, 2022.
 \ble

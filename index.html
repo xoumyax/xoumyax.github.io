@@ -49,6 +49,10 @@
       <div>
         <p class="badge-open"><span class="dot" aria-hidden="true"></span> Open to work · ML engineering &amp; research roles</p>
         <h1>Hi, I'm Soumyajyoti.<br />I build ML systems <span class="accent">that ship</span>.</h1>
+        <p class="hero-links">
+          <a href="https://github.com/xoumyax" target="_blank" rel="noopener">GitHub</a>
+          <a href="https://www.linkedin.com/in/soumyajyotidutta/" target="_blank" rel="noopener">LinkedIn</a>
+        </p>
         <p class="hero-sub">
           CS PhD student at <strong>Texas A&amp;M</strong> (Botacin's Lab) working on
           <strong>LLM post-training &amp; alignment</strong>, <strong>evaluation design</strong>,
@@ -60,10 +64,6 @@
           <a class="btn btn-outline btn-big" href="SJDResume_Detailed.pdf" target="_blank" rel="noopener">📄 Resume</a>
           <a class="btn btn-outline btn-big" href="CSCE-313/">🎓 CSCE 313</a>
         </div>
-        <p class="hero-links">
-          <a href="https://github.com/xoumyax" target="_blank" rel="noopener">GitHub</a>
-          <a href="https://www.linkedin.com/in/soumyajyotidutta/" target="_blank" rel="noopener">LinkedIn</a>
-        </p>
       </div>
 
       <div class="hero-car" aria-hidden="true">
@@ -118,6 +118,33 @@
       </div>
     </div>
   </header>
+
+  <!-- ── Currently in progress: the work that has no paper yet ── -->
+  <section id="now">
+    <div class="wrap">
+      <article class="wip">
+        <div class="wip-bar" aria-hidden="true"></div>
+        <div class="wip-head">
+          <p class="wip-badge"><span class="dot" aria-hidden="true"></span> Currently building</p>
+          <p class="wip-target">Targeting USENIX Security '27, Cycle 2</p>
+        </div>
+        <h2>IOCScooper++ <span class="wip-sub">— IOC/TTP extraction from real threat reports</span></h2>
+
+        <ul class="wip-stats">
+          <li><strong>50.6M</strong><span>params</span></li>
+          <li><strong>0.894</strong><span>micro F1</span></li>
+          <li><strong>36</strong><span>IOC types</span></li>
+          <li><strong>344</strong><span>rules generated</span></li>
+        </ul>
+
+        <ul class="wip-points">
+          <li>Trained <strong>ScooperNER</strong>, a <strong>50.6M-parameter</strong> extractor (MLM pretraining → fine-tuning, <strong>36 IOC types</strong>): <strong>0.894 micro / 0.925 macro</strong> span-exact F1 on held-out vendor and government reports, beating fine-tuned encoder baselines at <strong>3–7× its size</strong>, with <strong>0.950 F1</strong> on explicit MITRE ATT&amp;CK IDs.</li>
+          <li>End to end on <strong>47 held-out reports</strong>, extraction feeds frozen YaraGen at <strong>0.86/0.88 precision/recall</strong> with <strong>100% rule validity</strong> at <strong>0.97 IOC coverage</strong> across <strong>344 generated rules</strong>.</li>
+          <li>Extending extraction to grounded <strong>(entity, action, IOC)</strong> tuples lifted into ATT&amp;CK techniques via procedure-example retrieval, open-set over all <strong>637 techniques</strong>, with a full-report co-annotated benchmark of real malware analysis reports.</li>
+        </ul>
+      </article>
+    </div>
+  </section>
 
   <!-- ── The Drive ── -->
   <section id="drive">
@@ -250,7 +277,7 @@
             <p class="xp-org">Botacin's Lab, Texas A&amp;M University</p>
             <ul>
               <li>Built curriculum-based post-training pipelines across <strong>140M–9B-param</strong> families (BART, T5, Gemma 3, LLaMA 3.x, Nemotron; incl. sparse-MoE) on multi-node SLURM clusters with DeepSpeed, FSDP, and CUDA.</li>
-              <li><strong>YaraGen</strong>, a Booz Allen Hamilton sponsored, end-to-end LLM system for automated YARA threat-detection rule generation <em>(USENIX Security 2026, in prep)</em>:
+              <li><strong>YaraGen</strong>, a Booz Allen Hamilton sponsored, end-to-end LLM system for automated YARA threat-detection rule generation <em>(USENIX Security 2027, submitted)</em>:
                 <ul>
                   <li>A <strong>20-tool agent dispatcher</strong> with a 4-layer query router and a RAG pipeline with confidence-threshold anti-hallucination, web-search fallback, and a Nemotron-4B synthesizer.</li>
                   <li>A three-source dataset framework of <strong>100M+ labeled examples</strong>, including <strong>305K</strong> crawled real-world rules.</li>
@@ -260,7 +287,7 @@
                   <li>A custom NER pipeline for IOC extraction from analyst reports: <strong>92.5% F1 across 25 IOC types</strong>.</li>
                 </ul>
               </li>
-              <li><strong>AutoPYara</strong>, an open-sourced rule-generation package on PyPI <em>(ACSAC 2026, submitted)</em>: re-implemented biclustering-based rule generation from <strong>71K Windows PE samples</strong>; beat the AutoYara SOTA by <strong>+14% coverage, +10% threat-hunting accuracy, +8% low-sample generalization</strong>.</li>
+              <li><strong>AutoPYara</strong>, an open-sourced rule-generation package on PyPI <em>(ACSAC 2026, accepted)</em>: re-implemented biclustering-based rule generation from <strong>71K Windows PE samples</strong>; beat the AutoYara SOTA by <strong>+14% coverage, +10% threat-hunting accuracy, +8% low-sample generalization</strong>.</li>
             </ul>
           </div>
         </div>
@@ -339,8 +366,8 @@
           <h2>📄 Publications</h2>
         </div>
         <ul class="pub-list">
-          <li><strong>YaraGen</strong> — USENIX Security 2026 (submission in preparation).</li>
-          <li><strong>AutoPYara</strong> — ACSAC 2026 (submitted); open-sourced on PyPI.</li>
+          <li><strong>YaraGen</strong> — USENIX Security 2027 (submitted).</li>
+          <li><strong>AutoPYara</strong> — ACSAC 2026 (accepted); open-sourced on PyPI.</li>
           <li><strong>Training and Benchmarking Pro-active Deep Research Agents to Overcome Underspecificity in User Queries</strong> — manuscript in preparation, 2026 (co-authored, 4-person team).</li>
           <li><strong>Carotid-artery ultrasound CNN classification</strong> — Springer book chapter, 2022.</li>
         </ul>
@@ -352,6 +379,33 @@
       <div class="wrap">
         <div>
           <div class="section-head"><h2>🎓 Teaching &amp; outreach</h2></div>
+          <div class="mini-entry">
+            <h3>TA — CSCE 313: Introduction to Computer Systems</h3>
+            <p class="when">Texas A&amp;M · Fall 2026</p>
+            <p>Lab instructor and grader; I also write the small practical assignments that give students hands-on Linux experience. <a href="CSCE-313/">Course materials →</a></p>
+            <details class="outcomes">
+              <summary>Learning outcomes</summary>
+              <ul>
+                <li>Understand what system software an application program needs to run, on a single node and over a network, and how that software is used.</li>
+                <li>Perform system-level programming.</li>
+                <li>Use system components: memory, file systems, process control, inter-process communication, and networking.</li>
+                <li>Understand the problems and pitfalls in designing and implementing multithreaded and networked applications.</li>
+                <li>Use services provided by the underlying operating system by programming directly at the OS interface level.</li>
+                <li>Understand these aspects of a computer system:
+                  <ul>
+                    <li>What an operating system is, and what its components are.</li>
+                    <li>System calls and their purpose.</li>
+                    <li>Execution of a program; function calls; interrupts.</li>
+                    <li>The OS application interface, file system, and process control.</li>
+                    <li>Inter-process communication.</li>
+                    <li>Concurrency, threads, and process/thread synchronization.</li>
+                    <li>Network socket programming.</li>
+                    <li>Parallel and distributed computing.</li>
+                  </ul>
+                </li>
+              </ul>
+            </details>
+          </div>
           <div class="mini-entry">
             <h3>TA — CSCE 439/704: Data Analytics for Cybersecurity</h3>
             <p class="when">Texas A&amp;M · Spring 2026</p>

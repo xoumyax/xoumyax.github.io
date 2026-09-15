@@ -19,12 +19,12 @@ export const ZONES = [
     title: 'Research Ridge',
     tagline: 'PhD research: LLMs that write malware-detection rules.',
     points: [
-      '<strong>YaraGen</strong> (Booz Allen Hamilton sponsored, <strong>USENIX Security 2026</strong> in prep): an end-to-end LLM system for automated YARA rule generation, built around a <strong>20-tool agent dispatcher</strong>, a 4-layer query router, and anti-hallucination RAG.',
+      '<strong>YaraGen</strong> (Booz Allen Hamilton sponsored, <strong>USENIX Security 2027</strong>, submitted): an end-to-end LLM system for automated YARA rule generation, built around a <strong>20-tool agent dispatcher</strong>, a 4-layer query router, and anti-hallucination RAG.',
       'Designed <strong>YaraAST</strong>, an AST-aware tokenizer with <strong>10× token reduction</strong>; post-trained models to <strong>≥99% syntax / ≥95% logical validity</strong> on 22,655 held-out rules.',
-      '<strong>AutoPYara</strong> (ACSAC 2026, open-sourced on PyPI): beat the AutoYara SOTA by <strong>+14% coverage</strong>, <strong>+10% accuracy</strong>, <strong>+8% generalization</strong>.',
+      '<strong>AutoPYara</strong> (ACSAC 2026 accepted, open-sourced on PyPI): beat the AutoYara SOTA by <strong>+14% coverage</strong>, <strong>+10% accuracy</strong>, <strong>+8% generalization</strong>.',
       'Built <em>Brownie & Puff</em>, a reward/eval function used as both training signal and quality gate across <strong>10+ LLM families, 150+ runs</strong>.',
     ],
-    tags: ['LLMs', 'cyberdefense', 'USENIX \'26', 'ACSAC \'26'],
+    tags: ['LLMs', 'cyberdefense', 'USENIX \'27', 'ACSAC \'26'],
   },
   {
     id: 'grounds',
