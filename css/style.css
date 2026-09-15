@@ -253,8 +253,10 @@ a:hover { color: var(--ink); }
 }
 .topbar nav a:hover { color: var(--brand); background: var(--brand-soft); }
 @media (max-width: 680px) {
-  .topbar nav a:not(.nav-cta) { display: none; }
+  .topbar nav a:not(.nav-cta):not(.nav-resume) { display: none; }
 }
+.nav-resume { border: 2px solid var(--line); }
+.nav-resume:hover { border-color: var(--brand); }
 .nav-cta { color: var(--on-brand) !important; background: var(--brand); }
 .nav-cta:hover { background: var(--ink) !important; color: var(--bg) !important; }
 .theme-toggle {
