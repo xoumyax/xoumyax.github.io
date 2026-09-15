@@ -30,6 +30,7 @@
       }
     }
     * { box-sizing: border-box; margin: 0; }
+    [hidden] { display: none !important; }   /* ul below sets display:grid, which would win otherwise */
     body {
       background: var(--bg);
       color: var(--ink);
@@ -90,6 +91,45 @@
       color: var(--muted);
     }
     footer a { color: var(--accent); }
+
+    .steps-intro { font-size: 0.9rem; color: var(--muted); margin-top: 1rem; }
+    pre.cmd {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.8rem 1rem;
+      margin-top: 0.5rem;
+      overflow-x: auto;
+      font-size: 0.85rem;
+      line-height: 1.7;
+    }
+    pre.cmd code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+
+    .gate {
+      margin-top: 1.25rem;
+      background: var(--surface);
+      border: 1px dashed var(--border);
+      border-radius: 12px;
+      padding: 0.9rem 1rem;
+    }
+    .gate-label { font-size: 0.9rem; font-weight: 700; }
+    .gate form { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.6rem; }
+    .gate input {
+      flex: 1 1 10rem; min-width: 0;
+      font: inherit; font-size: 0.95rem;
+      padding: 0.5rem 0.75rem;
+      border: 1px solid var(--border); border-radius: 999px;
+      background: var(--bg); color: var(--ink);
+    }
+    .gate input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+    .gate button {
+      font: inherit; font-weight: 700; font-size: 0.95rem;
+      padding: 0.5rem 1.1rem;
+      border: 0; border-radius: 999px;
+      background: var(--accent); color: #fff; cursor: pointer;
+    }
+    .gate-error { font-size: 0.85rem; color: var(--accent); font-weight: 700; margin-top: 0.5rem; }
+    #gate-reveal { margin-top: 0.75rem; }
   </style>
 </head>
 <body>
@@ -103,8 +143,24 @@
       <p class="due">In-class activity · 30 minutes · Honorlock proctored</p>
       <ul>
         <li><a href="CSCE-313-6.pdf">Lecture 6 Slides — Pipes &amp; IPC <span class="tag">PDF</span></a></li>
-        <li><a href="https://csce-313-fa26.github.io/activity-2-fssy/" target="_blank" rel="noopener">Activity 2 — Four Bugs in a Client <span class="tag">Course site</span></a></li>
         <li><a href="csce313-ipc-demos.zip">IPC Demos — 17 runnable pipe &amp; FIFO programs <span class="tag">ZIP</span></a></li>
+      </ul>
+
+      <p class="steps-intro">After downloading the zip, unpack it and copy it to your VM:</p>
+      <pre class="cmd"><code>unzip csce313-ipc-demos.zip
+scp -r path/to/csce313-ipc-demos username@vm_ip_address:~/path</code></pre>
+
+      <div class="gate" id="gate">
+        <p class="gate-label">🔒 Activity 2 unlocks with the token given in class.</p>
+        <form id="gate-form" autocomplete="off">
+          <input id="gate-input" type="text" inputmode="latin" placeholder="Token" aria-label="Activity 2 token" />
+          <button type="submit">Unlock</button>
+        </form>
+        <p class="gate-error" id="gate-error" hidden>That's not it — check the board.</p>
+      </div>
+      <ul id="gate-reveal" hidden>
+        <li><a href="Activity-2.html">Activity 2 — Four Bugs in a Client <span class="tag">Handout</span></a></li>
+        <li><a href="https://csce-313-fa26.github.io/activity-2-fssy/" target="_blank" rel="noopener">Activity 2 on the course site <span class="tag">Course site</span></a></li>
       </ul>
     </section>
 
@@ -132,5 +188,36 @@
       Questions? Discord office hours MW 2PM&ndash;4PM or ask in lab.
     </footer>
   </main>
+
+  <script>
+    // Light in-class gate, not security: the page is public and so is its source.
+    (function () {
+      var TOKEN = 'booyaa';
+      var KEY = 'csce313-activity2';
+      var gate = document.getElementById('gate');
+      var reveal = document.getElementById('gate-reveal');
+      var form = document.getElementById('gate-form');
+      var input = document.getElementById('gate-input');
+      var error = document.getElementById('gate-error');
+
+      function unlock() {
+        gate.hidden = true;
+        reveal.hidden = false;
+      }
+
+      try { if (localStorage.getItem(KEY) === '1') unlock(); } catch (e) {}
+
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        if (input.value.trim().toLowerCase() === TOKEN) {
+          try { localStorage.setItem(KEY, '1'); } catch (e) {}
+          unlock();
+        } else {
+          error.hidden = false;
+          input.select();
+        }
+      });
+    })();
+  </script>
 </body>
 </html>
