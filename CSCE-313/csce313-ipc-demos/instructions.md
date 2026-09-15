@@ -202,6 +202,7 @@ Break things deliberately. That is what the repository is for.
 ```
 csce313-ipc-demos/
 ├── instructions.md        this file -- how to build and run
+├── explanations.md        what each demo proves, and why
 ├── Makefile
 ├── run_all.sh
 ├── src/

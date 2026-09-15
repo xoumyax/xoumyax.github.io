@@ -61,4 +61,4 @@ hr; head_ "14 + 15  FIFO client/server"
 printf '\033[2m(normally these go in two terminals -- see scripts/demo_fifo.sh)\033[0m\n'
 ./scripts/demo_fifo.sh
 hr
-printf '\n\033[1;32mAll demos finished.\033[0m Re-read the source of each demo to see what it proves.\n\n'
+printf '\n\033[1;32mAll demos finished.\033[0m Read explanations.md for what each one proves.\n\n'

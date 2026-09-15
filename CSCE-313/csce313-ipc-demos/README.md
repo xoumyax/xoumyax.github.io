@@ -10,8 +10,9 @@ make
 
 - **[instructions.md](instructions.md)** — build, run, two-terminal FIFO workflow,
   troubleshooting table, exercises.
+- **[explanations.md](explanations.md)** — what each demo proves, expected output, and why.
 
-Start with [instructions.md](instructions.md), then read each demo's source before running it.
+Start with [explanations.md § The three ideas everything else hangs off](explanations.md).
 
 ## The five rules
 
