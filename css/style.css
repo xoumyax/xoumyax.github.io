@@ -572,6 +572,8 @@ a:hover { color: var(--ink); }
 /* ── Content sections ───────────────────────────────────── */
 section { padding-block: var(--space-xl); }
 section + section { border-top: 1px solid var(--line); }
+/* #now is the first section, so #drive inherited a rule it never used to match. */
+#now + #drive { border-top: 0; }
 
 .section-head { margin-bottom: var(--space-lg); }
 .section-head h2 {
