@@ -10,67 +10,6 @@
   <link rel="canonical" href="https://csce-313-fa26.github.io/activity-2-fssy/">
 </head>
 <body data-new-gr-c-s-check-loaded="14.1328.0" data-gr-ext-installed="">
-  <!-- In-class token gate. Light friction only: this page is public and so is its source. -->
-  <style>
-    #a2-gate {
-      max-width: 34rem; margin: 4rem auto; padding: 1.5rem;
-      border: 1px dashed currentColor; border-radius: 12px;
-      font-family: system-ui, sans-serif; text-align: center;
-    }
-    #a2-gate h1 { font-size: 1.15rem; margin: 0 0 0.35rem; }
-    #a2-gate p { margin: 0 0 1rem; opacity: 0.75; font-size: 0.95rem; }
-    #a2-gate form { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; }
-    #a2-gate input {
-      flex: 1 1 10rem; min-width: 0; font: inherit;
-      padding: 0.5rem 0.75rem; border: 1px solid currentColor; border-radius: 999px;
-      background: transparent; color: inherit;
-    }
-    #a2-gate button {
-      font: inherit; font-weight: 700; cursor: pointer;
-      padding: 0.5rem 1.1rem; border: 0; border-radius: 999px;
-      background: #b4532a; color: #fff;
-    }
-    #a2-gate .err { color: #b4532a; font-weight: 700; margin: 0.75rem 0 0; }
-    html.a2-locked body > *:not(#a2-gate) { display: none !important; }
-    #a2-gate[hidden], #a2-err[hidden] { display: none !important; }
-  </style>
-  <div id="a2-gate" hidden>
-    <h1>🔒 Activity 2</h1>
-    <p>Enter the token given in class.</p>
-    <form id="a2-form" autocomplete="off">
-      <input id="a2-input" type="text" aria-label="Activity 2 token" placeholder="Token" />
-      <button type="submit">Unlock</button>
-    </form>
-    <p class="err" id="a2-err" hidden>That's not it — check the board.</p>
-  </div>
-  <script>
-    (function () {
-      var TOKEN = 'booyaa', KEY = 'csce313-activity2';
-      var ok = false;
-      try { ok = localStorage.getItem(KEY) === '1'; } catch (e) {}
-      if (ok) return;
-      var root = document.documentElement;
-      root.classList.add('a2-locked');
-      document.addEventListener('DOMContentLoaded', function () {
-        var gate = document.getElementById('a2-gate');
-        var err = document.getElementById('a2-err');
-        var input = document.getElementById('a2-input');
-        gate.hidden = false;
-        input.focus();
-        document.getElementById('a2-form').addEventListener('submit', function (e) {
-          e.preventDefault();
-          if (input.value.trim().toLowerCase() === TOKEN) {
-            try { localStorage.setItem(KEY, '1'); } catch (e) {}
-            root.classList.remove('a2-locked');
-            gate.hidden = true;
-          } else {
-            err.hidden = false;
-            input.select();
-          }
-        });
-      });
-    })();
-  </script>
   <a class="skip-link" href="#main">Skip to main content</a>
 
   <header class="site-header">
