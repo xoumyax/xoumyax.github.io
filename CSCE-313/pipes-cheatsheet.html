@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Linux Pipes Cheatsheet — CSCE 313</title>
+  <meta name="description" content="The Unix pipelines every CSCE 313 student should know, with every stage explained." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito+Sans:opsz,wght@6..12,400;6..12,700;6..12,800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: oklch(0.972 0.012 225);
+      --surface: #ffffff;
+      --ink: oklch(0.3 0.035 240);
+      --muted: oklch(0.5 0.03 240);
+      --accent: oklch(0.62 0.16 30);
+      --border: oklch(0.9 0.015 230);
+      --code-bg: oklch(0.96 0.008 230);
+      --warn-bg: oklch(0.97 0.035 75);
+      --warn-line: oklch(0.82 0.09 70);
+      --font-display: "Baloo 2", "Nunito Sans", sans-serif;
+      --font-body: "Nunito Sans", system-ui, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: oklch(0.21 0.03 255);
+        --surface: oklch(0.27 0.032 250);
+        --ink: oklch(0.93 0.015 235);
+        --muted: oklch(0.72 0.02 240);
+        --accent: oklch(0.72 0.14 35);
+        --border: oklch(0.35 0.03 250);
+        --code-bg: oklch(0.24 0.028 252);
+        --warn-bg: oklch(0.28 0.04 75);
+        --warn-line: oklch(0.5 0.08 70);
+      }
+    }
+    * { box-sizing: border-box; margin: 0; }
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--font-body);
+      line-height: 1.6;
+      padding: 2.5rem 1.25rem 4rem;
+    }
+    main { max-width: 860px; margin: 0 auto; }
+
+    .crumb { font-size: 0.85rem; color: var(--muted); text-decoration: none; }
+    .crumb:hover { color: var(--accent); }
+    h1 {
+      font-family: var(--font-display);
+      font-size: clamp(1.8rem, 5vw, 2.4rem);
+      line-height: 1.12;
+      margin-top: 0.75rem;
+    }
+    .sub { color: var(--muted); margin-top: 0.35rem; }
+
+    .toc {
+      margin-top: 1.5rem; padding: 0.9rem 1.1rem;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+      font-size: 0.9rem;
+    }
+    .toc ol { margin: 0.4rem 0 0; padding-left: 1.2rem; columns: 2; column-gap: 1.5rem; }
+    .toc li { break-inside: avoid; }
+    .toc a { color: var(--ink); text-decoration: none; }
+    .toc a:hover { color: var(--accent); text-decoration: underline; }
+
+    section { margin-top: 2.5rem; }
+    h2 {
+      font-family: var(--font-display);
+      font-size: 1.35rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 2px solid var(--border);
+    }
+    h2 .n { color: var(--accent); }
+    h3 { font-size: 1rem; margin-top: 1.5rem; }
+    p + p { margin-top: 0.7rem; }
+    section > p { margin-top: 0.8rem; color: var(--muted); }
+
+    code {
+      font-family: var(--font-mono);
+      font-size: 0.9em;
+      background: var(--code-bg);
+      padding: 0.1em 0.35em;
+      border-radius: 5px;
+    }
+
+    .recipe { margin-top: 1.4rem; }
+    .recipe > pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 10px;
+      padding: 0.7rem 0.9rem;
+      overflow-x: auto;
+    }
+    .recipe > pre code { background: none; padding: 0; font-size: 0.88rem; }
+    .goal { font-size: 0.92rem; font-weight: 700; margin-top: 0.45rem; }
+    .stages { list-style: none; padding: 0; margin: 0.5rem 0 0; font-size: 0.88rem; }
+    .stages li {
+      display: grid;
+      grid-template-columns: minmax(7rem, 15rem) 1fr;
+      gap: 0.25rem 0.9rem;
+      padding: 0.3rem 0;
+      border-top: 1px dashed var(--border);
+    }
+    .stages li > code {
+      background: none; padding: 0; color: var(--accent); font-weight: 700;
+      overflow-wrap: anywhere;
+    }
+    .stages li > span { color: var(--muted); }
+    @media (max-width: 560px) { .stages li { grid-template-columns: 1fr; } }
+
+    table { border-collapse: collapse; width: 100%; margin-top: 0.9rem; font-size: 0.88rem; }
+    th, td { text-align: left; padding: 0.45rem 0.6rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { font-weight: 800; }
+    td:first-child { white-space: nowrap; }
+    .scroller { overflow-x: auto; }
+
+    .note {
+      margin-top: 1rem; padding: 0.8rem 1rem;
+      background: var(--warn-bg); border-left: 3px solid var(--warn-line);
+      border-radius: 0 10px 10px 0; font-size: 0.9rem;
+    }
+    .note strong { font-weight: 800; }
+
+    footer { margin-top: 3.5rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.85rem; color: var(--muted); }
+    footer a { color: var(--accent); }
+
+    @media print {
+      body { padding: 0; background: #fff; color: #000; }
+      .toc, .crumb { display: none; }
+      .recipe, .stages li, section { break-inside: avoid; }
+      a { text-decoration: none; color: #000; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <a class="crumb" href="./">← CSCE 313 lab materials</a>
+    <h1>Linux Pipes — Cheatsheet</h1>
+    <p class="sub">The pipelines worth memorising, with every stage explained. Companion to Lecture 6 (Pipes &amp; IPC).</p>
+
+    <nav class="toc">
+      <strong>On this page</strong>
+      <ol>
+        <li><a href="#anatomy">How a pipeline works</a></li>
+        <li><a href="#counting">Counting &amp; looking</a></li>
+        <li><a href="#text">Text: sort, uniq, cut, awk</a></li>
+        <li><a href="#procs">Processes &amp; the system</a></li>
+        <li><a href="#cdebug">Building &amp; debugging your C</a></li>
+        <li><a href="#files">Files &amp; disk</a></li>
+        <li><a href="#tools">The tools, one line each</a></li>
+        <li><a href="#gotchas">Gotchas that will bite you</a></li>
+      </ol>
+    </nav>
+
+    <section id="anatomy">
+      <h2><span class="n">1.</span> How a pipeline works</h2>
+      <p>The shell writes <code>|</code> as a pipe: it connects the <strong>stdout of the left command</strong> to the <strong>stdin of the right command</strong>. Both run <em>at the same time</em>, not one after the other. Neither program contains a line of pipe code — the shell arranged the plumbing with <code>pipe()</code>, <code>fork()</code>, <code>dup2()</code> and <code>exec()</code> before either started.</p>
+
+      <div class="recipe">
+        <pre><code>ls -l | sort -n -k 5 | tail -n 1 | awk '{print $NF}'</code></pre>
+        <p class="goal">Prints the name of the largest file in the current directory.</p>
+        <ol class="stages">
+          <li><code>ls -l</code><span>Long listing, one file per line. Field 5 is the size in bytes.</span></li>
+          <li><code>sort -n -k 5</code><span><code>-k 5</code> sorts on field 5, <code>-n</code> compares those fields as numbers, not text (so 9 sorts before 100).</span></li>
+          <li><code>tail -n 1</code><span>Keeps only the last line — the biggest, since the sort was ascending.</span></li>
+          <li><code>awk '{print $NF}'</code><span><code>NF</code> is the number of fields on the line, so <code>$NF</code> is the last one: the filename.</span></li>
+        </ol>
+      </div>
+
+      <p>Four processes, three pipes, all alive at once. That is the whole idea: each stage does one job, and the stream flows through.</p>
+
+      <div class="note">
+        <strong>Pipe vs. redirect.</strong> <code>|</code> sends output to <em>another program</em>. <code>&gt;</code> sends it to a <em>file</em> (overwrite), <code>&gt;&gt;</code> appends, and <code>&lt;</code> feeds a file in as stdin. <code>cmd &gt; file | grep x</code> does not work — the output already left for the file.
+      </div>
+    </section>
+
+    <section id="counting">
+      <h2><span class="n">2.</span> Counting &amp; looking</h2>
+
+      <div class="recipe">
+        <pre><code>ls -1 | wc -l</code></pre>
+        <p class="goal">How many entries are in this directory?</p>
+        <ol class="stages">
+          <li><code>ls -1</code><span>One entry per line (digit one, not letter L). Hidden dotfiles are skipped; add <code>-A</code> to include them.</span></li>
+          <li><code>wc -l</code><span>Counts lines on stdin.</span></li>
+        </ol>
+        <div class="note"><strong>Not <code>ls -l | wc -l</code>.</strong> That one is off by one, because <code>ls -l</code> prints a <code>total 48</code> header line that <code>wc</code> happily counts.</div>
+      </div>
+
+      <div class="recipe">
+        <pre><code>grep -c "error" logfile</code></pre>
+        <p class="goal">How many lines contain "error"? No pipe needed.</p>
+        <ol class="stages">
+          <li><code>grep -c</code><span>Counts matching <em>lines</em> directly. <code>grep x file | wc -l</code> does the same thing with an extra process.</span></li>
+        </ol>
+      </div>
+
+      <div class="recipe">
+        <pre><code>./myprogram | head -n 20</code></pre>
+        <p class="goal">Look at the first 20 lines of a noisy program.</p>
+        <ol class="stages">
+          <li><code>./myprogram</code><span>Writes to stdout, which is now the pipe.</span></li>
+          <li><code>head -n 20</code><span>Prints 20 lines, then exits and closes its read end.</span></li>
+        </ol>
+        <div class="note"><strong>This is where <code>SIGPIPE</code> comes from.</strong> When <code>head</code> exits, your program's next <code>write()</code> has no reader; the kernel sends it <code>SIGPIPE</code> and it dies. That is normal and it is why <code>yes | head -3</code> terminates at all.</div>
+      </div>
+
+      <div class="recipe">
+        <pre><code>sed -n '81,100p' file.txt</code></pre>
+        <p class="goal">Show lines 81–100.</p>
+        <ol class="stages">
+          <li><code>sed -n</code><span>Suppresses the default "print every line".</span></li>
+          <li><code>'81,100p'</code><span>For lines 81 through 100, do <code>p</code> (print). The pipeline version, <code>head -n 100 | tail -n 20</code>, also works and is easier to remember.</span></li>
+        </ol>
+      </div>
+
+      <div class="recipe">
+        <pre><code>dmesg | less</code></pre>
+        <p class="goal">Page through long output instead of losing it off the top of the screen.</p>
+        <ol class="stages">
+          <li><code>dmesg</code><span>Kernel ring buffer — thousands of lines.</span></li>
+          <li><code>less</code><span>Interactive pager. <code>/word</code> searches, <code>q</code> quits, arrows scroll.</span></li>
+        </ol>
+      </div>
+    </section>
+
+    <section id="text">
+      <h2><span class="n">3.</span> Text: sort, uniq, cut, awk</h2>
+
+      <div class="recipe">
+        <pre><code>sort file.txt | uniq -c | sort -nr | head -n 10</code></pre>
+        <p class="goal">The ten most common lines, with counts. The single most useful pipeline in Unix.</p>
+        <ol class="stages">
+          <li><code>sort</code><span>Groups identical lines next to each other. Required — see the note.</span></li>
+          <li><code>uniq -c</code><span>Collapses each run of identical lines into one, prefixed with the count.</span></li>
+          <li><code>sort -nr</code><span>Sorts by that count, <code>-n</code> numerically, <code>-r</code> descending.</span></li>
+          <li><code>head -n 10</code><span>Top ten.</span></li>
+        </ol>
+        <div class="note"><strong><code>uniq</code> only looks at adjacent lines.</strong> Without the first <code>sort</code> it silently under-counts, and you get a wrong answer with no error. If you remember one rule from this page, make it this one.</div>
+      </div>
+
+      <div class="recipe">
+        <pre><code>cut -d: -f1 /etc/passwd | sort</code></pre>
+        <p class="goal">Every username on the machine, alphabetically.</p>
+        <ol class="stages">
+          <li><code>cut -d: -f1</code><span>Splits each line on <code>:</code> and keeps field 1. <code>/etc/passwd</code> is colon-separated.</span></li>
+          <li><code>sort</code><span>Alphabetical order.</span></li>
+        </ol>
+      </div>
+
+      <div class="recipe">
+        <pre><code>awk '{print $1}' access.log | sort | uniq -c | sort -rn | head</code></pre>
+        <p class="goal">Which clients hit this server most?</p>
+        <ol class="stages">
+          <li><code>awk '{print $1}'</code><span>Prints field 1 of every line (the IP). <code>awk</code> splits on whitespace by default, so runs of spaces do not confuse it the way <code>cut -d' '</code> would.</span></li>
+          <li><code>sort | uniq -c</code><span>The count-the-duplicates idiom from above.</span></li>
+          <li><code>sort -rn | head</code><span>Biggest first, top ten (<code>head</code> defaults to 10).</span></li>
+        </ol>
+      </div>
+
+      <div class="recipe">
+        <pre><code>tr -s '[:space:]' '\n' &lt; essay.txt | sort | uniq -c | sort -nr | head</code></pre>
+        <p class="goal">Word frequency.</p>
+        <ol class="stages">
+          <li><code>&lt; essay.txt</code><span>Feeds the file in as stdin. No <code>cat</code> required.</span></li>
+          <li><code>tr -s '[:space:]' '\n'</code><span>Translates every whitespace character to a newline; <code>-s</code> squeezes repeats so blank lines do not pile up. Result: one word per line.</span></li>
+          <li><code>sort | uniq -c | sort -nr | head</code><span>Count and rank, as before.</span></li>
+        </ol>
+      </div>
+
+      <div class="recipe">
+        <pre><code>grep -v '^#' config.conf | grep -v '^$'</code></pre>
+        <p class="goal">A config file with the comments and blank lines stripped out.</p>
+        <ol class="stages">
+          <li><code>grep -v '^#'</code><span><code>-v</code> inverts the match; <code>^#</code> is "hash at start of line". So: drop comments.</span></li>
+          <li><code>grep -v '^$'</code><span><code>^$</code> is a line with nothing between start and end. So: drop blank lines.</span></li>
+        </ol>
+      </div>
+
+      <div class="recipe">
+        <pre><code>sed 's/localhost/127.0.0.1/g' hosts.txt | tee fixed.txt | wc -l</code></pre>
+        <p class="goal">Substitute, save the result, and count it in one pass.</p>
+        <ol class="stages">
+          <li><code>sed 's/old/new/g'</code><span>Substitute; <code>g</code> means every occurrence on the line, not just the first.</span></li>
+          <li><code>tee fixed.txt</code><span>Writes stdin to the file <em>and</em> passes it along. A T-junction in the pipe.</span></li>
+          <li><code>wc -l</code><span>Counts what came through.</span></li>
+        </ol>
+      </div>
+    </section>
+
+    <section id="procs">
+      <h2><span class="n">4.</span> Processes &amp; the system</h2>
+
+      <div class="recipe">
+        <pre><code>ps aux | grep myprogram | grep -v grep</code></pre>
+        <p class="goal">Is my program running, and what is its PID?</p>
+        <ol class="stages">
+          <li><code>ps aux</code><span>Every process on the machine, with user, PID, %CPU, %MEM and command.</span></li>
+          <li><code>grep myprogram</code><span>Keeps the lines mentioning it.</span></li>
+          <li><code>grep -v grep</code><span>Removes the <code>grep</code> process itself, which is running with "myprogram" in its own command line. <code>pgrep -a myprogram</code> avoids the whole problem.</span></li>
+        </ol>
+      </div>
+
+      <div class="recipe">
+        <pre><code>ps aux | sort -rn -k 3 | head -n 5</code></pre>
+        <p class="goal">The five processes burning the most CPU.</p>
+        <ol class="stages">
+          <li><code>sort -rn -k 3</code><span>Field 3 of <code>ps aux</code> is %CPU. Numeric, reversed.</span></li>
+          <li><code>head -n 5</code><span>Worst five. Swap to <code>-k 4</code> for memory.</span></li>
+        </ol>
+      </div>
+
+      <div class="recipe">
+        <pre><code>ls /proc/$(pgrep -n myprogram)/fd | wc -l</code></pre>
+        <p class="goal">How many file descriptors does my program have open? The fastest way to catch a missing <code>close()</code>.</p>
+        <ol class="stages">
+          <li><code>pgrep -n myprogram</code><span>The PID of the newest matching process.</span></li>
+          <li><code>$( ... )</code><span>Command substitution: run it and paste its output into the command line.</span></li>
+          <li><code>/proc/PID/fd</code><span>A directory with one entry per open descriptor. On Linux the kernel invents it on the fly; symlinks point at files, sockets or <code>pipe:[12345]</code>.</span></li>
+          <li><code>wc -l</code><span>The count. Watch it climb in a leaky loop.</span></li>
+        </ol>
+      </div>
+
+      <div class="recipe">
+        <pre><code>ls -l /proc/$(pgrep -n myprogram)/fd | grep pipe</code></pre>
+        <p class="goal">Which of those descriptors are pipes, and which pipe is which.</p>
+        <ol class="stages">
+          <li><code>ls -l</code><span>Shows the symlink targets.</span></li>
+          <li><code>grep pipe</code><span>Keeps the <code>pipe:[N]</code> ones. Two descriptors showing the <em>same</em> N are the two ends of one pipe — exactly what you are counting in Lab 2.</span></li>
+        </ol>
+      </div>
+
+      <div class="recipe">
+        <pre><code>history | awk '{$1=""; print}' | sort | uniq -c | sort -nr | head</code></pre>
+        <p class="goal">Which commands do I actually type?</p>
+        <ol class="stages">
+          <li><code>history</code><span>Your shell history, each line numbered.</span></li>
+          <li><code>awk '{$1=""; print}'</code><span>Blanks out field 1 (the number) and prints the rest.</span></li>
+          <li><code>sort | uniq -c | sort -nr | head</code><span>Rank them.</span></li>
+        </ol>
+      </div>
+
+      <div class="recipe">
+        <pre><code>ss -tlnp | grep LISTEN</code></pre>
+        <p class="goal">What is listening on a port?</p>
+        <ol class="stages">
+          <li><code>ss</code><span>Socket statistics; the modern replacement for <code>netstat</code>.</span></li>
+          <li><code>-tlnp</code><span><code>t</code> TCP, <code>l</code> listening only, <code>n</code> numeric ports (no DNS lookups), <code>p</code> show the owning process.</span></li>
+        </ol>
+      </div>
+    </section>
+
+    <section id="cdebug">
+      <h2><span class="n">5.</span> Building &amp; debugging your C</h2>
+      <p>These are the ones you will use every week in this course.</p>
+
+      <div class="recipe">
+        <pre><code>make 2&gt;&amp;1 | head -n 30</code></pre>
+        <p class="goal">See the <em>first</em> compiler errors, not the last screenful.</p>
+        <ol class="stages">
+          <li><code>2&gt;&amp;1</code><span>Redirects stderr (fd 2) into whatever stdout (fd 1) currently is — the pipe. <strong>Compiler errors go to stderr, and stderr is not piped by default.</strong> Without this you pipe an empty stream.</span></li>
+          <li><code>head -n 30</code><span>The first error is the one that matters; the rest are usually fallout.</span></li>
+        </ol>
+        <div class="note"><strong>Order matters.</strong> <code>make 2&gt;&amp;1 | head</code> works. <code>make | head 2&gt;&amp;1</code> does not: by the time you redirect, stdout has already been pointed at the pipe and stderr is still going to the terminal.</div>
+      </div>
+
+      <div class="recipe">
+        <pre><code>make 2&gt;&amp;1 | grep -E 'error|warning'</code></pre>
+        <p class="goal">Just the problems, out of a wall of build output.</p>
+        <ol class="stages">
+          <li><code>grep -E</code><span>Extended regular expressions, so <code>|</code> inside the quotes means "or". The quotes are what stop the shell from reading that <code>|</code> as another pipe.</span></li>
+        </ol>
+      </div>
+
+      <div class="recipe">
+        <pre><code>./myprogram | diff - expected.txt</code></pre>
+        <p class="goal">Does my output match the expected output? No temp file.</p>
+        <ol class="stages">
+          <li><code>diff - expected.txt</code><span>A lone <code>-</code> means "read stdin here". So the left side of the diff is your program's live output. Silence means identical; <code>echo $?</code> gives 0.</span></li>
+        </ol>
+      </div>
+
+      <div class="recipe">
+        <pre><code>./myprogram | tee out.txt | tail -n 5</code></pre>
+        <p class="goal">Keep the full output for later while watching the end of it now.</p>
+        <ol class="stages">
+          <li><code>tee out.txt</code><span>Full stream to the file, full stream onward.</span></li>
+          <li><code>tail -n 5</code><span>Last five lines on screen.</span></li>
+        </ol>
+      </div>
+
+      <div class="recipe">
+        <pre><code>strace -f -e trace=pipe,fork,clone,read,write,close ./myprogram 2&gt;&amp;1 | less</code></pre>
+        <p class="goal">Watch the actual system calls. When a pipe program hangs, this shows you exactly which <code>read()</code> is blocked.</p>
+        <ol class="stages">
+          <li><code>strace -f</code><span>Trace system calls, <code>-f</code> follows children through <code>fork()</code> — essential, since your bug is usually in the child.</span></li>
+          <li><code>-e trace=...</code><span>Only these calls, otherwise the noise is unreadable.</span></li>
+          <li><code>2&gt;&amp;1 | less</code><span><code>strace</code> writes to stderr, so redirect before paging.</span></li>
+        </ol>
+      </div>
+
+      <div class="recipe">
+        <pre><code>valgrind --leak-check=full ./myprogram 2&gt;&amp;1 | tail -n 20</code></pre>
+        <p class="goal">The leak summary without scrolling.</p>
+        <ol class="stages">
+          <li><code>valgrind</code><span>Reports leaks and invalid memory use, on stderr.</span></li>
+          <li><code>tail -n 20</code><span>The summary block lives at the end.</span></li>
+        </ol>
+      </div>
+
+      <div class="recipe">
+        <pre><code>grep -rn "close(" src/ | wc -l</code></pre>
+        <p class="goal">Count your closes — the first thing to check when a pipeline deadlocks.</p>
+        <ol class="stages">
+          <li><code>grep -rn</code><span><code>-r</code> recurses into the directory, <code>-n</code> prints line numbers so you can jump straight there.</span></li>
+          <li><code>wc -l</code><span>Four closes per pipe per process pair is the target.</span></li>
+        </ol>
+      </div>
+
+      <div class="recipe">
+        <pre><code>find . -name '*.c' -print0 | xargs -0 wc -l | sort -n</code></pre>
+        <p class="goal">Line counts for every C file, smallest to largest.</p>
+        <ol class="stages">
+          <li><code>find . -name '*.c'</code><span>Recursive search by name. Quote the pattern so the shell does not expand it first.</span></li>
+          <li><code>-print0</code> / <code>xargs -0</code><span>Separate names with a NUL byte instead of a newline. NUL is the one character a filename cannot contain, so this survives spaces in names. Plain <code>| xargs</code> breaks on <code>my file.c</code>.</span></li>
+          <li><code>xargs</code><span>Turns lines of stdin into <em>arguments</em> for a command. Necessary because <code>wc</code> takes filenames as arguments, not on stdin.</span></li>
+        </ol>
+      </div>
+    </section>
+
+    <section id="files">
+      <h2><span class="n">6.</span> Files &amp; disk</h2>
+
+      <div class="recipe">
+        <pre><code>du -sh * | sort -h | tail -n 5</code></pre>
+        <p class="goal">What is eating my disk quota?</p>
+        <ol class="stages">
+          <li><code>du -sh *</code><span>Disk usage, <code>-s</code> one summary line per entry, <code>-h</code> human-readable (<code>4.0K</code>, <code>12M</code>, <code>1.3G</code>).</span></li>
+          <li><code>sort -h</code><span>Sorts those human-readable suffixes correctly — <code>-n</code> alone would rank <code>9K</code> above <code>1G</code>.</span></li>
+          <li><code>tail -n 5</code><span>The five biggest.</span></li>
+        </ol>
+      </div>
+
+      <div class="recipe">
+        <pre><code>df -h | grep -v tmpfs</code></pre>
+        <p class="goal">Real filesystems and their free space, without the noise.</p>
+        <ol class="stages">
+          <li><code>df -h</code><span>Free space per mounted filesystem, human-readable.</span></li>
+          <li><code>grep -v tmpfs</code><span>Drops the in-memory filesystems you do not care about.</span></li>
+        </ol>
+      </div>
+
+      <div class="recipe">
+        <pre><code>find . -name '*.o' -print0 | xargs -0 rm -f</code></pre>
+        <p class="goal">Delete every object file in the tree.</p>
+        <ol class="stages">
+          <li><code>find ... -print0</code><span>Find them, NUL-separated.</span></li>
+          <li><code>xargs -0 rm -f</code><span>Hand them to <code>rm</code> in batches.</span></li>
+        </ol>
+        <div class="note"><strong>Dry-run first.</strong> Replace <code>rm -f</code> with <code>echo</code> and read the list before you delete anything. A wrong <code>find</code> pattern piped into <code>rm</code> is how people lose work.</div>
+      </div>
+
+      <div class="recipe">
+        <pre><code>tar -czf - project/ | ssh user@vm 'cat &gt; backup.tgz'</code></pre>
+        <p class="goal">Archive a directory straight onto another machine, no temp file.</p>
+        <ol class="stages">
+          <li><code>tar -czf -</code><span>Create, gzip, and write the archive to <code>-</code>, meaning stdout.</span></li>
+          <li><code>ssh user@vm 'cat &gt; backup.tgz'</code><span><code>ssh</code> forwards its stdin to the remote command, which writes it to a file there. The pipe crossed a network.</span></li>
+        </ol>
+      </div>
+    </section>
+
+    <section id="tools">
+      <h2><span class="n">7.</span> The tools, one line each</h2>
+      <p>Almost every pipeline is these pieces in a different order.</p>
+      <div class="scroller">
+      <table>
+        <thead><tr><th>Tool</th><th>Reads stdin?</th><th>What it does</th></tr></thead>
+        <tbody>
+          <tr><td><code>wc -l</code></td><td>yes</td><td>Counts lines. <code>-w</code> words, <code>-c</code> bytes.</td></tr>
+          <tr><td><code>head -n N</code></td><td>yes</td><td>First N lines, then exits (and may SIGPIPE the writer).</td></tr>
+          <tr><td><code>tail -n N</code></td><td>yes</td><td>Last N lines. <code>-f</code> follows a growing file.</td></tr>
+          <tr><td><code>sort</code></td><td>yes</td><td>Sorts lines. <code>-n</code> numeric, <code>-r</code> reverse, <code>-k N</code> by field, <code>-h</code> human sizes, <code>-u</code> dedupe.</td></tr>
+          <tr><td><code>uniq</code></td><td>yes</td><td>Collapses <em>adjacent</em> duplicates. <code>-c</code> count, <code>-d</code> only dupes. Sort first.</td></tr>
+          <tr><td><code>grep</code></td><td>yes</td><td>Keeps matching lines. <code>-v</code> invert, <code>-i</code> ignore case, <code>-n</code> line numbers, <code>-r</code> recurse, <code>-c</code> count, <code>-E</code> extended regex.</td></tr>
+          <tr><td><code>cut</code></td><td>yes</td><td>Picks columns. <code>-d</code> delimiter, <code>-f</code> fields. One delimiter char only.</td></tr>
+          <tr><td><code>awk</code></td><td>yes</td><td>Field-aware scripting. <code>$1</code> first field, <code>$NF</code> last, splits on whitespace runs.</td></tr>
+          <tr><td><code>sed</code></td><td>yes</td><td>Stream edit. <code>s/a/b/g</code> substitute, <code>-n '5,9p'</code> print a range, <code>/x/d</code> delete.</td></tr>
+          <tr><td><code>tr</code></td><td>yes</td><td>Translate or delete characters. <code>-d</code> delete, <code>-s</code> squeeze repeats.</td></tr>
+          <tr><td><code>tee</code></td><td>yes</td><td>Writes stdin to a file and passes it on. <code>-a</code> appends.</td></tr>
+          <tr><td><code>less</code></td><td>yes</td><td>Pager. <code>/</code> search, <code>q</code> quit.</td></tr>
+          <tr><td><code>xargs</code></td><td>yes</td><td>Turns stdin lines into command <em>arguments</em>. Pair <code>-0</code> with <code>find -print0</code>.</td></tr>
+          <tr><td><code>find</code></td><td>no</td><td>Walks a tree. Produces names for the rest of the pipeline.</td></tr>
+          <tr><td><code>ps</code>, <code>ls</code>, <code>du</code>, <code>df</code></td><td>no</td><td>Sources. They start pipelines, they never sit in the middle.</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <p>Anything in the "no" rows can only be the <em>first</em> stage. Anything in the "yes" rows can sit anywhere.</p>
+    </section>
+
+    <section id="gotchas">
+      <h2><span class="n">8.</span> Gotchas that will bite you</h2>
+
+      <h3>1. stderr does not go through the pipe</h3>
+      <p><code>./prog | grep error</code> shows nothing if the errors were printed to stderr. Use <code>./prog 2&gt;&amp;1 | grep error</code>. To pipe <em>only</em> stderr: <code>./prog 2&gt;&amp;1 1&gt;/dev/null | grep error</code>.</p>
+
+      <h3>2. <code>uniq</code> needs a sort first</h3>
+      <p>It only collapses adjacent lines. Unsorted input gives a wrong count and no warning.</p>
+
+      <h3>3. <code>$?</code> is the <em>last</em> command's status</h3>
+      <p><code>false | true; echo $?</code> prints <code>0</code>, because <code>true</code> succeeded. To catch a failure anywhere in the chain use <code>set -o pipefail</code>, or inspect <code>${PIPESTATUS[@]}</code> for every stage.</p>
+
+      <h3>4. Exit code 141 is not a crash</h3>
+      <p>141 = 128 + 13 = killed by <code>SIGPIPE</code>. It means a downstream stage (usually <code>head</code>) stopped reading. Expected behaviour, not a bug in your program.</p>
+      <p>You will not see it in <code>$?</code>, though — for <code>yes | head -3</code> that reports <code>head</code>'s <code>0</code>. The 141 belongs to the <em>writer</em>: check <code>${PIPESTATUS[0]}</code>, or run the program on its own.</p>
+
+      <h3>5. Output through a pipe is block-buffered</h3>
+      <p>A C program that is line-buffered to a terminal becomes 4 KiB block-buffered to a pipe, so output appears in bursts or not at all until exit. In C, <code>fflush(stdout)</code> or <code>setvbuf</code>. At the shell, <code>stdbuf -oL ./prog | grep x</code>, or <code>grep --line-buffered</code>.</p>
+
+      <h3>6. Each stage runs in its own process</h3>
+      <p>So <code>echo hello | read var; echo $var</code> prints nothing — <code>read</code> ran in a subshell and its variable died with it. Use <code>read var &lt;&lt;&lt; "hello"</code> instead.</p>
+
+      <h3>7. Useless use of <code>cat</code></h3>
+      <p><code>cat file | grep x</code> works, but <code>grep x file</code> and <code>grep x &lt; file</code> do the same with one less process. Harmless, but graders notice.</p>
+
+      <h3>8. Quote your regexes</h3>
+      <p><code>grep -E error|warning file</code> is parsed by the shell as a <em>pipe</em>. Quote it: <code>grep -E 'error|warning' file</code>.</p>
+
+      <h3>9. Do not parse <code>ls</code> in scripts</h3>
+      <p>Fine interactively, as in section 1. In a script, filenames with spaces or newlines will break it — use <code>find -print0</code> with <code>xargs -0</code>.</p>
+    </section>
+
+    <footer>
+      Ties back to <a href="CSCE-313-6.pdf">Lecture 6: Pipes &amp; IPC</a> and the <a href="csce313-ipc-demos.zip">IPC demo bundle</a>, where demo 11 builds <code>ls | sort</code> by hand with <code>pipe()</code>, <code>fork()</code>, <code>dup2()</code> and <code>exec()</code>.
+      <br />Questions? Discord office hours MW 2PM&ndash;4PM or ask in lab.
+    </footer>
+  </main>
+</body>
+</html>
