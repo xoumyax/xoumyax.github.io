@@ -199,7 +199,7 @@
 
     <details class="host">
       <summary>Instructor controls</summary>
-      <p style="margin-top:0.5rem"><strong>End voting</strong> locks the poll and shows everyone the results. <strong>Reset poll</strong> starts a new round with zero votes. Past rounds stay in the sheet.</p>
+      <p style="margin-top:0.5rem"><strong>End voting</strong> locks the poll and shows everyone the results. <strong>Reset poll</strong> switches between round 1 and round 2 and opens it with zero votes. The sheet keeps the latest two rounds.</p>
       <div class="host-row">
         <input type="password" id="passcode" placeholder="Passcode" autocomplete="off" aria-label="Instructor passcode" />
         <button type="button" class="ghost" id="end">End voting</button>
@@ -225,7 +225,7 @@
     const submitBtn = $("submit");
     const statusEl = $("status");
     const radios = form.querySelectorAll("input[name=choice]");
-    let round = null;
+    let session = null;
     let open = true;
 
     function store(key, value) {
@@ -247,7 +247,7 @@
     function myVote() {
       try {
         const v = JSON.parse(store("csce313-poll-vote") || "null");
-        return v && v.round === round ? v.option : null;
+        return v && v.session === session ? v.option : null;
       } catch (e) { return null; }
     }
 
@@ -257,7 +257,8 @@
     }
 
     function render(data) {
-      round = data.round;
+      // Round numbers repeat (1, 2, 1, …); the session number never does.
+      session = data.session;
       open = data.open !== false;
       const votes = data.total + (data.total === 1 ? " vote" : " votes");
       $("round").textContent = "Round " + data.round + " · " + (open ? "voting open" : "voting closed") + " · " + votes;
@@ -314,7 +315,7 @@
         const data = await post({ action: "vote", voter: voterId(), option: picked.value });
         if (data.error === "closed") { setStatus(statusEl, ""); return load(); }
         if (data.error) throw new Error(data.error);
-        store("csce313-poll-vote", JSON.stringify({ round: data.round, option: picked.value }));
+        store("csce313-poll-vote", JSON.stringify({ session: data.session, option: picked.value }));
         setStatus(statusEl, "");
         render(data);
       } catch (err) {

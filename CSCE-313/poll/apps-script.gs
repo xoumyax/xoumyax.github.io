@@ -10,13 +10,14 @@
  * After editing this file: Deploy → Manage deployments → Edit (pencil) → Version: New version
  * → Deploy. That keeps the same /exec URL.
  *
- * Votes are never deleted. Each reset starts a new round, and results only count
- * the current round, so the sheet keeps a history of every session.
+ * Rounds cycle 1 → 2 → 1. Each reset opens the next round and clears that round's
+ * old votes, so the sheet always holds the latest two rounds.
  * Counts stay hidden until the instructor ends voting for the round.
  */
 
 const SHEET_NAME = 'votes';
 const OPTIONS = ['system-design', 'ml-systems', 'security', 'labs'];
+const MAX_ROUNDS = 2;
 
 function doGet() {
   return json_(results_());
@@ -87,8 +88,17 @@ function reset_(body) {
   const lock = LockService.getScriptLock();
   lock.waitLock(10000);
   try {
+    const next = round_() >= MAX_ROUNDS ? 1 : round_() + 1;
+    // Rounds cycle 1..MAX_ROUNDS, so clear the votes left from the last time this round ran
+    // (and any from rounds numbered past the cap).
+    const sheet = sheet_();
+    const rows = sheet.getDataRange().getValues();
+    for (let i = rows.length - 1; i >= 1; i--) {
+      if (rows[i][0] === next || rows[i][0] > MAX_ROUNDS) sheet.deleteRow(i + 1);
+    }
     PropertiesService.getScriptProperties().setProperties({
-      ROUND: String(round_() + 1),
+      ROUND: String(next),
+      SESSION: String(session_() + 1),
       CLOSED: 'false',
     });
     return results_();
@@ -110,13 +120,21 @@ function results_() {
       total++;
     }
   });
+  const session = session_();
   return open
-    ? { round: round, open: true, total: total }
-    : { round: round, open: false, counts: counts, total: total };
+    ? { round: round, session: session, open: true, total: total }
+    : { round: round, session: session, open: false, counts: counts, total: total };
 }
 
 function round_() {
-  return Number(PropertiesService.getScriptProperties().getProperty('ROUND') || 1);
+  const n = Number(PropertiesService.getScriptProperties().getProperty('ROUND') || 1);
+  return Math.min(Math.max(n, 1), MAX_ROUNDS);
+}
+
+// Counts every reset and never repeats, so browsers can tell a reused round number
+// from the one they voted in.
+function session_() {
+  return Number(PropertiesService.getScriptProperties().getProperty('SESSION') || 1);
 }
 
 function sheet_() {
