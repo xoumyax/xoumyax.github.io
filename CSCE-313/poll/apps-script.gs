@@ -7,8 +7,12 @@
  *  3. Deploy → New deployment → Web app. Execute as: Me. Who has access: Anyone.
  *  4. Copy the /exec URL into ENDPOINT in poll/index.html.
  *
+ * After editing this file: Deploy → Manage deployments → Edit (pencil) → Version: New version
+ * → Deploy. That keeps the same /exec URL.
+ *
  * Votes are never deleted. Each reset starts a new round, and results only count
  * the current round, so the sheet keeps a history of every session.
+ * Counts stay hidden until the instructor ends voting for the round.
  */
 
 const SHEET_NAME = 'votes';
@@ -26,8 +30,18 @@ function doPost(e) {
     return json_({ error: 'bad_request' });
   }
   if (body.action === 'vote') return json_(vote_(body));
+  if (body.action === 'end') return json_(end_(body));
   if (body.action === 'reset') return json_(reset_(body));
   return json_({ error: 'bad_request' });
+}
+
+function isHost_(body) {
+  const code = PropertiesService.getScriptProperties().getProperty('RESET_CODE');
+  return !!code && String(body.passcode || '') === code;
+}
+
+function closed_() {
+  return PropertiesService.getScriptProperties().getProperty('CLOSED') === 'true';
 }
 
 function vote_(body) {
@@ -38,6 +52,7 @@ function vote_(body) {
   const lock = LockService.getScriptLock();
   lock.waitLock(10000);
   try {
+    if (closed_()) return { error: 'closed' };
     const round = round_();
     const sheet = sheet_();
     const rows = sheet.getDataRange().getValues();
@@ -55,22 +70,37 @@ function vote_(body) {
   }
 }
 
-function reset_(body) {
-  const code = PropertiesService.getScriptProperties().getProperty('RESET_CODE');
-  if (!code || String(body.passcode || '') !== code) return { error: 'wrong_passcode' };
-
+function end_(body) {
+  if (!isHost_(body)) return { error: 'wrong_passcode' };
   const lock = LockService.getScriptLock();
   lock.waitLock(10000);
   try {
-    PropertiesService.getScriptProperties().setProperty('ROUND', String(round_() + 1));
+    PropertiesService.getScriptProperties().setProperty('CLOSED', 'true');
     return results_();
   } finally {
     lock.releaseLock();
   }
 }
 
+function reset_(body) {
+  if (!isHost_(body)) return { error: 'wrong_passcode' };
+  const lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    PropertiesService.getScriptProperties().setProperties({
+      ROUND: String(round_() + 1),
+      CLOSED: 'false',
+    });
+    return results_();
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+// While voting is open only the vote total is public; counts appear once it ends.
 function results_() {
   const round = round_();
+  const open = !closed_();
   const counts = {};
   OPTIONS.forEach(function (o) { counts[o] = 0; });
   let total = 0;
@@ -80,7 +110,9 @@ function results_() {
       total++;
     }
   });
-  return { round: round, counts: counts, total: total };
+  return open
+    ? { round: round, open: true, total: total }
+    : { round: round, open: false, counts: counts, total: total };
 }
 
 function round_() {

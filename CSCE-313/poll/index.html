@@ -193,19 +193,19 @@
 
       <div class="actions">
         <button type="submit" id="submit" disabled>Submit vote</button>
-        <button type="button" class="ghost" id="show">Show results</button>
         <span class="status" id="status" role="status"></span>
       </div>
     </form>
 
     <details class="host">
-      <summary>Instructor: reset poll</summary>
-      <p style="margin-top:0.5rem">Starts a new round with zero votes. Past rounds stay in the sheet.</p>
+      <summary>Instructor controls</summary>
+      <p style="margin-top:0.5rem"><strong>End voting</strong> locks the poll and shows everyone the results. <strong>Reset poll</strong> starts a new round with zero votes. Past rounds stay in the sheet.</p>
       <div class="host-row">
-        <input type="password" id="passcode" placeholder="Passcode" autocomplete="off" aria-label="Reset passcode" />
+        <input type="password" id="passcode" placeholder="Passcode" autocomplete="off" aria-label="Instructor passcode" />
+        <button type="button" class="ghost" id="end">End voting</button>
         <button type="button" class="ghost" id="reset">Reset poll</button>
       </div>
-      <p class="status" id="reset-status" role="status" style="margin-top:0.5rem"></p>
+      <p class="status" id="host-status" role="status" style="margin-top:0.5rem"></p>
     </details>
   </main>
 
@@ -224,8 +224,9 @@
     const form = $("poll");
     const submitBtn = $("submit");
     const statusEl = $("status");
+    const radios = form.querySelectorAll("input[name=choice]");
     let round = null;
-    let showResults = false;
+    let open = true;
 
     function store(key, value) {
       try {
@@ -257,41 +258,40 @@
 
     function render(data) {
       round = data.round;
-      $("round").textContent = "Round " + data.round + " · " + data.total + (data.total === 1 ? " vote" : " votes");
+      open = data.open !== false;
+      const votes = data.total + (data.total === 1 ? " vote" : " votes");
+      $("round").textContent = "Round " + data.round + " · " + (open ? "voting open" : "voting closed") + " · " + votes;
 
       const mine = myVote();
       if (mine && !form.querySelector("input:checked")) $("opt-" + mine).checked = true;
-      if (mine) showResults = true;
+      radios.forEach((r) => (r.disabled = !open));
+      submitBtn.hidden = !open;
       submitBtn.textContent = mine ? "Change vote" : "Submit vote";
       submitBtn.disabled = !form.querySelector("input:checked");
-      $("show").hidden = showResults;
-      if (mine) setStatus(statusEl, "You voted for " + LABELS[mine] + ".", "ok");
-      else if (statusEl.classList.contains("ok")) setStatus(statusEl, "");
 
-      const max = Math.max(0, ...Object.values(data.counts));
+      if (!open) setStatus(statusEl, mine ? "Voting has ended. You voted for " + LABELS[mine] + "." : "Voting has ended.");
+      else if (mine) setStatus(statusEl, "You voted for " + LABELS[mine] + ". Results appear when voting ends.", "ok");
+      else if (!statusEl.classList.contains("err")) setStatus(statusEl, "Results appear when voting ends.");
+
+      // Counts only arrive from the server once voting has ended.
+      const counts = open ? null : data.counts || {};
+      const max = counts ? Math.max(0, ...Object.values(counts)) : 0;
       document.querySelectorAll(".opt").forEach((el) => {
-        const n = data.counts[el.dataset.opt] || 0;
-        const pct = data.total ? Math.round((n / data.total) * 100) : 0;
-        el.querySelector(".opt-count").textContent = showResults ? n + " · " + pct + "%" : "";
-        el.querySelector(".bar span").style.transform = "scaleX(" + (showResults ? pct / 100 : 0) + ")";
-        el.querySelector(".bar").hidden = !showResults;
-        el.classList.toggle("leading", showResults && n > 0 && n === max);
+        const n = counts ? counts[el.dataset.opt] || 0 : 0;
+        const pct = counts && data.total ? Math.round((n / data.total) * 100) : 0;
+        el.querySelector(".opt-count").textContent = counts ? n + " · " + pct + "%" : "";
+        el.querySelector(".bar").hidden = !counts;
+        el.querySelector(".bar span").style.transform = "scaleX(" + pct / 100 + ")";
+        el.classList.toggle("leading", !!counts && n > 0 && n === max);
       });
     }
 
     async function load() {
-      if (!ENDPOINT) {
-        $("round").textContent = "Poll not connected yet";
-        setStatus(statusEl, "Voting opens once the instructor connects the poll.");
-        document.querySelectorAll(".bar").forEach((b) => (b.hidden = true));
-        $("show").hidden = true;
-        return;
-      }
       try {
         const res = await fetch(ENDPOINT);
         render(await res.json());
       } catch (e) {
-        setStatus(statusEl, "Couldn't load results. Check your connection and refresh.", "err");
+        setStatus(statusEl, "Couldn't load the poll. Check your connection and refresh.", "err");
       }
     }
 
@@ -301,20 +301,21 @@
     }
 
     form.addEventListener("change", () => {
-      submitBtn.disabled = !ENDPOINT || !form.querySelector("input:checked");
+      submitBtn.disabled = !open || !form.querySelector("input:checked");
     });
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       const picked = form.querySelector("input:checked");
-      if (!picked || !ENDPOINT) return;
+      if (!picked || !open) return;
       submitBtn.disabled = true;
       setStatus(statusEl, "Saving…");
       try {
         const data = await post({ action: "vote", voter: voterId(), option: picked.value });
+        if (data.error === "closed") { setStatus(statusEl, ""); return load(); }
         if (data.error) throw new Error(data.error);
         store("csce313-poll-vote", JSON.stringify({ round: data.round, option: picked.value }));
-        showResults = true;
+        setStatus(statusEl, "");
         render(data);
       } catch (err) {
         setStatus(statusEl, "Your vote didn't save. Try again in a moment.", "err");
@@ -322,45 +323,51 @@
       }
     });
 
-    $("show").addEventListener("click", () => {
-      showResults = true;
-      load();
-    });
+    // Host actions need the passcode and a second click to confirm.
+    const hostStatus = $("host-status");
+    const HOST = {
+      end: { label: "End voting", confirm: "This locks voting and shows everyone the results. Click again to confirm.", done: (d) => "Voting ended. Round " + d.round + " results are showing." },
+      reset: { label: "Reset poll", confirm: "This starts a new round with zero votes for everyone. Click again to confirm.", done: (d) => "Poll reset. Round " + d.round + " is open." },
+    };
+    let armed = null;
 
-    // Two-step reset: the first click arms it, the second resets.
-    let armed = false;
-    $("reset").addEventListener("click", async () => {
-      const passcode = $("passcode").value;
-      const resetStatus = $("reset-status");
-      if (!ENDPOINT) return setStatus(resetStatus, "Add the Apps Script URL to ENDPOINT first.", "err");
-      if (!passcode) return setStatus(resetStatus, "Enter the passcode first.", "err");
-      if (!armed) {
-        armed = true;
-        $("reset").textContent = "Confirm reset";
-        return setStatus(resetStatus, "This clears the current results for everyone. Click again to confirm.");
-      }
-      armed = false;
-      $("reset").textContent = "Reset poll";
-      $("reset").disabled = true;
-      setStatus(resetStatus, "Resetting…");
-      try {
-        const data = await post({ action: "reset", passcode });
-        if (data.error === "wrong_passcode") throw new Error("Wrong passcode.");
-        if (data.error) throw new Error("Reset failed. Try again.");
-        form.reset();
-        setStatus(statusEl, "");
-        render(data);
-        setStatus(resetStatus, "Poll reset. Round " + data.round + " is open.", "ok");
-      } catch (err) {
-        setStatus(resetStatus, err.message.startsWith("Wrong") ? err.message : "Reset failed. Try again.", "err");
-      } finally {
-        $("reset").disabled = false;
-      }
+    function disarm() {
+      armed = null;
+      Object.keys(HOST).forEach((k) => ($(k).textContent = HOST[k].label));
+    }
+
+    Object.keys(HOST).forEach((action) => {
+      $(action).addEventListener("click", async () => {
+        const passcode = $("passcode").value;
+        if (!passcode) return setStatus(hostStatus, "Enter the passcode first.", "err");
+        if (armed !== action) {
+          disarm();
+          armed = action;
+          $(action).textContent = "Confirm " + HOST[action].label.toLowerCase();
+          return setStatus(hostStatus, HOST[action].confirm);
+        }
+        disarm();
+        $(action).disabled = true;
+        setStatus(hostStatus, "Working…");
+        try {
+          const data = await post({ action, passcode });
+          if (data.error === "wrong_passcode") return setStatus(hostStatus, "Wrong passcode.", "err");
+          if (data.error) throw new Error(data.error);
+          if (action === "reset") form.reset();
+          setStatus(statusEl, "");
+          render(data);
+          setStatus(hostStatus, HOST[action].done(data), "ok");
+        } catch (err) {
+          setStatus(hostStatus, "That didn't go through. Try again.", "err");
+        } finally {
+          $(action).disabled = false;
+        }
+      });
     });
 
     load();
-    // Keep results live while the poll is up on the projector.
-    setInterval(() => { if (ENDPOINT && !document.hidden) load(); }, 10000);
+    // Keep the page current while it's up on the projector.
+    setInterval(() => { if (!document.hidden) load(); }, 10000);
   </script>
 </body>
 </html>
