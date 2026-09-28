@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CSCE 313 · Lab Time Poll</title>
+  <meta name="description" content="Vote on what CSCE 313 lab sessions cover for the rest of Fall 2026." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito+Sans:opsz,wght@6..12,400;6..12,700;6..12,800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: oklch(0.972 0.012 225);
+      --surface: #ffffff;
+      --ink: oklch(0.3 0.035 240);
+      --muted: oklch(0.5 0.03 240);
+      --accent: oklch(0.62 0.16 30);
+      --accent-soft: oklch(0.62 0.16 30 / 0.14);
+      --track: oklch(0.93 0.012 230);
+      --border: oklch(0.9 0.015 230);
+      --good: oklch(0.55 0.13 155);
+      --bad: oklch(0.55 0.18 25);
+      --font-display: "Baloo 2", "Nunito Sans", sans-serif;
+      --font-body: "Nunito Sans", system-ui, sans-serif;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: oklch(0.21 0.03 255);
+        --surface: oklch(0.27 0.032 250);
+        --ink: oklch(0.93 0.015 235);
+        --muted: oklch(0.72 0.02 240);
+        --accent: oklch(0.72 0.14 35);
+        --accent-soft: oklch(0.72 0.14 35 / 0.18);
+        --track: oklch(0.32 0.03 250);
+        --border: oklch(0.35 0.03 250);
+        --good: oklch(0.75 0.13 155);
+        --bad: oklch(0.72 0.15 25);
+        color-scheme: dark;
+      }
+    }
+    * { box-sizing: border-box; margin: 0; }
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--font-body);
+      line-height: 1.6;
+      padding: 2.5rem 1.25rem 4rem;
+    }
+    main { max-width: 640px; margin: 0 auto; }
+    .crumb { font-size: 0.85rem; color: var(--muted); text-decoration: none; }
+    .crumb:hover { color: var(--accent); }
+    h1 {
+      font-family: var(--font-display);
+      font-size: clamp(1.8rem, 5vw, 2.4rem);
+      line-height: 1.12;
+      margin-top: 0.75rem;
+      text-wrap: balance;
+    }
+    .sub { color: var(--muted); margin-top: 0.5rem; max-width: 60ch; }
+    .round { font-size: 0.85rem; color: var(--accent); font-weight: 700; margin-top: 1.5rem; }
+
+    form { margin-top: 0.75rem; display: grid; gap: 0.6rem; }
+    .opt {
+      position: relative;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 0.25rem 0.75rem;
+      align-items: baseline;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.85rem 1rem;
+      cursor: pointer;
+    }
+    .opt:hover { border-color: var(--accent); }
+    .opt:has(input:checked) { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+    .opt:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .opt input { accent-color: var(--accent); width: 1.05rem; height: 1.05rem; translate: 0 0.15rem; }
+    .opt-title { font-weight: 800; }
+    .opt-desc { grid-column: 2 / -1; color: var(--muted); font-size: 0.9rem; }
+    .opt-count {
+      font-size: 0.85rem;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+    .bar {
+      grid-column: 2 / -1;
+      height: 6px;
+      border-radius: 3px;
+      background: var(--track);
+      overflow: hidden;
+      margin-top: 0.35rem;
+    }
+    .bar span {
+      display: block;
+      height: 100%;
+      background: var(--accent);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.4s ease;
+    }
+    .opt.leading .opt-count { color: var(--accent); font-weight: 700; }
+
+    .note {
+      margin-top: 1.25rem;
+      padding: 0.85rem 1rem;
+      border-radius: 12px;
+      background: var(--accent-soft);
+      font-size: 0.9rem;
+    }
+    .note strong { font-weight: 800; }
+
+    .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; margin-top: 1rem; }
+    button {
+      font: inherit;
+      font-weight: 700;
+      border-radius: 10px;
+      padding: 0.6rem 1.2rem;
+      cursor: pointer;
+      border: 1px solid var(--accent);
+      background: var(--accent);
+      color: #fff;
+    }
+    button.ghost { background: transparent; color: var(--accent); }
+    button:disabled { opacity: 0.55; cursor: default; }
+    button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .status { font-size: 0.9rem; color: var(--muted); }
+    .status.ok { color: var(--good); }
+    .status.err { color: var(--bad); }
+
+    details.host {
+      margin-top: 3rem;
+      border-top: 1px solid var(--border);
+      padding-top: 1rem;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+    details.host summary { cursor: pointer; width: fit-content; }
+    .host-row { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 0.75rem; align-items: center; }
+    .host-row input {
+      font: inherit;
+      padding: 0.55rem 0.8rem;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--ink);
+      min-width: 0;
+      flex: 1 1 12rem;
+    }
+    @media (prefers-reduced-motion: reduce) { .bar span { transition: none; } }
+  </style>
+</head>
+<body>
+  <main>
+    <a class="crumb" href="../">← CSCE 313 lab materials</a>
+    <h1>What should lab time cover for the rest of the semester?</h1>
+    <p class="sub">You already work through the labs as coursework, so I'd like to use our lab hours for something you can't get from the handouts. Pick the one you'd get the most out of.</p>
+
+    <p class="round" id="round">Loading poll…</p>
+
+    <form id="poll">
+      <label class="opt" data-opt="system-design">
+        <input type="radio" name="choice" value="system-design" id="opt-system-design" />
+        <span class="opt-title">System design</span>
+        <span class="opt-count"></span>
+        <span class="opt-desc">Interview-style design problems: Netflix, a chat system, Instagram, and the like.</span>
+        <span class="bar"><span></span></span>
+      </label>
+      <label class="opt" data-opt="ml-systems">
+        <input type="radio" name="choice" value="ml-systems" id="opt-ml-systems" />
+        <span class="opt-title">ML system design</span>
+        <span class="opt-count"></span>
+        <span class="opt-desc">MLOps, serving models in production, and building AI agents.</span>
+        <span class="bar"><span></span></span>
+      </label>
+      <label class="opt" data-opt="security">
+        <input type="radio" name="choice" value="security" id="opt-security" />
+        <span class="opt-title">Security tools</span>
+        <span class="opt-count"></span>
+        <span class="opt-desc">The newest cybersecurity tools, the legacy ones still in use, and AI for security.</span>
+        <span class="bar"><span></span></span>
+      </label>
+      <label class="opt" data-opt="labs">
+        <input type="radio" name="choice" value="labs" id="opt-labs" />
+        <span class="opt-title">Regular lab sessions</span>
+        <span class="opt-count"></span>
+        <span class="opt-desc">Keep lab hours focused on the current lab, as they are now.</span>
+        <span class="bar"><span></span></span>
+      </label>
+
+      <p class="note"><strong>If one of the first three wins:</strong> whenever a new lab is released, we start that session with a speedrun overview of the lab, then move on to the topic. Lab issues get sorted mostly in office hours, and in the lab session if there's time left after the topic.</p>
+
+      <div class="actions">
+        <button type="submit" id="submit" disabled>Submit vote</button>
+        <button type="button" class="ghost" id="show">Show results</button>
+        <span class="status" id="status" role="status"></span>
+      </div>
+    </form>
+
+    <details class="host">
+      <summary>Instructor: reset poll</summary>
+      <p style="margin-top:0.5rem">Starts a new round with zero votes. Past rounds stay in the sheet.</p>
+      <div class="host-row">
+        <input type="password" id="passcode" placeholder="Passcode" autocomplete="off" aria-label="Reset passcode" />
+        <button type="button" class="ghost" id="reset">Reset poll</button>
+      </div>
+      <p class="status" id="reset-status" role="status" style="margin-top:0.5rem"></p>
+    </details>
+  </main>
+
+  <script>
+    // Apps Script web app URL (see apps-script.gs in this folder).
+    const ENDPOINT = "https://script.google.com/macros/s/AKfycbwsSlmfjKlFLO2_fs-c-DXYv--pztkK9WQ_7ddFrsvlPRA1tl4LfPrucAvmr0y119QJ/exec";
+
+    const LABELS = {
+      "system-design": "System design",
+      "ml-systems": "ML system design",
+      "security": "Security tools",
+      "labs": "Regular lab sessions",
+    };
+
+    const $ = (id) => document.getElementById(id);
+    const form = $("poll");
+    const submitBtn = $("submit");
+    const statusEl = $("status");
+    let round = null;
+    let showResults = false;
+
+    function store(key, value) {
+      try {
+        if (value === undefined) return localStorage.getItem(key);
+        localStorage.setItem(key, value);
+      } catch (e) { return null; }
+    }
+
+    function voterId() {
+      let id = store("csce313-poll-voter");
+      if (!id) {
+        id = (crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2) + Date.now());
+        store("csce313-poll-voter", id);
+      }
+      return id;
+    }
+
+    function myVote() {
+      try {
+        const v = JSON.parse(store("csce313-poll-vote") || "null");
+        return v && v.round === round ? v.option : null;
+      } catch (e) { return null; }
+    }
+
+    function setStatus(el, text, kind) {
+      el.textContent = text;
+      el.className = "status" + (kind ? " " + kind : "");
+    }
+
+    function render(data) {
+      round = data.round;
+      $("round").textContent = "Round " + data.round + " · " + data.total + (data.total === 1 ? " vote" : " votes");
+
+      const mine = myVote();
+      if (mine && !form.querySelector("input:checked")) $("opt-" + mine).checked = true;
+      if (mine) showResults = true;
+      submitBtn.textContent = mine ? "Change vote" : "Submit vote";
+      submitBtn.disabled = !form.querySelector("input:checked");
+      $("show").hidden = showResults;
+      if (mine) setStatus(statusEl, "You voted for " + LABELS[mine] + ".", "ok");
+      else if (statusEl.classList.contains("ok")) setStatus(statusEl, "");
+
+      const max = Math.max(0, ...Object.values(data.counts));
+      document.querySelectorAll(".opt").forEach((el) => {
+        const n = data.counts[el.dataset.opt] || 0;
+        const pct = data.total ? Math.round((n / data.total) * 100) : 0;
+        el.querySelector(".opt-count").textContent = showResults ? n + " · " + pct + "%" : "";
+        el.querySelector(".bar span").style.transform = "scaleX(" + (showResults ? pct / 100 : 0) + ")";
+        el.querySelector(".bar").hidden = !showResults;
+        el.classList.toggle("leading", showResults && n > 0 && n === max);
+      });
+    }
+
+    async function load() {
+      if (!ENDPOINT) {
+        $("round").textContent = "Poll not connected yet";
+        setStatus(statusEl, "Voting opens once the instructor connects the poll.");
+        document.querySelectorAll(".bar").forEach((b) => (b.hidden = true));
+        $("show").hidden = true;
+        return;
+      }
+      try {
+        const res = await fetch(ENDPOINT);
+        render(await res.json());
+      } catch (e) {
+        setStatus(statusEl, "Couldn't load results. Check your connection and refresh.", "err");
+      }
+    }
+
+    async function post(body) {
+      const res = await fetch(ENDPOINT, { method: "POST", body: JSON.stringify(body) });
+      return res.json();
+    }
+
+    form.addEventListener("change", () => {
+      submitBtn.disabled = !ENDPOINT || !form.querySelector("input:checked");
+    });
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const picked = form.querySelector("input:checked");
+      if (!picked || !ENDPOINT) return;
+      submitBtn.disabled = true;
+      setStatus(statusEl, "Saving…");
+      try {
+        const data = await post({ action: "vote", voter: voterId(), option: picked.value });
+        if (data.error) throw new Error(data.error);
+        store("csce313-poll-vote", JSON.stringify({ round: data.round, option: picked.value }));
+        showResults = true;
+        render(data);
+      } catch (err) {
+        setStatus(statusEl, "Your vote didn't save. Try again in a moment.", "err");
+        submitBtn.disabled = false;
+      }
+    });
+
+    $("show").addEventListener("click", () => {
+      showResults = true;
+      load();
+    });
+
+    // Two-step reset: the first click arms it, the second resets.
+    let armed = false;
+    $("reset").addEventListener("click", async () => {
+      const passcode = $("passcode").value;
+      const resetStatus = $("reset-status");
+      if (!ENDPOINT) return setStatus(resetStatus, "Add the Apps Script URL to ENDPOINT first.", "err");
+      if (!passcode) return setStatus(resetStatus, "Enter the passcode first.", "err");
+      if (!armed) {
+        armed = true;
+        $("reset").textContent = "Confirm reset";
+        return setStatus(resetStatus, "This clears the current results for everyone. Click again to confirm.");
+      }
+      armed = false;
+      $("reset").textContent = "Reset poll";
+      $("reset").disabled = true;
+      setStatus(resetStatus, "Resetting…");
+      try {
+        const data = await post({ action: "reset", passcode });
+        if (data.error === "wrong_passcode") throw new Error("Wrong passcode.");
+        if (data.error) throw new Error("Reset failed. Try again.");
+        form.reset();
+        setStatus(statusEl, "");
+        render(data);
+        setStatus(resetStatus, "Poll reset. Round " + data.round + " is open.", "ok");
+      } catch (err) {
+        setStatus(resetStatus, err.message.startsWith("Wrong") ? err.message : "Reset failed. Try again.", "err");
+      } finally {
+        $("reset").disabled = false;
+      }
+    });
+
+    load();
+    // Keep results live while the poll is up on the projector.
+    setInterval(() => { if (ENDPOINT && !document.hidden) load(); }, 10000);
+  </script>
+</body>
+</html>
