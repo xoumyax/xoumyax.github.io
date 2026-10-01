@@ -223,6 +223,23 @@ const specs = [
     ],
   },
   {
+    id: 'hellopentagon',
+    aria: 'HelloPentagon pipeline: a Windows binary uploaded through the React UI reaches a Dockerized Flask API, PE and BODMAS features are extracted, XGBoost and random-forest classifiers give the verdict, a hash-similarity lookup names the likely family, an LLM explains the verdict, and the dashboard shows results with live alerts.',
+    nodes: [
+      { id: 'up', c: 0, r: 0, data: true, lines: ['Windows PE upload', 'React UI'] },
+      { id: 'api', c: 1, r: 0, lines: ['Flask API', 'Docker · SQLite'] },
+      { id: 'fx', c: 2, r: 0, lines: ['Feature extraction', 'PE + BODMAS'] },
+      { id: 'clf', c: 2, r: 1, accent: true, lines: ['XGBoost +', 'random forest', 'malware verdict'] },
+      { id: 'fam', c: 1, r: 1, lines: ['Family lookup', 'hash similarity'] },
+      { id: 'llm', c: 0, r: 1, lines: ['LLM explanation', 'of the verdict'] },
+      { id: 'ui', c: 0, r: 2, data: true, lines: ['Dashboard', 'results + live alerts'] },
+    ],
+    edges: [
+      { from: 'up', to: 'api' }, { from: 'api', to: 'fx' }, { from: 'fx', to: 'clf' },
+      { from: 'clf', to: 'fam' }, { from: 'fam', to: 'llm' }, { from: 'llm', to: 'ui' },
+    ],
+  },
+  {
     id: 'hawkeye',
     aria: 'Hawkeye cache replacement: OPTgen replays Belady\'s optimal policy on past accesses to train a PC-based predictor, which inserts cache-friendly loads with high priority and cache-averse loads with low priority. Extensions add PC tracking and multi-policy benchmarking.',
     nodes: [

@@ -459,6 +459,27 @@ a:hover { color: var(--ink); }
 .hero-links { display: flex; gap: 1.1rem; margin: calc(-1 * var(--space-xs)) 0 var(--space-md); }
 .hero-links a { font-weight: 700; font-size: 0.95rem; }
 
+/* Sponsored research gets its own line up front, above the proof chips */
+.hero-sponsor {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 0.4rem 0.75rem;
+  margin: calc(-1 * var(--space-sm)) 0 var(--space-md);
+  padding: 0.6rem 0.9rem; max-width: 58ch;
+  color: var(--ink); text-decoration: none;
+  background: var(--surface); border: 1.5px solid var(--brand);
+  border-radius: 14px;
+  transition: background-color 0.15s;
+}
+.hero-sponsor:hover { background: var(--brand-soft); color: var(--ink); }
+.hero-sponsor[hidden] { display: none; }
+.hero-sponsor-label {
+  font-family: var(--font-display); font-weight: 800; font-size: 0.78rem;
+  color: var(--on-brand); background: var(--brand);
+  border-radius: var(--radius-pill); padding: 0.15rem 0.6rem; white-space: nowrap;
+}
+.hero-sponsor-text { font-size: 0.98rem; line-height: 1.45; }
+.hero-sponsor abbr { text-decoration: none; }
+.hero-sponsor-go { font-weight: 800; color: var(--brand); white-space: nowrap; }
+
 .proof-chips { list-style: none; display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: var(--space-lg); }
 .proof-chip {
   display: inline-flex; align-items: center; min-height: 36px;
@@ -721,6 +742,7 @@ section + section { border-top: 1px solid var(--line); }
 .badge-progress { color: var(--status-progress); background: var(--status-progress-bg); }
 .badge-review { color: var(--status-review); background: var(--status-review-bg); }
 .badge-note { color: var(--muted); background: transparent; border-color: var(--line); }
+.badge-sponsor { color: var(--brand); background: var(--brand-soft); border-color: var(--brand); font-weight: 800; }
 
 /* ── Research map ── */
 .rmap { margin: 0; }
@@ -946,6 +968,7 @@ section + section { border-top: 1px solid var(--line); }
   border-radius: 12px; padding: 0.9rem 1.1rem; min-height: 5.5rem;
 }
 .tl-detail p + p { margin-top: 0.3rem; color: var(--muted); }
+.tl-detail .badge { margin-right: 0.3rem; vertical-align: 0.1em; }
 .tl-detail-head strong { font-family: var(--font-display); font-size: 1.1rem; }
 .tl-dates { display: inline-block; color: var(--muted); font-weight: 700; font-size: 0.9rem; margin-left: 0.4rem; }
 

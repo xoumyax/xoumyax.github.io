@@ -7,95 +7,186 @@
     "resumePdf": "Soumyajyoti_Dutta_Resume.pdf",
     "resumeDownloadName": "Soumyajyoti_Dutta_Resume.pdf"
   },
-
   "hero": {
     "status": "Open to work · Summer 2027 internships (Winter 2026 / Spring 2027 starts welcome) · Full-time ML research engineering",
     "name": "Hi, I'm Soumyajyoti.",
     "tagline": "I build ML systems <span class=\"accent\">that ship.</span>",
     "intro": "<strong class=\"hook\">Small models, frontier results.</strong> With reasoning switched off, the 8B models I post-trained write YARA malware-detection rules better than GPT-5.4 and Sonnet 5 with theirs switched on. I'm a CS PhD student at <strong>Texas A&amp;M</strong> (Botacin's Lab): I post-train small language models, design the evaluations that prove they work, and aim them at security problems.",
+    "sponsor": {
+      "label": "Sponsored research",
+      "text": "<strong>YaraGen</strong> is sponsored by <strong><abbr title=\"Laboratory for Physical Sciences, University of Maryland\">LPS (UMD)</abbr></strong> and <strong>Booz Allen Hamilton</strong>.",
+      "href": "#project-yaragen",
+      "linkLabel": "See the project"
+    },
     "proofChips": [
-      { "label": "ACSAC 2026 · Accepted", "href": "#project-autopyara" },
-      { "label": "PyPI · Open source", "href": "#project-autopyara" },
-      { "label": "1st place · #1 after 5 offerings", "href": "#project-malware" },
-      { "label": "135M–∼9B params · multi-node SLURM", "href": "#skills" }
+      {
+        "label": "ACSAC 2026 · Accepted",
+        "href": "#project-autopyara"
+      },
+      {
+        "label": "PyPI · Open source",
+        "href": "#project-autopyara"
+      },
+      {
+        "label": "1st place · #1 after 5 offerings",
+        "href": "#project-malware"
+      },
+      {
+        "label": "135M–∼9B params · multi-node SLURM",
+        "href": "#skills"
+      }
     ]
   },
-
   "now": {
-    "badge": { "text": "In preparation · USENIX Security '27, Cycle 2", "kind": "progress" },
+    "badge": {
+      "text": "In preparation · USENIX Security '27, Cycle 2",
+      "kind": "progress"
+    },
     "title": "IOCScooper++",
     "subtitle": "IOC and TTP extraction from real threat reports",
     "chips": [
-      { "value": "50.6M", "label": "params" },
-      { "value": "0.894", "label": "micro F1" },
-      { "value": "36", "label": "IOC types" }
+      {
+        "value": "50.6M",
+        "label": "params"
+      },
+      {
+        "value": "0.894",
+        "label": "micro F1"
+      },
+      {
+        "value": "36",
+        "label": "IOC types"
+      }
     ],
     "href": "#project-iocscooper"
   },
-
   "drive": [
-    { "id": "job", "emoji": "🏢", "year": "2021", "title": "First job",
+    {
+      "id": "job",
+      "emoji": "🏢",
+      "year": "2021",
+      "title": "First job",
       "line": "Cognizant: Software Engineering Intern, converted to full-time; client-embedded on <strong>TJX Companies</strong>.",
-      "href": "#experience", "linkLabel": "See the timeline",
+      "href": "#experience",
+      "linkLabel": "See the timeline",
       "quip": "First paycheck, first tank of gas.",
-      "encore": "Back at the start. The internship turned into a full-time offer; the driving turned into a habit." },
-    { "id": "grad", "emoji": "🎓", "year": "2022", "title": "Grad school",
+      "encore": "Back at the start. The internship turned into a full-time offer; the driving turned into a habit."
+    },
+    {
+      "id": "grad",
+      "emoji": "🎓",
+      "year": "2022",
+      "title": "Grad school",
       "line": "M.S. Computer Engineering at Texas A&amp;M; <strong>Springer book chapter</strong> on carotid-artery ultrasound.",
-      "href": "#shelf", "linkLabel": "See the chapter",
+      "href": "#shelf",
+      "linkLabel": "See the chapter",
       "quip": "Packed up for College Station with a Springer chapter in the glovebox.",
-      "encore": "Grad school again. The chapter is still in the glovebox." },
-    { "id": "first", "emoji": "🏆", "year": "2023", "title": "First place",
+      "encore": "Grad school again. The chapter is still in the glovebox."
+    },
+    {
+      "id": "first",
+      "emoji": "🏆",
+      "year": "2023",
+      "title": "First place",
       "line": "ML Malware Detection and adversarial attack suite; <strong>still #1 after five course offerings</strong>.",
-      "href": "#project-malware", "linkLabel": "See the project",
+      "href": "#project-malware",
+      "linkLabel": "See the project",
       "quip": "Ease off the gas: this one has held first place for five course offerings.",
-      "encore": "Still first place. We checked again." },
-    { "id": "phd", "emoji": "🔬", "year": "2024", "title": "PhD begins",
-      "line": "Botacin's Lab at Texas A&amp;M; Multiperspective Hawkeye and vision-language evaluation.",
-      "href": "#project-hawkeye", "linkLabel": "See the projects",
+      "encore": "Still first place. We checked again."
+    },
+    {
+      "id": "phd",
+      "emoji": "🔬",
+      "year": "2024",
+      "title": "PhD begins",
+      "line": "Botacin's Lab at Texas A&amp;M; HelloPentagon, Multiperspective Hawkeye and vision-language evaluation.",
+      "href": "#project-hellopentagon",
+      "linkLabel": "See the projects",
       "quip": "The road gets steeper from here, and the GPUs get louder.",
-      "encore": "Lab stop. The GPUs are still humming." },
-    { "id": "tools", "emoji": "🛠️", "year": "2025", "title": "Built my own tools",
+      "encore": "Lab stop. The GPUs are still humming."
+    },
+    {
+      "id": "tools",
+      "emoji": "🛠️",
+      "year": "2025",
+      "title": "Built my own tools",
       "line": "Sturdy Fishstick, a <strong>local-LLM job-search platform</strong>.",
-      "href": "#project-fishstick", "linkLabel": "See the project",
+      "href": "#project-fishstick",
+      "linkLabel": "See the project",
       "quip": "Built a job-search tool on the way to job-searching. Very meta.",
-      "encore": "Still scoring listings, still running entirely on local models." },
-    { "id": "ship", "emoji": "🚢", "year": "2026", "title": "Published and shipped",
+      "encore": "Still scoring listings, still running entirely on local models."
+    },
+    {
+      "id": "ship",
+      "emoji": "🚢",
+      "year": "2026",
+      "title": "Published and shipped",
       "line": "AutoPYara <strong>accepted at ACSAC 2026</strong> and released on PyPI; YaraGen submitted to USENIX Security '27; proactive research agent.",
-      "href": "#project-autopyara", "linkLabel": "See the project",
+      "href": "#project-autopyara",
+      "linkLabel": "See the project",
       "quip": "Things actually shipped here. Mind the boat.",
-      "encore": "The boat is still in the pond, and the package is still on PyPI." },
-    { "id": "now", "emoji": "🚧", "year": "Now", "title": "Currently building",
+      "encore": "The boat is still in the pond, and the package is still on PyPI."
+    },
+    {
+      "id": "now",
+      "emoji": "🚧",
+      "year": "Now",
+      "title": "Currently building",
       "line": "<strong>IOCScooper++</strong>, presented at the Texas Security Workshop. The road ends at a flag: open to work.",
-      "href": "#project-iocscooper", "linkLabel": "See the project",
+      "href": "#project-iocscooper",
+      "linkLabel": "See the project",
       "quip": "Hard hats on: this stop is still under construction.",
-      "encore": "Still under construction. Come back next month; it'll be taller." }
+      "encore": "Still under construction. Come back next month; it'll be taller."
+    }
   ],
-
   "lanes": [
-    { "id": "security", "title": "AI for cyberdefense" },
-    { "id": "posttraining", "title": "Post-training and evaluation" },
-    { "id": "systems", "title": "Systems and tools" }
+    {
+      "id": "security",
+      "title": "AI for cyberdefense"
+    },
+    {
+      "id": "posttraining",
+      "title": "Post-training and evaluation"
+    },
+    {
+      "id": "systems",
+      "title": "Systems and tools"
+    }
   ],
   "toolkit": "Shared toolkit: PyTorch · Hugging Face · multi-node SLURM · vLLM · evaluation harnesses",
   "mapHighlight": "iocscooper",
-
   "projects": [
     {
       "id": "yaragen",
       "year": 2026,
-      "mapNote": "under review",
+      "mapNote": "under review · sponsored",
       "title": "YaraGen",
       "short": "YaraGen",
       "lane": "security",
       "badges": [
-        { "text": "Under review · USENIX Security '27, Cycle 1", "kind": "review" },
-        { "text": "Sponsored · LPS (UMD) & Booz Allen Hamilton", "kind": "note" }
+        {
+          "text": "Under review · USENIX Security '27, Cycle 1",
+          "kind": "review"
+        },
+        {
+          "text": "Sponsored · LPS (UMD) &amp; Booz Allen Hamilton",
+          "kind": "sponsor"
+        }
       ],
       "oneLine": "Small, grammar-aware language models that write YARA malware-detection rules, scored for meaning with an SMT solver rather than string overlap.",
       "metrics": [
-        { "value": "91.8%", "label": "semantic correctness" },
-        { "value": "57×", "label": "fewer params than 8B" },
-        { "value": "150+", "label": "post-training runs" }
+        {
+          "value": "91.8%",
+          "label": "semantic correctness"
+        },
+        {
+          "value": "57×",
+          "label": "fewer params than 8B"
+        },
+        {
+          "value": "150+",
+          "label": "post-training runs"
+        }
       ],
       "bullets": [
         "With reasoning off, structured-trained Llama 3.1 8B and Ministral 3 8B beat GPT-5.4 and Sonnet 5 (reasoning on) few-shot on both Structured Logic → YARA and NL Prompt → YARA generation, and beat both zero-shot on rule repair.",
@@ -104,15 +195,33 @@
       ],
       "versus": {
         "label": "Against frontier models",
-        "columns": ["GPT-5.4", "Sonnet 5"],
+        "columns": [
+          "GPT-5.4",
+          "Sonnet 5"
+        ],
         "rows": [
-          { "task": "Structured logic → YARA", "result": "Beats few-shot" },
-          { "task": "NL prompt → YARA", "result": "Beats few-shot" },
-          { "task": "Rule repair", "result": "Beats zero-shot" }
+          {
+            "task": "Structured logic → YARA",
+            "result": "Beats few-shot"
+          },
+          {
+            "task": "NL prompt → YARA",
+            "result": "Beats few-shot"
+          },
+          {
+            "task": "Rule repair",
+            "result": "Beats zero-shot"
+          }
         ],
         "note": "Ours: structured-trained Llama 3.1 8B and Ministral 3 8B, <strong>reasoning off</strong>. Theirs: reasoning on. Next up: reasoning training and RLVR."
       },
-      "tags": ["YARA", "small models", "tokenizers", "Z3/SMT", "SLURM"],
+      "tags": [
+        "YARA",
+        "small models",
+        "tokenizers",
+        "Z3/SMT",
+        "SLURM"
+      ],
       "diagram": "assets/diagrams/yaragen.svg",
       "caption": "Scooper takes the IOCs out before generation and puts them back after, so a rule's length never depends on how long its indicators are.",
       "links": [],
@@ -127,20 +236,40 @@
       "short": "IOCScooper++",
       "lane": "security",
       "badges": [
-        { "text": "In preparation · USENIX Security '27, Cycle 2", "kind": "progress" },
-        { "text": "Talk · Texas Security Workshop 2026", "kind": "note" }
+        {
+          "text": "In preparation · USENIX Security '27, Cycle 2",
+          "kind": "progress"
+        },
+        {
+          "text": "Talk · Texas Security Workshop 2026",
+          "kind": "note"
+        }
       ],
       "oneLine": "Pulls indicators of compromise and ATT&amp;CK techniques out of real threat reports with a 50.6M-parameter model.",
       "metrics": [
-        { "value": "0.894 / 0.925", "label": "micro / macro span F1" },
-        { "value": "36", "label": "IOC types" },
-        { "value": "0.950", "label": "ATT&amp;CK-ID F1" }
+        {
+          "value": "0.894 / 0.925",
+          "label": "micro / macro span F1"
+        },
+        {
+          "value": "36",
+          "label": "IOC types"
+        },
+        {
+          "value": "0.950",
+          "label": "ATT&amp;CK-ID F1"
+        }
       ],
       "bullets": [
         "Trained ScooperNER-M (50.6M params) to 0.894 micro / 0.925 macro span-exact F1 on 47 held-out reports, beating fine-tuned encoder baselines 3–7× its size.",
         "Extending extraction to grounded (entity, action, IOC) tuples mapped open-set onto all 637 ATT&amp;CK techniques, with a co-annotated benchmark of real malware reports."
       ],
-      "tags": ["NER", "threat intelligence", "MITRE ATT&amp;CK", "small models"],
+      "tags": [
+        "NER",
+        "threat intelligence",
+        "MITRE ATT&amp;CK",
+        "small models"
+      ],
       "diagram": "assets/diagrams/iocscooper.svg",
       "caption": "Dashed steps are Phase 2, in progress.",
       "links": [],
@@ -155,28 +284,60 @@
       "short": "AutoPYara",
       "lane": "security",
       "badges": [
-        { "text": "ACSAC 2026 · Accepted", "kind": "accepted" },
-        { "text": "Shipped on PyPI", "kind": "shipped" }
+        {
+          "text": "ACSAC 2026 · Accepted",
+          "kind": "accepted"
+        },
+        {
+          "text": "Shipped on PyPI",
+          "kind": "shipped"
+        }
       ],
       "oneLine": "Generates YARA rules straight from malware binaries, grouped by family, and ships as a pip package.",
       "metrics": [
-        { "value": "+14 pp", "label": "rule coverage" },
-        { "value": "7.1 pp", "label": "lower variance" },
-        { "value": "+10%", "label": "threat-hunting accuracy" }
+        {
+          "value": "+14 pp",
+          "label": "rule coverage"
+        },
+        {
+          "value": "7.1 pp",
+          "label": "lower variance"
+        },
+        {
+          "value": "+10%",
+          "label": "threat-hunting accuracy"
+        }
       ],
       "metricsNote": "All vs. AutoYara, the prior state of the art.",
       "bullets": [
         "Re-implemented and extended biclustering-based rule generation; benchmarked several clustering algorithms and heuristics for choosing K.",
         "Beat AutoYara, the prior state of the art, on ≈71K samples collected over eight years."
       ],
-      "tags": ["malware analysis", "clustering", "open source", "Python"],
+      "tags": [
+        "malware analysis",
+        "clustering",
+        "open source",
+        "Python"
+      ],
       "diagram": "assets/diagrams/autopyara.svg",
       "caption": "Two estimates feed the generator: how many subclusters a family needs, and which samples sit at their centres.",
       "links": [
-        { "label": "PyPI", "href": "https://pypi.org/project/autopyara/" },
-        { "label": "Code", "href": "https://github.com/Botacin-s-Lab/AutoPYaraPyPI" },
-        { "label": "Artifact", "href": "https://github.com/Botacin-s-Lab/AutoPYara" },
-        { "label": "Paper", "href": "TODO" }
+        {
+          "label": "PyPI",
+          "href": "https://pypi.org/project/autopyara/"
+        },
+        {
+          "label": "Code",
+          "href": "https://github.com/Botacin-s-Lab/AutoPYaraPyPI"
+        },
+        {
+          "label": "Artifact",
+          "href": "https://github.com/Botacin-s-Lab/AutoPYara"
+        },
+        {
+          "label": "Paper",
+          "href": "TODO"
+        }
       ],
       "visibility": "public",
       "shelf": false
@@ -188,29 +349,62 @@
       "short": "Research agent",
       "lane": "posttraining",
       "badges": [
-        { "text": "Manuscript in preparation", "kind": "progress" },
-        { "text": "Co-authored, 4-person team · led model development and training", "kind": "note" }
+        {
+          "text": "Manuscript in preparation",
+          "kind": "progress"
+        },
+        {
+          "text": "Co-authored, 4-person team · led model development and training",
+          "kind": "note"
+        }
       ],
       "oneLine": "Teaches a deep-research agent to ask one clarifying question when a query is underspecified, instead of answering the wrong question.",
       "metrics": [
-        { "value": "0.168 → 0.573", "label": "pause-detection F1" },
-        { "value": "176", "label": "query benchmark" },
-        { "value": "1 × 80GB", "label": "GPU" }
+        {
+          "value": "0.168 → 0.573",
+          "label": "pause-detection F1"
+        },
+        {
+          "value": "176",
+          "label": "query benchmark"
+        },
+        {
+          "value": "1 × 80GB",
+          "label": "GPU"
+        }
       ],
       "bullets": [
         "Fine-tuned Gemma-4-E4B (sparse MoE, ~9B total / ~4B active) through a four-stage SFT curriculum on one 80GB GPU, served with vLLM and multi-turn KV reuse.",
         "Built a three-axis evaluation (detection, question quality, answer quality) with simulated users and LLM-as-judge; pause F1 rose from 0.168 to 0.573, while clarified answers still trail the no-pause baseline."
       ],
-      "tags": ["agents", "SFT curriculum", "MCP", "evaluation"],
+      "tags": [
+        "agents",
+        "SFT curriculum",
+        "MCP",
+        "evaluation"
+      ],
       "diagram": "assets/diagrams/agent.svg",
       "caption": "The open problem moved from deciding to ask to answering well after asking.",
       "stepper": {
         "label": "Training curriculum",
         "steps": [
-          { "id": "S1", "text": "Complete SFT, no pause" },
-          { "id": "S2", "text": "Pause SFT" },
-          { "id": "S3", "text": "Reasoned pause", "best": "Best pause detector" },
-          { "id": "S4", "text": "Mechanism-augmented SFT" }
+          {
+            "id": "S1",
+            "text": "Complete SFT, no pause"
+          },
+          {
+            "id": "S2",
+            "text": "Pause SFT"
+          },
+          {
+            "id": "S3",
+            "text": "Reasoned pause",
+            "best": "Best pause detector"
+          },
+          {
+            "id": "S4",
+            "text": "Mechanism-augmented SFT"
+          }
         ]
       },
       "links": [],
@@ -225,19 +419,35 @@
       "short": "Depixelation",
       "lane": "posttraining",
       "badges": [
-        { "text": "In progress · Personal research", "kind": "progress" }
+        {
+          "text": "In progress · Personal research",
+          "kind": "progress"
+        }
       ],
       "oneLine": "Measures exactly when pixelated text can be recovered, so redaction tools know where they fail.",
       "metrics": [
-        { "value": "360", "label": "difficulty cells" },
-        { "value": "10", "label": "seeds per cell" },
-        { "value": "4×H100", "label": "compute" }
+        {
+          "value": "360",
+          "label": "difficulty cells"
+        },
+        {
+          "value": "10",
+          "label": "seeds per cell"
+        },
+        {
+          "value": "4×H100",
+          "label": "compute"
+        }
       ],
       "bullets": [
         "Recasts depixelation from image restoration to constrained search with an exact render-and-verify check, over a 360-cell grid and a 10-seed protocol.",
         "Scoping retrieval-augmented recognition with calibrated abstention and curriculum-training comparisons; framed defense-first."
       ],
-      "tags": ["vision security", "benchmarks", "responsible disclosure"],
+      "tags": [
+        "vision security",
+        "benchmarks",
+        "responsible disclosure"
+      ],
       "diagram": "assets/diagrams/depix.svg",
       "caption": "A candidate only counts when re-pixelating it reproduces the sample exactly; the dashed exit is the abstention path still being scoped.",
       "links": [],
@@ -251,23 +461,84 @@
       "short": "Fishstick",
       "lane": "systems",
       "badges": [
-        { "text": "Shipped · Self-hosted", "kind": "shipped" }
+        {
+          "text": "Shipped · Self-hosted",
+          "kind": "shipped"
+        }
       ],
       "oneLine": "A job and PhD search platform that scrapes, scores and tracks listings with 1–2B models running locally.",
       "metrics": [
-        { "value": "∼750", "label": "listings scored" },
-        { "value": "10+", "label": "ingestion sources" },
-        { "value": "1–2B", "label": "local models" }
+        {
+          "value": "∼750",
+          "label": "listings scored"
+        },
+        {
+          "value": "10+",
+          "label": "ingestion sources"
+        },
+        {
+          "value": "1–2B",
+          "label": "local models"
+        }
       ],
       "bullets": [
         "Made 1–2B local models reliable judges by asking categorical questions (real job? level? field? skills overlap?) that map deterministically to a score, instead of asking for a number.",
         "Ingested 6 ATS APIs with a Playwright fallback; grounded the chat in SQLite FTS5 so it cannot invent counts."
       ],
-      "tags": ["FastAPI", "React", "Ollama", "RAG", "scraping"],
+      "tags": [
+        "FastAPI",
+        "React",
+        "Ollama",
+        "RAG",
+        "scraping"
+      ],
       "diagram": "assets/diagrams/fishstick.svg",
       "caption": "The small model only answers multiple-choice questions; the score itself is computed, never generated.",
       "links": [
-        { "label": "Code", "href": "https://github.com/xoumyax/sturdy-fishstick" }
+        {
+          "label": "Code",
+          "href": "https://github.com/xoumyax/sturdy-fishstick"
+        }
+      ],
+      "visibility": "public",
+      "shelf": false
+    },
+    {
+      "id": "hellopentagon",
+      "year": 2024,
+      "title": "HelloPentagon",
+      "short": "HelloPentagon",
+      "lane": "systems",
+      "badges": [
+        {
+          "text": "Team project · Open source",
+          "kind": "shipped"
+        },
+        {
+          "text": "My part: detection models and backend design",
+          "kind": "note"
+        }
+      ],
+      "oneLine": "An explainable malware detector: upload a Windows binary and get a verdict, its likely family, and a plain-language explanation for analysts.",
+      "metrics": [],
+      "bullets": [
+        "Developed the malware-detection models: XGBoost and random-forest classifiers over PE and BODMAS features extracted from each upload.",
+        "Designed the backend: a Dockerized Flask API with SQLite, a hash-similarity family lookup, live Socket.IO alerts to the dashboard, and an LLM layer that explains each verdict."
+      ],
+      "tags": [
+        "XGBoost",
+        "random forest",
+        "Flask",
+        "Docker",
+        "explainable ML"
+      ],
+      "diagram": "assets/diagrams/hellopentagon.svg",
+      "caption": "The classifiers decide; the LLM only explains the verdict it is handed.",
+      "links": [
+        {
+          "label": "Code",
+          "href": "https://github.com/jwonnyleaf/HelloPentagon"
+        }
       ],
       "visibility": "public",
       "shelf": false
@@ -279,14 +550,21 @@
       "short": "Hawkeye",
       "lane": "systems",
       "badges": [
-        { "text": "Systems project · C++", "kind": "note" }
+        {
+          "text": "Systems project · C++",
+          "kind": "note"
+        }
       ],
       "oneLine": "The ISCA'16 Hawkeye cache-replacement policy, implemented in zsim and extended.",
       "metrics": [],
       "bullets": [
         "Implemented Hawkeye in the zsim simulator and extended it with PC tracking and multi-policy benchmarking."
       ],
-      "tags": ["C++", "computer architecture", "zsim"],
+      "tags": [
+        "C++",
+        "computer architecture",
+        "zsim"
+      ],
       "diagram": "assets/diagrams/hawkeye.svg",
       "caption": "Hawkeye learns from what Belady's optimal policy would have done on past accesses, then predicts per load PC.",
       "links": [],
@@ -300,14 +578,21 @@
       "short": "VLM eval",
       "lane": "posttraining",
       "badges": [
-        { "text": "Course project · ECEN 642", "kind": "note" }
+        {
+          "text": "Course project · ECEN 642",
+          "kind": "note"
+        }
       ],
       "oneLine": "Measured a DeepSeek vision-language model against human-annotated ground truth.",
       "metrics": [],
       "bullets": [
         "Built the comparison harness and error analysis for object recognition and scene understanding."
       ],
-      "tags": ["VLMs", "evaluation", "computer vision"],
+      "tags": [
+        "VLMs",
+        "evaluation",
+        "computer vision"
+      ],
       "diagram": "assets/diagrams/vlm.svg",
       "caption": "Model output and human labels meet in one harness, and every disagreement goes to error analysis.",
       "links": [],
@@ -322,19 +607,36 @@
       "short": "Malware",
       "lane": "security",
       "badges": [
-        { "text": "1st place · Still #1 after five course offerings", "kind": "accepted" }
+        {
+          "text": "1st place · Still #1 after five course offerings",
+          "kind": "accepted"
+        }
       ],
       "oneLine": "A Windows PE malware classifier and the competition's strongest evasion attack, built by the same person.",
       "metrics": [
-        { "value": "96.2%", "label": "accuracy" },
-        { "value": "0.97", "label": "F1" },
-        { "value": "2M+", "label": "samples" }
+        {
+          "value": "96.2%",
+          "label": "accuracy"
+        },
+        {
+          "value": "0.97",
+          "label": "F1"
+        },
+        {
+          "value": "2M+",
+          "label": "samples"
+        }
       ],
       "bullets": [
         "Built an end-to-end PE classifier at 96.2% accuracy and 0.97 F1, served from a self-contained Docker endpoint.",
         "Designed the competition's best-performing adversarial attack suite; the entry has stayed first across five later offerings."
       ],
-      "tags": ["LightGBM", "XGBoost", "adversarial ML", "Docker"],
+      "tags": [
+        "LightGBM",
+        "XGBoost",
+        "adversarial ML",
+        "Docker"
+      ],
       "diagram": "assets/diagrams/malware.svg",
       "caption": "One side defends, the other attacks: the same person built the detector and the competition's best-performing attack suite.",
       "links": [],
@@ -342,22 +644,16 @@
       "shelf": false
     },
     {
-      "id": "hellopentagon",
-      "year": null,
-      "title": "HelloPentagon",
-      "short": "HelloPentagon",
-      "lane": "systems",
-      "oneLine": "Explainable malware-defense chatbot: a classifier triages, an LLM layer explains the verdict to analysts.",
-      "links": [],
-      "visibility": "public",
-      "shelf": true
-    },
-    {
       "id": "carotid",
       "year": 2022,
       "title": "Carotid Artery Ultrasound Analysis",
       "oneLine": "CNN ultrasound classification; Springer book chapter.",
-      "links": [{ "label": "Chapter", "href": "https://link.springer.com/chapter/10.1007/978-3-030-90724-2_2" }],
+      "links": [
+        {
+          "label": "Chapter",
+          "href": "https://link.springer.com/chapter/10.1007/978-3-030-90724-2_2"
+        }
+      ],
       "visibility": "public",
       "shelf": true
     },
@@ -366,7 +662,12 @@
       "year": 2023,
       "title": "WildFire",
       "oneLine": "Spatiotemporal ML for wildfire-spread prediction from climate and satellite data.",
-      "links": [{ "label": "Code", "href": "https://github.com/xoumyax/WildFire" }],
+      "links": [
+        {
+          "label": "Code",
+          "href": "https://github.com/xoumyax/WildFire"
+        }
+      ],
       "visibility": "public",
       "shelf": true
     },
@@ -375,98 +676,351 @@
       "year": 2023,
       "title": "Fashion-MNIST",
       "oneLine": "ResNet and VGG comparison with regularization analysis.",
-      "links": [{ "label": "Code", "href": "https://github.com/xoumyax/Fashion-MNIST" }],
+      "links": [
+        {
+          "label": "Code",
+          "href": "https://github.com/xoumyax/Fashion-MNIST"
+        }
+      ],
       "visibility": "public",
       "shelf": true
     }
   ],
-
   "timeline": {
     "start": "2017-01",
     "end": "2026-12",
     "lanes": [
-      { "id": "education", "title": "Education" },
-      { "id": "work", "title": "Work" },
-      { "id": "teaching", "title": "Teaching" }
+      {
+        "id": "education",
+        "title": "Education"
+      },
+      {
+        "id": "work",
+        "title": "Work"
+      },
+      {
+        "id": "teaching",
+        "title": "Teaching"
+      }
     ]
   },
   "experience": [
-    { "id": "btech", "lane": "education", "title": "B.Tech. Electronics &amp; Communication Engineering", "short": "B.Tech. ECE", "org": "SRM Institute of Science and Technology",
-      "start": "2017-08", "end": "2021-05", "dates": "2017 – 2021", "detail": "" },
-    { "id": "ms", "lane": "education", "title": "M.S. Computer Engineering", "short": "M.S.", "org": "Texas A&amp;M University",
-      "start": "2022-08", "end": "2023-12", "dates": "Fall 2022 – Fall 2023",
-      "detail": "NLP, Deep Learning, Computer Vision, ML Cyberdefenses, ML Theory, Data Mining." },
-    { "id": "phd", "lane": "education", "title": "Ph.D. Computer Science", "short": "Ph.D.", "org": "Texas A&amp;M University",
-      "start": "2024-01", "end": "present", "dates": "Spring 2024 – expected Spring 2028",
-      "detail": "LLM post-training, evaluation and interpretability for automated cyberdefense." },
-    { "id": "intern", "lane": "work", "title": "Software Engineering Intern", "short": "Intern", "org": "Cognizant, Kolkata",
-      "start": "2021-02", "end": "2021-06", "dates": "Feb – Jun 2021",
-      "detail": "Web features for a client logistics platform; resolved support tickets with ServiceNow triage and Splunk tracing. <strong>Converted to full-time.</strong>" },
-    { "id": "jse", "lane": "work", "title": "Junior Software Engineer", "short": "Junior SWE", "org": "Cognizant, Kolkata",
-      "start": "2021-08", "end": "2022-08", "dates": "Aug 2021 – Aug 2022",
-      "detail": "Client-embedded on <strong>TJX Companies (Fortune 500)</strong>: shipped a logistics-automation platform; tuned Python/REST services for latency and concurrency; CI/CD and code review." },
-    { "id": "gsr", "lane": "work", "title": "Graduate Student Researcher", "short": "GSR", "org": "Texas A&amp;M University",
-      "start": "2023-06", "end": "2023-08", "dates": "Summer 2023",
-      "detail": "Mathematical modeling of prostate-cancer genomic pathways; simulated multi-drug interactions for biologists." },
-    { "id": "ra", "lane": "work", "title": "Research Assistant", "short": "Research Assistant, Botacin's Lab", "org": "Botacin's Lab, Texas A&amp;M",
-      "start": "2024-01", "end": "present", "dates": "Spring 2024 – present", "default": true,
-      "detail": "Post-training pipelines for ~a dozen model families (135M to ~9B, incl. sparse MoE) on multi-node SLURM clusters. YaraGen (sponsored by LPS (UMD) &amp; Booz Allen Hamilton), IOCScooper++ and AutoPYara." },
-    { "id": "ecen325", "lane": "teaching", "title": "TA, ECEN 325 Electronics", "short": "ECEN 325", "org": "Texas A&amp;M University",
-      "start": "2023-01", "end": "2023-05", "dates": "Spring 2023", "href": "#teaching",
-      "detail": "Lectures, grading and labs." },
-    { "id": "csce439", "lane": "teaching", "title": "TA, CSCE 439/704 Data Analytics for Cybersecurity", "short": "CSCE 439/704", "org": "Texas A&amp;M University",
-      "start": "2026-01", "end": "2026-05", "dates": "Spring 2026", "href": "#teaching",
-      "detail": "Taught clustering, supervised ML and anomaly detection to 37 students; mentored 9 team projects." },
-    { "id": "csce313", "lane": "teaching", "title": "TA, CSCE 313 Introduction to Computer Systems", "short": "CSCE 313", "org": "Texas A&amp;M University",
-      "start": "2026-08", "end": "present", "dates": "Fall 2026", "href": "#teaching",
-      "detail": "Lab instructor and grader; writes the Linux practical assignments." }
+    {
+      "id": "btech",
+      "lane": "education",
+      "title": "B.Tech. Electronics &amp; Communication Engineering",
+      "short": "B.Tech. ECE",
+      "org": "SRM Institute of Science and Technology",
+      "start": "2017-08",
+      "end": "2021-05",
+      "dates": "2017 – 2021",
+      "detail": ""
+    },
+    {
+      "id": "ms",
+      "lane": "education",
+      "title": "M.S. Computer Engineering",
+      "short": "M.S.",
+      "org": "Texas A&amp;M University",
+      "start": "2022-08",
+      "end": "2023-12",
+      "dates": "Fall 2022 – Fall 2023",
+      "detail": "NLP, Deep Learning, Computer Vision, ML Cyberdefenses, ML Theory, Data Mining."
+    },
+    {
+      "id": "phd",
+      "lane": "education",
+      "title": "Ph.D. Computer Science",
+      "short": "Ph.D.",
+      "org": "Texas A&amp;M University",
+      "start": "2024-01",
+      "end": "present",
+      "dates": "Spring 2024 – expected Spring 2028",
+      "detail": "LLM post-training, evaluation and interpretability for automated cyberdefense."
+    },
+    {
+      "id": "intern",
+      "lane": "work",
+      "title": "Software Engineering Intern",
+      "short": "Intern",
+      "org": "Cognizant, Kolkata",
+      "start": "2021-02",
+      "end": "2021-06",
+      "dates": "Feb – Jun 2021",
+      "detail": "Web features for a client logistics platform; resolved support tickets with ServiceNow triage and Splunk tracing. <strong>Converted to full-time.</strong>"
+    },
+    {
+      "id": "jse",
+      "lane": "work",
+      "title": "Junior Software Engineer",
+      "short": "Junior SWE",
+      "org": "Cognizant, Kolkata",
+      "start": "2021-08",
+      "end": "2022-08",
+      "dates": "Aug 2021 – Aug 2022",
+      "detail": "Client-embedded on <strong>TJX Companies (Fortune 500)</strong>: shipped a logistics-automation platform; tuned Python/REST services for latency and concurrency; CI/CD and code review."
+    },
+    {
+      "id": "gsr",
+      "lane": "work",
+      "title": "Graduate Student Researcher",
+      "short": "GSR",
+      "org": "Texas A&amp;M University",
+      "start": "2023-06",
+      "end": "2023-08",
+      "dates": "Summer 2023",
+      "detail": "Mathematical modeling of prostate-cancer genomic pathways; simulated multi-drug interactions for biologists."
+    },
+    {
+      "id": "ra",
+      "lane": "work",
+      "title": "Research Assistant",
+      "short": "Research Assistant, Botacin's Lab",
+      "org": "Botacin's Lab, Texas A&amp;M",
+      "start": "2024-01",
+      "end": "present",
+      "dates": "Spring 2024 – present",
+      "default": true,
+      "detail": "<span class=\"badge badge-sponsor\">Sponsored · LPS (UMD) &amp; Booz Allen Hamilton</span> <strong>YaraGen</strong>, plus IOCScooper++ and AutoPYara. Post-training pipelines for ~a dozen model families (135M to ~9B, incl. sparse MoE) on multi-node SLURM clusters.",
+      "href": "#project-yaragen"
+    },
+    {
+      "id": "ecen325",
+      "lane": "teaching",
+      "title": "TA, ECEN 325 Electronics",
+      "short": "ECEN 325",
+      "org": "Texas A&amp;M University",
+      "start": "2023-01",
+      "end": "2023-05",
+      "dates": "Spring 2023",
+      "href": "#teaching",
+      "detail": "Lectures, grading and labs."
+    },
+    {
+      "id": "csce439",
+      "lane": "teaching",
+      "title": "TA, CSCE 439/704 Data Analytics for Cybersecurity",
+      "short": "CSCE 439/704",
+      "org": "Texas A&amp;M University",
+      "start": "2026-01",
+      "end": "2026-05",
+      "dates": "Spring 2026",
+      "href": "#teaching",
+      "detail": "Taught clustering, supervised ML and anomaly detection to 37 students; mentored 9 team projects."
+    },
+    {
+      "id": "csce313",
+      "lane": "teaching",
+      "title": "TA, CSCE 313 Introduction to Computer Systems",
+      "short": "CSCE 313",
+      "org": "Texas A&amp;M University",
+      "start": "2026-08",
+      "end": "present",
+      "dates": "Fall 2026",
+      "href": "#teaching",
+      "detail": "Lab instructor and grader; writes the Linux practical assignments."
+    }
   ],
-
-  "skillColumns": ["yaragen", "iocscooper", "autopyara", "agent", "depix", "fishstick", "hawkeye", "vlm", "malware"],
+  "skillColumns": [
+    "yaragen",
+    "iocscooper",
+    "autopyara",
+    "agent",
+    "depix",
+    "fishstick",
+    "hellopentagon",
+    "hawkeye",
+    "vlm",
+    "malware"
+  ],
   "skills": [
-    { "name": "LLM post-training: SFT, curricula, pretrain → fine-tune",
-      "chips": ["PyTorch", "Hugging Face Transformers", "TRL"],
-      "evidence": ["yaragen", "iocscooper", "agent"] },
-    { "name": "Evaluation design: held-out sets, LLM-as-judge, user simulation, seeds",
+    {
+      "name": "LLM post-training: SFT, curricula, pretrain → fine-tune",
+      "chips": [
+        "PyTorch",
+        "Hugging Face Transformers",
+        "TRL"
+      ],
+      "evidence": [
+        "yaragen",
+        "iocscooper",
+        "agent"
+      ]
+    },
+    {
+      "name": "Evaluation design: held-out sets, LLM-as-judge, user simulation, seeds",
       "chips": [],
-      "evidence": ["yaragen", "iocscooper", "agent", "depix", "fishstick", "vlm", "malware"] },
-    { "name": "Distributed and efficient training: SLURM, multi-GPU, vLLM",
-      "chips": ["DeepSpeed", "FSDP", "DDP/NCCL", "CUDA", "SLURM", "vLLM"],
-      "evidence": ["yaragen", "agent"] },
-    { "name": "Agents and RAG: MCP tools, retrieval, grounding",
-      "chips": ["MCP", "Ollama"],
-      "evidence": ["agent", "fishstick"] },
-    { "name": "Security ML: threat intel, malware, adversarial ML",
+      "evidence": [
+        "yaragen",
+        "iocscooper",
+        "agent",
+        "depix",
+        "fishstick",
+        "vlm",
+        "malware"
+      ]
+    },
+    {
+      "name": "Distributed and efficient training: SLURM, multi-GPU, vLLM",
+      "chips": [
+        "DeepSpeed",
+        "FSDP",
+        "DDP/NCCL",
+        "CUDA",
+        "SLURM",
+        "vLLM"
+      ],
+      "evidence": [
+        "yaragen",
+        "agent"
+      ]
+    },
+    {
+      "name": "Agents and RAG: MCP tools, retrieval, grounding",
+      "chips": [
+        "MCP",
+        "Ollama"
+      ],
+      "evidence": [
+        "agent",
+        "fishstick"
+      ]
+    },
+    {
+      "name": "Security ML: threat intel, malware, adversarial ML",
       "chips": [],
-      "evidence": ["yaragen", "iocscooper", "autopyara", "depix", "malware"] },
-    { "name": "Classical ML: gradient boosting, clustering",
-      "chips": ["LightGBM", "XGBoost", "scikit-learn"],
-      "evidence": ["autopyara", "malware"] },
-    { "name": "Systems and C++",
+      "evidence": [
+        "yaragen",
+        "iocscooper",
+        "autopyara",
+        "depix",
+        "malware",
+        "hellopentagon"
+      ]
+    },
+    {
+      "name": "Classical ML: gradient boosting, clustering",
+      "chips": [
+        "LightGBM",
+        "XGBoost",
+        "scikit-learn"
+      ],
+      "evidence": [
+        "autopyara",
+        "malware",
+        "hellopentagon"
+      ]
+    },
+    {
+      "name": "Systems and C++",
       "chips": [],
-      "evidence": ["hawkeye"] },
-    { "name": "Full-stack and data ingestion: FastAPI, React, SQLite, Playwright, Docker",
-      "chips": ["FastAPI", "React", "SQLite", "Playwright", "Docker", "Git", "CI/CD"],
-      "evidence": ["fishstick", "malware"] }
+      "evidence": [
+        "hawkeye"
+      ]
+    },
+    {
+      "name": "Full-stack and data ingestion: FastAPI, React, SQLite, Playwright, Docker",
+      "chips": [
+        "FastAPI",
+        "React",
+        "SQLite",
+        "Playwright",
+        "Docker",
+        "Git",
+        "CI/CD"
+      ],
+      "evidence": [
+        "fishstick",
+        "malware",
+        "hellopentagon"
+      ]
+    }
   ],
-  "alsoUse": ["Python", "C++", "Rust", "SQL", "MATLAB", "TensorFlow", "AWS", "LangChain", "Z3/SMT"],
+  "alsoUse": [
+    "Python",
+    "C++",
+    "Rust",
+    "SQL",
+    "MATLAB",
+    "TensorFlow",
+    "AWS",
+    "LangChain",
+    "Z3/SMT"
+  ],
   "skillsFootnote": "Post-training across ~a dozen model families, 135M to ~9B, on multi-node SLURM clusters.",
-
   "publications": [
-    { "title": "YaraGen: minimal grammar-oriented LLMs for YARA rule generation", "venue": "USENIX Security '27, Cycle 1", "badge": "review", "badgeText": "Under review", "href": "#project-yaragen" },
-    { "title": "IOCScooper++: grounded IOC and TTP extraction from threat reports", "venue": "Targeting USENIX Security '27, Cycle 2", "badge": "prep", "badgeText": "In preparation", "href": "#project-iocscooper" },
-    { "title": "AutoPYara: Next-Gen YARA Rule Generator for Malware Family Clustering", "venue": "ACSAC 2026", "badge": "accepted", "badgeText": "Accepted · PyPI", "href": "#project-autopyara" },
-    { "title": "Training and Benchmarking Pro-active Deep Research Agents to Overcome Underspecificity in User Queries (co-authored)", "venue": "2026", "badge": "prep", "badgeText": "In preparation", "href": "#project-agent" },
-    { "title": "Carotid-artery ultrasound classification with CNNs", "venue": "Springer book chapter, 2022", "badge": "published", "badgeText": "Published", "href": "https://link.springer.com/chapter/10.1007/978-3-030-90724-2_2" }
+    {
+      "title": "YaraGen: minimal grammar-oriented LLMs for YARA rule generation",
+      "venue": "USENIX Security '27, Cycle 1",
+      "badge": "review",
+      "badgeText": "Under review",
+      "href": "#project-yaragen"
+    },
+    {
+      "title": "IOCScooper++: grounded IOC and TTP extraction from threat reports",
+      "venue": "Targeting USENIX Security '27, Cycle 2",
+      "badge": "prep",
+      "badgeText": "In preparation",
+      "href": "#project-iocscooper"
+    },
+    {
+      "title": "AutoPYara: Next-Gen YARA Rule Generator for Malware Family Clustering",
+      "venue": "ACSAC 2026",
+      "badge": "accepted",
+      "badgeText": "Accepted · PyPI",
+      "href": "#project-autopyara"
+    },
+    {
+      "title": "Training and Benchmarking Pro-active Deep Research Agents to Overcome Underspecificity in User Queries (co-authored)",
+      "venue": "2026",
+      "badge": "prep",
+      "badgeText": "In preparation",
+      "href": "#project-agent"
+    },
+    {
+      "title": "Carotid-artery ultrasound classification with CNNs",
+      "venue": "Springer book chapter, 2022",
+      "badge": "published",
+      "badgeText": "Published",
+      "href": "https://link.springer.com/chapter/10.1007/978-3-030-90724-2_2"
+    }
   ],
   "talks": [
-    { "event": "Texas Security Workshop", "date": "26 Sep 2026", "line": "Presenter: IOCScooper++, IOC and TTP extraction from threat reports" },
-    { "event": "TAMU CS Day", "date": "2024, 2025", "line": "Partner and presenter: hands-on AI and cybersecurity demos for high-school students" },
-    { "event": "TAMU Student Research Week", "date": "Summer 2023", "line": "Technical coordinator: automated judging and submission infrastructure" }
+    {
+      "event": "Texas Security Workshop",
+      "date": "26 Sep 2026",
+      "line": "Presenter: IOCScooper++, IOC and TTP extraction from threat reports"
+    },
+    {
+      "event": "TAMU CS Day",
+      "date": "2024, 2025",
+      "line": "Partner and presenter: hands-on AI and cybersecurity demos for high-school students"
+    },
+    {
+      "event": "TAMU Student Research Week",
+      "date": "Summer 2023",
+      "line": "Technical coordinator: automated judging and submission infrastructure"
+    }
   ],
   "teaching": [
-    { "course": "CSCE 313, Introduction to Computer Systems", "term": "Fall 2026", "line": "Lab instructor and grader; writes the Linux practical assignments.", "link": { "label": "Course materials", "href": "CSCE-313/" } },
-    { "course": "CSCE 439/704, Data Analytics for Cybersecurity", "term": "Spring 2026", "line": "Taught clustering, supervised ML and anomaly detection to 37 students; mentored 9 team projects." },
-    { "course": "ECEN 325, Electronics", "term": "Spring 2023", "line": "Lectures, grading and labs." }
+    {
+      "course": "CSCE 313, Introduction to Computer Systems",
+      "term": "Fall 2026",
+      "line": "Lab instructor and grader; writes the Linux practical assignments.",
+      "link": {
+        "label": "Course materials",
+        "href": "CSCE-313/"
+      }
+    },
+    {
+      "course": "CSCE 439/704, Data Analytics for Cybersecurity",
+      "term": "Spring 2026",
+      "line": "Taught clustering, supervised ML and anomaly detection to 37 students; mentored 9 team projects."
+    },
+    {
+      "course": "ECEN 325, Electronics",
+      "term": "Spring 2023",
+      "line": "Lectures, grading and labs."
+    }
   ]
 }

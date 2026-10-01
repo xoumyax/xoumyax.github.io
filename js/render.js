@@ -23,6 +23,13 @@ function renderHero(d) {
   $('#hero-status').innerHTML = d.hero.status;
   $('#hero-title').innerHTML = `${d.hero.name}<br />${d.hero.tagline}<span class="ship" aria-hidden="true">⛴️</span>`;
   $('#hero-intro').innerHTML = d.hero.intro;
+  if (d.hero.sponsor) {
+    const sp = $('#hero-sponsor');
+    sp.href = d.hero.sponsor.href;
+    sp.innerHTML = `<span class="hero-sponsor-label">${d.hero.sponsor.label}</span>
+      <span class="hero-sponsor-text">${d.hero.sponsor.text} <span class="hero-sponsor-go">${d.hero.sponsor.linkLabel} →</span></span>`;
+    sp.hidden = false;
+  }
   $('#hero-chips').innerHTML = d.hero.proofChips
     .map(c => `<li><a class="proof-chip" href="${attr(c.href)}">${c.label}</a></li>`).join('');
 }
