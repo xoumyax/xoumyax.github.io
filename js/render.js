@@ -21,7 +21,7 @@ export function badge(b) {
 /* ── Hero + currently building ────────────────────────── */
 function renderHero(d) {
   $('#hero-status').innerHTML = d.hero.status;
-  $('#hero-title').innerHTML = `${d.hero.name}<br /><span class="accent">${d.hero.tagline}</span>`;
+  $('#hero-title').innerHTML = `${d.hero.name}<br />${d.hero.tagline}<span class="ship" aria-hidden="true">⛴️</span>`;
   $('#hero-intro').innerHTML = d.hero.intro;
   $('#hero-chips').innerHTML = d.hero.proofChips
     .map(c => `<li><a class="proof-chip" href="${attr(c.href)}">${c.label}</a></li>`).join('');
@@ -88,6 +88,15 @@ function projectCard(p) {
       <p class="stepper-label">${p.stepper.label}</p>
       <ol>${p.stepper.steps.map(s => `<li class="${s.best ? 'best' : ''}"><b>${s.id}</b><span>${s.text}</span>${s.best ? `<em>${s.best}</em>` : ''}</li>`).join('')}</ol>
     </div>` : '';
+  const versus = p.versus ? `
+    <div class="versus">
+      <p class="versus-label">${p.versus.label}</p>
+      <table>
+        <thead><tr><th scope="col">Task</th>${p.versus.columns.map(c => `<th scope="col">vs. ${c}</th>`).join('')}</tr></thead>
+        <tbody>${p.versus.rows.map(r => `<tr><th scope="row">${r.task}</th>${p.versus.columns.map(() => `<td><span class="win">✓ ${r.result}</span></td>`).join('')}</tr>`).join('')}</tbody>
+      </table>
+      <p class="versus-note">${p.versus.note}</p>
+    </div>` : '';
   return `
     <article class="stop" id="project-${p.id}">
       <header class="stop-head">
@@ -101,7 +110,7 @@ function projectCard(p) {
         <figcaption>${p.caption}</figcaption>
       </figure>
       <ul class="stop-bullets">${p.bullets.map(b => `<li>${b}</li>`).join('')}</ul>
-      ${stepper}
+      ${stepper}${versus}
       <div class="stop-foot">
         <ul class="tags">${p.tags.map(t => `<li>${t}</li>`).join('')}</ul>
         ${links ? `<p class="stop-links">${links}</p>` : ''}

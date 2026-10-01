@@ -108,6 +108,20 @@ function positionMapCar() {
 
 /* ── Checkpoint card ────────────────────────────────────── */
 const allStopsSeen = () => ZONES.every(z => visited.has(z.id));
+let tourDoneAt = null; // the stop where the seventh visit landed
+
+// Each stop has its own line; the celebration shows once, where the set completes.
+function stopNote(zone) {
+  if (zone.id === 'finish') return '';
+  const i = ZONES.findIndex(z => z.id === zone.id);
+  const line = (text) => (text ? `<p class="zone-quip"><span>Stop ${i + 1} of ${ZONES.length}</span> ${text}</p>` : '');
+  if (tourDoneAt === null && allStopsSeen()) {
+    tourDoneAt = zone.id;
+    const where = facing === 'right' ? 'just up the road' : 'at the far end of the road';
+    return `${line(zone.quip)}<p class="zone-complete">🎉 That's all seven stops! The open-to-work flag is ${where}.</p>`;
+  }
+  return line(tourDoneAt !== null ? zone.encore : zone.quip);
+}
 
 function showCard(zone) {
   const body = zone.id === 'finish'
@@ -120,7 +134,7 @@ function showCard(zone) {
     <div class="zone-card-head"><span class="emoji" aria-hidden="true">${zone.emoji}</span>
       <h3><span class="zone-year">${zone.year}</span> ${zone.title}</h3></div>
     ${body}
-    ${zone.id !== 'finish' && allStopsSeen() ? `<p class="zone-complete">🎉 That's all seven stops! The open-to-work flag is just up the road.</p>` : ''}
+    ${stopNote(zone)}
     ${zone.cta ? `<a class="btn btn-primary" href="${zone.cta.href}">${zone.cta.label}</a>` : ''}`;
   card.hidden = false;
   requestAnimationFrame(() => card.classList.add('show'));

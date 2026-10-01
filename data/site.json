@@ -11,8 +11,8 @@
   "hero": {
     "status": "Open to work · Summer 2027 internships (Winter 2026 / Spring 2027 starts welcome) · Full-time ML research engineering",
     "name": "Hi, I'm Soumyajyoti.",
-    "tagline": "I build ML systems that ship.",
-    "intro": "CS PhD student at <strong>Texas A&amp;M</strong> (Botacin's Lab). I post-train small language models, design the evaluations that show whether they work, and aim them at security problems.",
+    "tagline": "I build ML systems <span class=\"accent\">that ship.</span>",
+    "intro": "<strong class=\"hook\">Small models, frontier results.</strong> With reasoning switched off, the 8B models I post-trained write YARA malware-detection rules better than GPT-5.4 and Sonnet 5 with theirs switched on. I'm a CS PhD student at <strong>Texas A&amp;M</strong> (Botacin's Lab): I post-train small language models, design the evaluations that prove they work, and aim them at security problems.",
     "proofChips": [
       { "label": "ACSAC 2026 · Accepted", "href": "#project-autopyara" },
       { "label": "PyPI · Open source", "href": "#project-autopyara" },
@@ -36,25 +36,39 @@
   "drive": [
     { "id": "job", "emoji": "🏢", "year": "2021", "title": "First job",
       "line": "Cognizant: Software Engineering Intern, converted to full-time; client-embedded on <strong>TJX Companies</strong>.",
-      "href": "#experience", "linkLabel": "See the timeline" },
+      "href": "#experience", "linkLabel": "See the timeline",
+      "quip": "First paycheck, first tank of gas.",
+      "encore": "Back at the start. The internship turned into a full-time offer; the driving turned into a habit." },
     { "id": "grad", "emoji": "🎓", "year": "2022", "title": "Grad school",
       "line": "M.S. Computer Engineering at Texas A&amp;M; <strong>Springer book chapter</strong> on carotid-artery ultrasound.",
-      "href": "#shelf", "linkLabel": "See the chapter" },
+      "href": "#shelf", "linkLabel": "See the chapter",
+      "quip": "Packed up for College Station with a Springer chapter in the glovebox.",
+      "encore": "Grad school again. The chapter is still in the glovebox." },
     { "id": "first", "emoji": "🏆", "year": "2023", "title": "First place",
       "line": "ML Malware Detection and adversarial attack suite; <strong>still #1 after five course offerings</strong>.",
-      "href": "#project-malware", "linkLabel": "See the project" },
+      "href": "#project-malware", "linkLabel": "See the project",
+      "quip": "Ease off the gas: this one has held first place for five course offerings.",
+      "encore": "Still first place. We checked again." },
     { "id": "phd", "emoji": "🔬", "year": "2024", "title": "PhD begins",
       "line": "Botacin's Lab at Texas A&amp;M; Multiperspective Hawkeye and vision-language evaluation.",
-      "href": "#project-hawkeye", "linkLabel": "See the projects" },
+      "href": "#project-hawkeye", "linkLabel": "See the projects",
+      "quip": "The road gets steeper from here, and the GPUs get louder.",
+      "encore": "Lab stop. The GPUs are still humming." },
     { "id": "tools", "emoji": "🛠️", "year": "2025", "title": "Built my own tools",
       "line": "Sturdy Fishstick, a <strong>local-LLM job-search platform</strong>.",
-      "href": "#project-fishstick", "linkLabel": "See the project" },
+      "href": "#project-fishstick", "linkLabel": "See the project",
+      "quip": "Built a job-search tool on the way to job-searching. Very meta.",
+      "encore": "Still scoring listings, still running entirely on local models." },
     { "id": "ship", "emoji": "🚢", "year": "2026", "title": "Published and shipped",
       "line": "AutoPYara <strong>accepted at ACSAC 2026</strong> and released on PyPI; YaraGen submitted to USENIX Security '27; proactive research agent.",
-      "href": "#project-autopyara", "linkLabel": "See the project" },
+      "href": "#project-autopyara", "linkLabel": "See the project",
+      "quip": "Things actually shipped here. Mind the boat.",
+      "encore": "The boat is still in the pond, and the package is still on PyPI." },
     { "id": "now", "emoji": "🚧", "year": "Now", "title": "Currently building",
       "line": "<strong>IOCScooper++</strong>, presented at the Texas Security Workshop. The road ends at a flag: open to work.",
-      "href": "#project-iocscooper", "linkLabel": "See the project" }
+      "href": "#project-iocscooper", "linkLabel": "See the project",
+      "quip": "Hard hats on: this stop is still under construction.",
+      "encore": "Still under construction. Come back next month; it'll be taller." }
   ],
 
   "lanes": [
@@ -84,9 +98,20 @@
         { "value": "150+", "label": "post-training runs" }
       ],
       "bullets": [
+        "With reasoning off, structured-trained Llama 3.1 8B and Ministral 3 8B beat GPT-5.4 and Sonnet 5 (reasoning on) few-shot on both Structured Logic → YARA and NL Prompt → YARA generation, and beat both zero-shot on rule repair.",
         "Trained a 139M-parameter BART generator to 91.8% semantic correctness (93.7% in-window) on 22.7K held-out real-world rules, against 93.8% for a fully fine-tuned 8B model, at 17–20× the throughput.",
         "Built the parts around it: the YaraAST hybrid tokenizer (+4 pp accuracy), Scooper, a 55M BiLSTM that masks IOCs behind placeholders (99.4% precision / 99.6% recall), and the Brownie &amp; Puff evaluator (BLEU + compile + Z3 SMT) used as a training-time signal."
       ],
+      "versus": {
+        "label": "Against frontier models",
+        "columns": ["GPT-5.4", "Sonnet 5"],
+        "rows": [
+          { "task": "Structured logic → YARA", "result": "Beats few-shot" },
+          { "task": "NL prompt → YARA", "result": "Beats few-shot" },
+          { "task": "Rule repair", "result": "Beats zero-shot" }
+        ],
+        "note": "Ours: structured-trained Llama 3.1 8B and Ministral 3 8B, <strong>reasoning off</strong>. Theirs: reasoning on. Next up: reasoning training and RLVR."
+      },
       "tags": ["YARA", "small models", "tokenizers", "Z3/SMT", "SLURM"],
       "diagram": "assets/diagrams/yaragen.svg",
       "caption": "Scooper takes the IOCs out before generation and puts them back after, so a rule's length never depends on how long its indicators are.",

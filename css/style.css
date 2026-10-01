@@ -432,6 +432,19 @@ a:hover { color: var(--ink); }
   margin-bottom: var(--space-md);
 }
 .hero h1 .accent { color: var(--brand); }
+/* the ship rides a slow swell after "that ship." */
+.hero h1 .ship {
+  display: inline-block; margin-left: 0.25em; font-size: 0.85em;
+  transform-origin: 50% 85%;
+  animation: sail 3.4s ease-in-out infinite;
+}
+@keyframes sail {
+  0%, 100% { transform: translate(0, 0) rotate(-5deg); }
+  25% { transform: translate(0.04em, -0.07em) rotate(1deg); }
+  50% { transform: translate(0.08em, 0) rotate(5deg); }
+  75% { transform: translate(0.04em, -0.05em) rotate(0deg); }
+}
+.hero-sub .hook { display: block; font-family: var(--font-display); font-size: 1.35rem; font-weight: 800; color: var(--brand); margin-bottom: 0.2rem; }
 
 .hero-sub {
   font-size: 1.15rem; color: var(--muted); max-width: 58ch;
@@ -443,7 +456,7 @@ a:hover { color: var(--ink); }
 /* Keep Email / Resume / CSCE 313 on one line; trim padding before wrapping. */
 .hero-ctas .btn { white-space: nowrap; }
 .hero-ctas .btn-big { padding-inline: clamp(1rem, 2.2vw, 1.8rem); }
-.hero-links { display: flex; gap: 1.1rem; margin-top: var(--space-md); }
+.hero-links { display: flex; gap: 1.1rem; margin: calc(-1 * var(--space-xs)) 0 var(--space-md); }
 .hero-links a { font-weight: 700; font-size: 0.95rem; }
 
 .proof-chips { list-style: none; display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: var(--space-lg); }
@@ -665,6 +678,15 @@ a:hover { color: var(--ink); }
   border-radius: 12px; padding: 0.8rem 1rem;
   font-size: 0.97rem; margin-top: var(--space-md);
 }
+.zone-quip {
+  margin-top: var(--space-md); padding-top: 0.7rem; border-top: 1px dashed var(--line);
+  color: var(--muted); font-size: 0.95rem;
+}
+.zone-quip span {
+  font-family: var(--font-display); font-weight: 700; font-size: 0.78rem;
+  color: var(--brand); background: var(--brand-soft);
+  border-radius: var(--radius-pill); padding: 0.1rem 0.55rem; margin-right: 0.3rem;
+}
 .zone-card .btn { width: 100%; justify-content: center; margin-top: var(--space-md); }
 
 /* ── Content sections ───────────────────────────────────── */
@@ -809,6 +831,22 @@ section + section { border-top: 1px solid var(--line); }
 
 /* the agent's training curriculum, as a four-step stepper */
 .stepper { grid-area: extra; margin-bottom: var(--space-md); }
+
+/* YaraGen against frontier models: who wins, and under which setting */
+.versus { grid-area: extra; margin-bottom: var(--space-md); }
+.versus-label { font-weight: 800; font-size: 0.9rem; margin-bottom: 0.4rem; }
+.versus table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+.versus th, .versus td { text-align: left; padding: 0.4rem 0.5rem 0.4rem 0; border-bottom: 1px solid var(--line); }
+.versus thead th { color: var(--muted); font-size: 0.8rem; font-weight: 800; }
+.versus tbody th { font-weight: 700; }
+.win {
+  display: inline-block; white-space: nowrap;
+  font-family: var(--font-display); font-weight: 700; font-size: 0.78rem;
+  color: var(--status-accepted); background: var(--status-accepted-bg);
+  border-radius: var(--radius-pill); padding: 0.1rem 0.55rem;
+}
+.versus-note { font-size: 0.85rem; color: var(--muted); margin-top: 0.45rem; }
+.versus-note strong { color: var(--ink); }
 .stepper-label { font-weight: 800; font-size: 0.9rem; margin-bottom: 0.4rem; }
 .stepper ol { list-style: none; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.4rem; }
 .stepper li {
@@ -976,7 +1014,7 @@ footer { padding: var(--space-lg) 0 var(--space-xl); color: var(--muted); font-s
 /* ── Motion preferences ─────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  .badge-open .dot { animation: none; }
+  .badge-open .dot, .hero h1 .ship { animation: none; }
   .btn { transition: none; }
   .sky-cloud, .sky-stars, .firefly { animation: none; }
   .journey-stage svg * { transition: none; }
