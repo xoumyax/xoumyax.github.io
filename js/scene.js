@@ -34,15 +34,18 @@ const fence = (x, gy, n = 5) => {
 const rock = (x, gy, s = 1) => `
   <ellipse cx="${x}" cy="${gy - 6 * s}" rx="${14 * s}" ry="${9 * s}" fill="var(--sc-rock)"/>`;
 
-const signpost = (x, gy, emoji, title) => `
+const signpost = (x, gy, emoji, year, title) => {
+  const half = Math.max(118, title.length * 6.4 + 26);
+  return `
   <g transform="translate(${x} ${gy})">
     <rect x="-5" y="-108" width="10" height="108" rx="4" fill="var(--sc-trunk)"/>
     <g>
-      <rect x="-118" y="-178" width="236" height="82" rx="18" fill="var(--sc-board)" stroke="var(--sc-board-edge)" stroke-width="5"/>
-      <text x="0" y="-146" text-anchor="middle" font-size="30">${emoji}</text>
-      <text x="0" y="-112" text-anchor="middle" font-family="'Baloo 2', sans-serif" font-weight="700" font-size="26" fill="var(--sc-board-ink)">${title}</text>
+      <rect x="${-half}" y="-192" width="${half * 2}" height="96" rx="18" fill="var(--sc-board)" stroke="var(--sc-board-edge)" stroke-width="5"/>
+      <text x="0" y="-152" text-anchor="middle" font-family="'Baloo 2', sans-serif" font-weight="800" font-size="28" fill="var(--sc-board-ink)">${emoji} ${year}</text>
+      <text x="0" y="-115" text-anchor="middle" font-family="'Baloo 2', sans-serif" font-weight="700" font-size="24" fill="var(--sc-board-ink)">${title}</text>
     </g>
   </g>`;
+};
 
 const mountain = (x, gy, w, h) => `
   <g>
@@ -119,6 +122,41 @@ const hayBale = (x, gy) => `
     <circle cx="0" cy="-20" r="11" fill="none" stroke="var(--sc-hay-2)" stroke-width="4"/>
   </g>`;
 
+const boat = (x, gy) => `
+  <g transform="translate(${x} ${gy})">
+    <rect x="-2" y="-78" width="4" height="62" fill="var(--sc-trunk)"/>
+    <polygon points="3,-76 46,-22 3,-22" fill="var(--sc-board)"/>
+    <polygon points="-3,-66 -34,-24 -3,-24" fill="var(--sc-flag)"/>
+    <path d="M -52 -16 H 58 L 44 4 H -40 Z" fill="var(--sc-hall-roof)"/>
+  </g>`;
+
+const shed = (x, gy) => `
+  <g transform="translate(${x} ${gy})">
+    <rect x="-70" y="-86" width="140" height="86" rx="4" fill="var(--sc-hall)"/>
+    <polygon points="-82,-86 82,-86 0,-128" fill="var(--sc-bldg-roof)"/>
+    <rect x="-46" y="-58" width="92" height="58" rx="3" fill="var(--sc-hall-door)"/>
+    ${[0, 1, 2].map(i => `<rect x="-46" y="${-46 + i * 16}" width="92" height="3" fill="var(--sc-hall)"/>`).join('')}
+    <circle cx="0" cy="-104" r="11" fill="var(--sc-board)"/>
+    <circle cx="0" cy="-104" r="4" fill="var(--sc-hall-door)"/>
+  </g>`;
+
+const cone = (x, gy) => `
+  <g transform="translate(${x} ${gy})">
+    <polygon points="-12,0 12,0 3,-34 -3,-34" fill="var(--sc-mailbox)"/>
+    <rect x="-8" y="-20" width="16" height="5" fill="var(--sc-board)"/>
+    <rect x="-16" y="-3" width="32" height="5" rx="2" fill="var(--sc-mailbox)"/>
+  </g>`;
+
+const crane = (x, gy) => `
+  <g transform="translate(${x} ${gy})">
+    <rect x="-7" y="-210" width="14" height="210" fill="var(--sc-flag)"/>
+    ${[0, 1, 2, 3, 4, 5].map(i => `<line x1="-7" y1="${-200 + i * 34}" x2="7" y2="${-176 + i * 34}" stroke="var(--sc-hay-2)" stroke-width="3"/>`).join('')}
+    <rect x="-60" y="-222" width="190" height="12" fill="var(--sc-flag)"/>
+    <rect x="-60" y="-236" width="34" height="18" fill="var(--sc-rack)"/>
+    <line x1="112" y1="-210" x2="112" y2="-132" stroke="var(--sc-rack)" stroke-width="2"/>
+    <rect x="98" y="-132" width="28" height="22" rx="3" fill="var(--sc-bldg)"/>
+  </g>`;
+
 /* ── Rolling hill silhouette ────────────────────────────── */
 function hills(width, baseY, amp, wl, phase) {
   let d = `M 0 ${H} L 0 ${baseY}`;
@@ -140,8 +178,8 @@ export function buildScene({ farEl, midEl, frontEl, zones }) {
   /* far layer (parallax 0.22): soft hills + the ridge range */
   const farW = Math.ceil(worldWidth * 0.22 + 2600);
   let far = `<path d="${hills(farW, H - 210, 90, 460, 0.4)}" fill="var(--sc-hill-far)"/>`;
-  // ridge mountains appear centered when the car reaches Research Ridge
-  const ridgeFarX = 420 + 0.22 * (cp.ridge - 420);
+  // the mountain range rises behind the 2026 'published and shipped' summit
+  const ridgeFarX = 420 + 0.22 * (cp.ship - 420);
   far += mountain(ridgeFarX - 190, H - 150, 340, 240) + mountain(ridgeFarX + 40, H - 150, 420, 310) + mountain(ridgeFarX + 290, H - 150, 300, 200);
   farEl.innerHTML = svg(farW, far);
 
@@ -172,32 +210,33 @@ export function buildScene({ farEl, midEl, frontEl, zones }) {
     else f += fence(x, GY, 4);
   }
 
-  /* checkpoint scenes */
-  f += flagBanner(cp.trailhead - 150, GY) + fence(cp.trailhead - 90, GY, 5) + roundTree(cp.trailhead + 150, GY, 0.9);
+  /* checkpoint scenes, 2021 → now */
+  f += flagBanner(cp.job - 300, GY);
+  f += building(cp.job - 215, GY, 90, 170) + building(cp.job - 120, GY, 70, 120) + building(cp.job + 165, GY, 84, 200) + building(cp.job + 255, GY, 64, 140);
 
-  f += rock(cp.ridge - 170, GY, 1.3) + rock(cp.ridge + 150, GY, 1) + pine(cp.ridge - 240, GY, 0.8) + pine(cp.ridge + 220, GY, 0.9);
+  f += hall(cp.grad - 200, GY) + roundTree(cp.grad + 175, GY, 0.9) + fence(cp.grad + 230, GY, 4);
 
-  f += serverRack(cp.grounds - 190, GY) + serverRack(cp.grounds - 128, GY) + serverRack(cp.grounds + 140, GY) + fence(cp.grounds + 190, GY, 4);
+  f += pine(cp.first - 230, GY, 1.15) + pine(cp.first - 160, GY, 0.9) + trophy(cp.first + 165, GY) + pine(cp.first + 230, GY, 1.2) + pine(cp.first + 295, GY, 0.85);
 
-  f += pine(cp.park - 220, GY, 1.15) + pine(cp.park - 150, GY, 0.9) + trophy(cp.park + 140, GY) + pine(cp.park + 200, GY, 1.2) + pine(cp.park + 265, GY, 0.85);
+  f += serverRack(cp.phd - 200, GY) + serverRack(cp.phd - 138, GY) + serverRack(cp.phd + 160, GY) + fence(cp.phd + 210, GY, 4);
 
-  if (cp.district !== undefined) f += building(cp.district - 215, GY, 90, 170) + building(cp.district - 120, GY, 70, 120) + building(cp.district + 135, GY, 84, 200) + building(cp.district + 225, GY, 64, 140);
+  f += shed(cp.tools - 240, GY) + hayBale(cp.tools + 170, GY) + rock(cp.tools + 230, GY, 1.1);
 
-  f += hall(cp.campus - 180, GY) + roundTree(cp.campus + 160, GY, 0.9) + fence(cp.campus + 215, GY, 4);
+  f += pond(cp.ship + 230, GY + 40, 300) + boat(cp.ship + 230, GY + 30) + rock(cp.ship - 190, GY, 1.3) + pine(cp.ship - 250, GY, 0.9);
 
-  f += pond(cp.cove + 210, GY + 40, 260) + mailbox(cp.cove - 150, GY) + umbrella(cp.cove + 40, GY);
+  f += crane(cp.now - 260, GY) + cone(cp.now + 150, GY) + cone(cp.now + 200, GY) + cone(cp.now + 250, GY);
 
   /* signposts last, on top */
-  checkpoints.forEach(c => { f += signpost(c.x, GY, c.emoji, c.title); });
+  checkpoints.forEach(c => { f += signpost(c.x, GY, c.emoji, c.year, c.title); });
 
   /* the finish line */
   f += flagBanner(finishX - 170, GY) + flagBanner(finishX + 170, GY);
   f += `<g transform="translate(${finishX} ${GY})">
     <rect x="-5" y="-96" width="10" height="96" rx="4" fill="var(--sc-trunk)"/>
-    <rect x="-104" y="-158" width="208" height="64" rx="16" fill="var(--sc-board)" stroke="var(--sc-board-edge)" stroke-width="5"/>
-    <text x="0" y="-116" text-anchor="middle" font-family="'Baloo 2', sans-serif" font-weight="700" font-size="26" fill="var(--sc-board-ink)">🏁 The End 🌻</text>
+    <rect x="-128" y="-158" width="256" height="64" rx="16" fill="var(--sc-board)" stroke="var(--sc-board-edge)" stroke-width="5"/>
+    <text x="0" y="-116" text-anchor="middle" font-family="'Baloo 2', sans-serif" font-weight="700" font-size="26" fill="var(--sc-board-ink)">🚩 Open to work</text>
   </g>`;
-  f += fence(finishX + 240, GY, 6) + roundTree(finishX + 430, GY, 1.1) + pine(finishX + 620, GY, 1);
+  f += mailbox(finishX + 250, GY) + umbrella(finishX + 360, GY) + fence(finishX + 440, GY, 6) + roundTree(finishX + 640, GY, 1.1) + pine(finishX + 820, GY, 1);
   frontEl.innerHTML = svg(worldWidth, f);
 
   return { worldWidth, checkpoints, height: H, finishX };

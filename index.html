@@ -4,15 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Soumyajyoti Dutta — ML Engineer, Open to Work</title>
-  <meta name="description" content="Soumyajyoti Dutta: ML engineer and Texas A&M PhD student. LLM post-training & alignment, agentic & RAG systems, applied ML for cyberdefense. Open to work, and yes, you can drive a little car around my resume." />
-  <meta property="og:title" content="Soumyajyoti Dutta — ML Engineer, Open to Work" />
-  <meta property="og:description" content="My work as a tiny road trip: scroll and a little 4Runner drives past seven stops of research, projects, and experience." />
+  <meta name="description" content="Soumyajyoti Dutta, CS PhD student at Texas A&amp;M (Botacin's Lab). I post-train small language models, design the evaluations that show whether they work, and aim them at security problems. Open to work." />
+  <meta property="og:title" content="Soumyajyoti Dutta — I build ML systems that ship" />
+  <meta property="og:description" content="CS PhD student at Texas A&amp;M (Botacin's Lab). I post-train small language models, design the evaluations that show whether they work, and aim them at security problems." />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚙</text></svg>" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito+Sans:opsz,wght@6..12,400;6..12,700;6..12,800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
+  <link rel="preload" href="data/site.json" as="fetch" crossorigin />
 
   <script>
     // Apply the saved theme before first paint to avoid a flash
@@ -30,40 +31,50 @@
   <!-- ── Top bar ── -->
   <div class="topbar">
     <div class="wrap topbar-inner">
-      <a class="topbar-name" href="#top">🚙 Soumyajyoti Dutta</a>
-      <nav aria-label="Main">
-        <a href="#drive">The Drive</a>
-        <a href="#story">Work</a>
-        <a href="#projects">Projects</a>
-        <a href="#contact">Contact</a>
-        <a class="nav-resume" href="Soumyajyoti_Dutta_Resume.pdf" target="_blank" rel="noopener">Resume</a>
+      <a class="topbar-name" href="#top">🚙 <span class="full">Soumyajyoti Dutta</span></a>
+      <div class="topbar-actions">
+        <button class="nav-toggle" id="nav-toggle" aria-expanded="false" aria-controls="main-nav">Menu</button>
+        <nav aria-label="Main" id="main-nav" class="main-nav">
+          <a href="#drive">The Drive</a>
+          <a href="#map">Map</a>
+          <a href="#projects">Projects</a>
+          <a href="#experience">Experience</a>
+          <a href="#skills">Skills</a>
+          <a href="#pubs">Publications</a>
+          <a href="#contact">Contact</a>
+        </nav>
+        <details class="resume-menu">
+          <summary>Resume</summary>
+          <div class="resume-menu-panel">
+            <a href="Soumyajyoti_Dutta_Resume.pdf" target="_blank" rel="noopener">📄 Open PDF ↗</a>
+            <a href="Soumyajyoti_Dutta_Resume.pdf" download="Soumyajyoti_Dutta_Resume.pdf">⬇ Download PDF</a>
+          </div>
+        </details>
         <a class="nav-cta" href="mailto:soumyajyotidutta23@gmail.com">Email me</a>
         <button class="theme-toggle" id="theme-toggle" aria-label="Switch theme">🌙</button>
-      </nav>
+      </div>
     </div>
   </div>
 
-  <!-- ── Hero: the zero-effort summary ── -->
+  <!-- ── Hero: role, proof and the ask, above the fold ── -->
   <header class="hero" id="top">
     <div class="wrap hero-grid">
       <div>
-        <p class="badge-open"><span class="dot" aria-hidden="true"></span> Open to work · ML engineering &amp; research roles</p>
-        <h1>Hi, I'm Soumyajyoti.<br />I build ML systems <span class="accent">that ship ⛴️</span>.</h1>
+        <p class="badge-open"><span class="dot" aria-hidden="true"></span> <span id="hero-status">Open to work</span></p>
+        <h1 id="hero-title">Hi, I'm Soumyajyoti.<br /><span class="accent">I build ML systems that ship.</span></h1>
+        <p class="hero-sub" id="hero-intro"></p>
+        <ul class="proof-chips" id="hero-chips" aria-label="Highlights"></ul>
+        <div class="hero-ctas">
+          <a class="btn btn-primary btn-big" href="mailto:soumyajyotidutta23@gmail.com">✉️ Email me</a>
+          <div class="resume-ctl" role="group" aria-label="Resume PDF">
+            <a class="btn btn-outline btn-big" href="Soumyajyoti_Dutta_Resume.pdf" target="_blank" rel="noopener">📄 Resume PDF</a>
+            <a class="btn btn-outline btn-big btn-icon" href="Soumyajyoti_Dutta_Resume.pdf" download="Soumyajyoti_Dutta_Resume.pdf" aria-label="Download resume PDF" title="Download PDF">⬇</a>
+          </div>
+        </div>
         <p class="hero-links">
           <a href="https://github.com/xoumyax" target="_blank" rel="noopener">GitHub</a>
           <a href="https://www.linkedin.com/in/soumyajyotidutta/" target="_blank" rel="noopener">LinkedIn</a>
         </p>
-        <p class="hero-sub">
-          CS PhD student at <strong>Texas A&amp;M</strong> (Botacin's Lab) working on
-          <strong>LLM post-training &amp; alignment</strong>, <strong>evaluation design</strong>,
-          <strong>agentic &amp; RAG systems</strong>, and <strong>applied ML for cyberdefense</strong>.
-          Models from 140M to 9B params, trained on SLURM clusters, shipped as tools people actually use.
-        </p>
-        <div class="hero-ctas">
-          <a class="btn btn-primary btn-big" href="mailto:soumyajyotidutta23@gmail.com">✉️ Email me</a>
-          <a class="btn btn-outline btn-big" href="Soumyajyoti_Dutta_Resume.pdf" target="_blank" rel="noopener">📄 Resume</a>
-          <a class="btn btn-outline btn-big" href="CSCE-313/">🎓 CSCE 313</a>
-        </div>
       </div>
 
       <div class="hero-car" aria-hidden="true">
@@ -119,46 +130,24 @@
     </div>
   </header>
 
-  <!-- ── Currently in progress: the work that has no paper yet ── -->
-  <section id="now">
-    <div class="wrap">
-      <article class="wip">
-        <div class="wip-bar" aria-hidden="true"></div>
-        <div class="wip-head">
-          <p class="wip-badge"><span class="dot" aria-hidden="true"></span> Currently building</p>
-          <p class="wip-target">Targeting USENIX Security '27, Cycle 2</p>
-        </div>
-        <h2>IOCScooper++ <span class="wip-sub">— IOC/TTP extraction from real threat reports</span></h2>
-
-        <ul class="wip-stats">
-          <li><strong>50.6M</strong><span>params</span></li>
-          <li><strong>0.894</strong><span>micro F1</span></li>
-          <li><strong>36</strong><span>IOC types</span></li>
-          <li><strong>344</strong><span>rules generated</span></li>
-        </ul>
-
-        <ul class="wip-points">
-          <li>Trained <strong>ScooperNER</strong>, a <strong>50.6M-parameter</strong> extractor (MLM pretraining → fine-tuning, <strong>36 IOC types</strong>): <strong>0.894 micro / 0.925 macro</strong> span-exact F1 on held-out vendor and government reports, beating fine-tuned encoder baselines at <strong>3–7× its size</strong>, with <strong>0.950 F1</strong> on explicit MITRE ATT&amp;CK IDs.</li>
-          <li>End to end on <strong>47 held-out reports</strong>, extraction feeds frozen YaraGen at <strong>0.86/0.88 precision/recall</strong> with <strong>100% rule validity</strong> at <strong>0.97 IOC coverage</strong> across <strong>344 generated rules</strong>.</li>
-          <li>Extending extraction to grounded <strong>(entity, action, IOC)</strong> tuples lifted into ATT&amp;CK techniques via procedure-example retrieval, open-set over all <strong>637 techniques</strong>, with a full-report co-annotated benchmark of real malware analysis reports.</li>
-        </ul>
-      </article>
-    </div>
+  <!-- ── Currently building ── -->
+  <section id="now" aria-label="Currently building">
+    <div class="wrap" id="now-slot"></div>
   </section>
 
   <!-- ── The Drive ── -->
   <section id="drive">
     <div class="wrap">
       <div class="drive-invite">
-        <p>🗺️ My work, as a tiny road trip.
+        <p>🗺️ My work, as a tiny road trip, 2021 to now.
           <span class="sub">Just keep scrolling; the car drives itself past seven stops. Hit 🌙 up top for a night drive.</span>
         </p>
-        <a class="btn btn-outline" href="#story">Skip the drive, just read ↓</a>
+        <a class="btn btn-outline" href="#map">Skip the drive ↓</a>
       </div>
     </div>
 
     <div class="journey-track" id="journey-track">
-      <div class="journey-stage" id="journey-stage" role="img" aria-label="An illustrated road trip: as the page scrolls, a small car drives past seven signposted stops covering research, projects, industry, teaching, and contact. Every stop is also written out in the sections below.">
+      <div class="journey-stage" id="journey-stage" role="img" aria-label="An illustrated road trip: as the page scrolls, a small car drives past seven signposted stops from 2021 to now, ending at an open-to-work flag. Every stop is also written out in the sections below.">
 
         <div class="sky-sun day-only" aria-hidden="true"></div>
         <span class="sky-cloud c1 day-only" aria-hidden="true"></span>
@@ -235,32 +224,36 @@
         </div>
 
         <div class="journey-map" id="journey-map" aria-label="Trip progress"></div>
-        <a class="hud-exit" id="skip-pill" href="#story">Skip the drive ↓</a>
+        <a class="hud-exit" id="skip-pill" href="#map">Skip the drive ↓</a>
         <aside class="zone-card" id="cp-card" hidden aria-live="polite"></aside>
       </div>
     </div>
   </section>
 
-  <!-- ── The readable version ── -->
+  <!-- ── The readable resume ── -->
   <main id="story">
 
-    <section id="expertise">
+    <section id="map">
       <div class="wrap">
         <div class="section-head">
-          <h2>🧭 What I do</h2>
-          <p>The short version: I make language models useful after pretraining, then measure whether they actually are. Most of that work runs on multi-node clusters, and most of it is aimed at security problems.</p>
+          <h2>🗺️ Research map</h2>
+          <p>Three lanes of work on one shared toolkit. Every box jumps to its project.</p>
         </div>
-        <ul class="skill-list">
-          <li><strong>LLM post-training pipelines:</strong> curriculum/staged SFT, structural reinforcement, reward-signal design, and behavioral shaping for fine-tuning and alignment.</li>
-          <li><strong>Evaluation frameworks:</strong> custom reward metrics (lexical / syntactic / semantic), LLM-as-judge and user simulation, human-curated benchmarking across <strong>10+ LLM families</strong>, plus cross-modal vision-language eval.</li>
-          <li><strong>Distributed &amp; efficient training:</strong> <strong>140M–9B-param</strong> families (incl. sparse-MoE) on multi-node SLURM clusters; DeepSpeed / FSDP / DDP-NCCL / CUDA; rank-stabilized LoRA; vLLM with multi-turn KV reuse.</li>
-          <li><strong>Agentic &amp; RAG systems:</strong> multi-tool dispatcher architectures, layered query routing, confidence-threshold anti-hallucination with web-search fallback, MCP-based tool integration.</li>
-          <li><strong>Large-scale data pipelines:</strong> multi-source dataset construction (<strong>100M+ labeled examples</strong>), tokenizer design, checkpoint management, reproducible experiment tracking.</li>
-          <li><strong>Systems &amp; full-stack engineering:</strong> CUDA profiling, memory-efficient loaders, FastAPI/React apps, local LLM orchestration, ATS/scraper pipelines.</li>
-        </ul>
-        <p class="stack-line">
-          <strong>Stack:</strong> PyTorch · HuggingFace Transformers · TRL · DeepSpeed · FSDP · CUDA · SLURM · vLLM · Ollama · MCP · LightGBM/XGBoost · Python · C++ · Rust · FastAPI · React · SQLite · Playwright · YARA · malware analysis (PE features)
-        </p>
+        <figure class="rmap" id="rmap"></figure>
+      </div>
+    </section>
+
+    <section id="projects">
+      <div class="wrap wrap-wide">
+        <div class="section-head">
+          <h2>🌲 Projects</h2>
+          <p>Newest first. Each one gets a diagram of how it works; the highlighted box is the part I built that carries the result.</p>
+        </div>
+        <div class="stops" id="project-list"></div>
+        <div class="shelf" id="shelf">
+          <h3>On the shelf</h3>
+          <ul id="shelf-list"></ul>
+        </div>
       </div>
     </section>
 
@@ -268,184 +261,39 @@
       <div class="wrap">
         <div class="section-head">
           <h2>🏔️ Experience</h2>
+          <p>Education, work and teaching on one timeline. Pick a bar for the details.</p>
         </div>
-
-        <div class="xp">
-          <div class="xp-when">2024 — present</div>
-          <div>
-            <h3>Research Assistant / ML Engineer</h3>
-            <p class="xp-org">Botacin's Lab, Texas A&amp;M University</p>
-            <ul>
-              <li>Built curriculum-based post-training pipelines across <strong>140M–9B-param</strong> families (BART, T5, Gemma 3, LLaMA 3.x, Nemotron; incl. sparse-MoE) on multi-node SLURM clusters with DeepSpeed, FSDP, and CUDA.</li>
-              <li><strong>YaraGen</strong>, a Booz Allen Hamilton sponsored, end-to-end LLM system for automated YARA threat-detection rule generation <em>(USENIX Security 2027, submitted)</em>:
-                <ul>
-                  <li>A <strong>20-tool agent dispatcher</strong> with a 4-layer query router and a RAG pipeline with confidence-threshold anti-hallucination, web-search fallback, and a Nemotron-4B synthesizer.</li>
-                  <li>A three-source dataset framework of <strong>100M+ labeled examples</strong>, including <strong>305K</strong> crawled real-world rules.</li>
-                  <li><strong>YaraAST</strong>, a hybrid AST-aware tokenizer (<strong>10× token reduction</strong>); post-trained models to <strong>≥99% syntax / ≥95% logical validity</strong> on 22,655 held-out rules, a floor held even by BART-base 140M.</li>
-                  <li><strong>Scooper</strong> (BiLSTM hex extractor) and <strong>MultiRuleGen</strong> (IR-level merger) raised corpus coverage <strong>83% → 100%</strong>.</li>
-                  <li><em>Brownie &amp; Puff</em>, a reproducible reward/eval function (BLEU + parsing + SAT semantics) used as both training signal and quality gate; benchmarked <strong>10+ LLM families over 150+ runs</strong>.</li>
-                  <li>A custom NER pipeline for IOC extraction from analyst reports: <strong>92.5% F1 across 25 IOC types</strong>.</li>
-                </ul>
-              </li>
-              <li><strong>AutoPYara</strong>, an open-sourced rule-generation package on PyPI <em>(ACSAC 2026, accepted)</em>: re-implemented biclustering-based rule generation from <strong>71K Windows PE samples</strong>; beat the AutoYara SOTA by <strong>+14% coverage, +10% threat-hunting accuracy, +8% low-sample generalization</strong>.</li>
-            </ul>
-          </div>
-        </div>
-
-        <!-- Hidden for now: pre-PhD industry experience
-        <div class="xp">
-          <div class="xp-when">2021 — 2022</div>
-          <div>
-            <h3>Junior Software Engineer</h3>
-            <p class="xp-org">Cognizant Technology Solutions, client-embedded at TJX Companies (Fortune 500)</p>
-            <ul>
-              <li>Delivered a logistics-automation platform with client engineering and product stakeholders.</li>
-              <li>Optimized REST endpoints for latency and concurrency; maintained CI/CD and led code review across cross-functional teams.</li>
-            </ul>
-          </div>
-        </div>
-        -->
+        <div class="tl" id="timeline"></div>
       </div>
     </section>
 
-    <section id="projects">
+    <section id="skills">
       <div class="wrap">
         <div class="section-head">
-          <h2>🌲 Projects</h2>
-          <p>Built because I wanted them to exist. Most of them are still running.</p>
+          <h2>🧭 Skills</h2>
+          <p>Each dot is a project that proves the skill, and links to it.</p>
         </div>
-        <div class="proj-grid">
-          <article class="proj">
-            <h3>Proactive Research Agent</h3>
-            <p>Taught a deep-research agent to <strong>pause on underspecified queries</strong> and ask one clarifying question first. Trained Gemma-4-E4B (~9B sparse MoE) on a single 80GB GPU with a 4-stage SFT curriculum; lifted pause-detection <strong>F1 0.168 → 0.573</strong> on a 176-query benchmark. Co-authored; led model development &amp; training.</p>
-            <div class="proj-tags"><span>agents</span><span>SFT curriculum</span><span>MCP tools</span><span>2026</span></div>
-          </article>
-
-          <article class="proj">
-            <span class="award">🏆 1st place</span>
-            <h3>ML Malware Detection</h3>
-            <p>Windows PE classifier over <strong>2M+ samples</strong> (EMBER, BODMAS, Benign-NET): <strong>96.2% accuracy, 0.97 F1</strong> under 1GB/5s constraints, plus the competition's best-performing adversarial evasion suite. CSCE 689 ML-Based Cyberdefenses.</p>
-            <div class="proj-tags"><span>LightGBM</span><span>XGBoost</span><span>adversarial ML</span></div>
-          </article>
-
-          <article class="proj">
-            <h3>Sturdy Fishstick</h3>
-            <p>Self-hosted job &amp; PhD search platform that scores listings with <strong>fully on-device local LLMs</strong> (no external inference API). Multi-source ingestion (ATS APIs, Google Jobs, LinkedIn), a categorical scoring scheme built for small models, and an FTS5-grounded RAG chat that never invents statistics.</p>
-            <div class="proj-tags"><span>FastAPI</span><span>React</span><span>Ollama</span><span>RAG</span></div>
-          </article>
-
-          <article class="proj">
-            <h3>Multimodal &amp; VL Evaluation</h3>
-            <p>Evaluated a DeepSeek vision-language model against <strong>human-annotated ground truth</strong>; built the comparison harness and error analysis for a cross-modal eval exercise. ECEN 642, Digital Image Processing &amp; Computer Vision.</p>
-            <div class="proj-tags"><span>VLMs</span><span>evaluation</span></div>
-          </article>
-
-          <article class="proj">
-            <h3>Multiperspective Hawkeye</h3>
-            <p>The ISCA'16 <strong>Hawkeye cache-replacement policy</strong> implemented in zsim, extended with PC-tracking and multi-policy benchmarking under multi-threaded workloads.</p>
-            <div class="proj-tags"><span>zsim</span><span>computer architecture</span></div>
-          </article>
-
-          <article class="proj">
-            <h3>HelloPentagon</h3>
-            <p>Explainable ML malware-defense chatbot: a classifier handles triage while an <strong>LLM interpretability layer</strong> explains the verdicts to analysts.</p>
-            <div class="proj-tags"><span>explainable ML</span><span>security</span></div>
-          </article>
-
-          <article class="proj wide">
-            <h3>Also on the shelf</h3>
-            <p><strong>WildFire</strong>: spatiotemporal ML for wildfire-spread prediction from climate and satellite data · <strong>Carotid Artery USG Analysis</strong>: CNN ultrasound classification, published as a Springer book chapter (2022) · <strong>Fashion-MNIST</strong>: ResNet/VGG comparison with regularization analysis.</p>
-          </article>
-        </div>
+        <div class="skills" id="skills-matrix"></div>
       </div>
     </section>
 
-    <section id="publications">
+    <section id="pubs">
       <div class="wrap">
         <div class="section-head">
-          <h2>📄 Publications</h2>
+          <h2>📄 Publications &amp; talks</h2>
         </div>
-        <ul class="pub-list">
-          <li><strong>YaraGen</strong> — USENIX Security 2027 (submitted).</li>
-          <li><strong>AutoPYara</strong> — ACSAC 2026 (accepted); open-sourced on PyPI.</li>
-          <li><strong>Training and Benchmarking Pro-active Deep Research Agents to Overcome Underspecificity in User Queries</strong> — manuscript in preparation, 2026 (co-authored, 4-person team).</li>
-          <li><strong>Carotid-artery ultrasound CNN classification</strong> — Springer book chapter, 2022.</li>
-        </ul>
+        <ul class="pub-list" id="pub-list"></ul>
+        <h3 class="sub-head">Talks and outreach</h3>
+        <ul class="row-list" id="talk-list"></ul>
       </div>
     </section>
 
-    <section id="teaching-edu">
-      <!-- Education hidden for now: restore "two-col" on the wrap below when re-enabling it -->
+    <section id="teaching">
       <div class="wrap">
-        <div>
-          <div class="section-head"><h2>🎓 Teaching &amp; outreach</h2></div>
-          <div class="mini-entry">
-            <h3>TA — CSCE 313: Introduction to Computer Systems</h3>
-            <p class="when">Texas A&amp;M · Fall 2026</p>
-            <p>Lab instructor and grader; I also write the small practical assignments that give students hands-on Linux experience. <a href="CSCE-313/">Course materials →</a></p>
-            <details class="outcomes">
-              <summary>Learning outcomes</summary>
-              <ul>
-                <li>Understand what system software an application program needs to run, on a single node and over a network, and how that software is used.</li>
-                <li>Perform system-level programming.</li>
-                <li>Use system components: memory, file systems, process control, inter-process communication, and networking.</li>
-                <li>Understand the problems and pitfalls in designing and implementing multithreaded and networked applications.</li>
-                <li>Use services provided by the underlying operating system by programming directly at the OS interface level.</li>
-                <li>Understand these aspects of a computer system:
-                  <ul>
-                    <li>What an operating system is, and what its components are.</li>
-                    <li>System calls and their purpose.</li>
-                    <li>Execution of a program; function calls; interrupts.</li>
-                    <li>The OS application interface, file system, and process control.</li>
-                    <li>Inter-process communication.</li>
-                    <li>Concurrency, threads, and process/thread synchronization.</li>
-                    <li>Network socket programming.</li>
-                    <li>Parallel and distributed computing.</li>
-                  </ul>
-                </li>
-              </ul>
-            </details>
-          </div>
-          <div class="mini-entry">
-            <h3>TA — CSCE 439/704: Data Analytics for Cybersecurity</h3>
-            <p class="when">Texas A&amp;M · Spring 2026</p>
-            <p>Designing assignments and mentoring student projects; clustering, supervised ML, anomaly detection, security-focused visualization.</p>
-          </div>
-          <div class="mini-entry">
-            <h3>Partner &amp; Presenter — TAMU CS Day</h3>
-            <p class="when">2024 &amp; 2025</p>
-            <p>Hands-on AI and cybersecurity demos for high-school students.</p>
-          </div>
-          <div class="mini-entry">
-            <h3>TA — ECEN 325: Electronics</h3>
-            <p class="when">Spring 2023</p>
-            <p>Lectures, grading, and lab sessions for analog electronics.</p>
-          </div>
-          <div class="mini-entry">
-            <h3>Technical Coordinator — Student Research Week</h3>
-            <p class="when">Summer 2023</p>
-            <p>Automated judging and submission infrastructure for one of TAMU's largest academic events.</p>
-          </div>
+        <div class="section-head">
+          <h2>🎓 Teaching</h2>
         </div>
-        <!-- Education hidden for now
-        <div>
-          <div class="section-head"><h2>🏫 Education</h2></div>
-          <div class="mini-entry">
-            <h3>Ph.D. Computer Science — Texas A&amp;M University</h3>
-            <p class="when">Spring 2024 — present</p>
-            <p>Advisor: Dr. Marcus Botacin. Thesis: LLMs for automated rule generation and model interpretability in cyberdefense.</p>
-          </div>
-          <div class="mini-entry">
-            <h3>M.S. Computer Engineering — Texas A&amp;M University</h3>
-            <p class="when">Fall 2022 — Fall 2023</p>
-            <p>ML theory, deep learning, data mining, randomized algorithms, ML-based cyberdefenses.</p>
-          </div>
-          <div class="mini-entry">
-            <h3>B.Tech. ECE — SRM University</h3>
-            <p class="when">2017 — 2021</p>
-          </div>
-        </div>
-        -->
+        <ul class="row-list" id="teaching-list"></ul>
       </div>
     </section>
 
@@ -453,16 +301,28 @@
       <div class="wrap">
         <div class="contact-panel">
           <h2>Let's take a drive together 🚙</h2>
-          <p>I'm open to ML engineering, research, and applied-science roles. If any landmark caught your eye, my inbox is the last stop on the map.</p>
+          <p>I'm open to ML engineering, research, and applied-science roles. If any stop caught your eye, my inbox is the last one on the map.</p>
           <div class="contact-ctas">
             <a class="btn btn-primary btn-big" href="mailto:soumyajyotidutta23@gmail.com">✉️ soumyajyotidutta23@gmail.com</a>
+          </div>
+          <div class="contact-ctas">
             <a class="btn btn-outline" href="https://github.com/xoumyax" target="_blank" rel="noopener">GitHub</a>
             <a class="btn btn-outline" href="https://www.linkedin.com/in/soumyajyotidutta/" target="_blank" rel="noopener">LinkedIn</a>
-            <a class="btn btn-outline" href="Soumyajyoti_Dutta_Resume.pdf" target="_blank" rel="noopener">Resume (PDF)</a>
+            <div class="resume-ctl" role="group" aria-label="Resume PDF">
+              <a class="btn btn-outline" href="Soumyajyoti_Dutta_Resume.pdf" target="_blank" rel="noopener">📄 Resume PDF</a>
+              <a class="btn btn-outline btn-icon" href="Soumyajyoti_Dutta_Resume.pdf" download="Soumyajyoti_Dutta_Resume.pdf" aria-label="Download resume PDF" title="Download PDF">⬇</a>
+            </div>
           </div>
         </div>
       </div>
     </section>
+
+    <noscript>
+      <div class="wrap noscript">
+        <p>This page draws its content with JavaScript. The full resume is here as a PDF:
+          <a href="Soumyajyoti_Dutta_Resume.pdf">Soumyajyoti_Dutta_Resume.pdf</a>.</p>
+      </div>
+    </noscript>
   </main>
 
   <footer>

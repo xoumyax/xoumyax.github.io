@@ -1,5 +1,5 @@
-import { ZONES } from './content.js';
 import { buildScene } from './scene.js';
+import { renderAll } from './render.js';
 
 const $ = (sel) => document.querySelector(sel);
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -29,6 +29,32 @@ themeBtn.addEventListener('click', () => {
 });
 systemDark.addEventListener('change', paintThemeButton);
 paintThemeButton();
+
+/* ── Nav: menu under 720px, resume menu closes on outside click ── */
+const navToggle = $('#nav-toggle');
+const mainNav = $('#main-nav');
+navToggle.addEventListener('click', () => {
+  const open = navToggle.getAttribute('aria-expanded') !== 'true';
+  navToggle.setAttribute('aria-expanded', String(open));
+  mainNav.classList.toggle('open', open);
+});
+mainNav.addEventListener('click', (e) => {
+  if (e.target.closest('a')) { navToggle.setAttribute('aria-expanded', 'false'); mainNav.classList.remove('open'); }
+});
+const resumeMenu = $('.resume-menu');
+document.addEventListener('click', (e) => {
+  if (resumeMenu.open && !resumeMenu.contains(e.target)) resumeMenu.open = false;
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && resumeMenu.open) { resumeMenu.open = false; resumeMenu.querySelector('summary').focus(); }
+});
+
+/* ── Content: one data file drives every section and the drive ── */
+const data = await fetch('data/site.json').then(r => r.json());
+renderAll(data);
+const ZONES = data.drive;
+// the hash target may not have existed before render
+if (location.hash.length > 1) document.getElementById(location.hash.slice(1))?.scrollIntoView();
 
 /* ── Journey scaffolding ────────────────────────────────── */
 const track = $('#journey-track');
@@ -68,8 +94,8 @@ function layout() {
 function renderMap() {
   mapEl.innerHTML = `
     <div class="map-line"></div>
-    ${ZONES.map(z => `<span class="map-dot ${visited.has(z.id) ? 'visited' : ''} ${activeCp === z.id ? 'here' : ''}" title="${z.title}">${z.emoji}</span>`).join('')}
-    <span class="map-dot ${visited.has('finish') ? 'visited' : ''} ${activeCp === 'finish' ? 'here' : ''}" title="The End">🏁</span>
+    ${ZONES.map(z => `<span class="map-dot ${visited.has(z.id) ? 'visited' : ''} ${activeCp === z.id ? 'here' : ''}" title="${z.year} · ${z.title}">${z.emoji}</span>`).join('')}
+    <span class="map-dot ${visited.has('finish') ? 'visited' : ''} ${activeCp === 'finish' ? 'here' : ''}" title="Destination · Open to work">🚩</span>
     <span class="map-car" id="map-car" aria-hidden="true">🚙</span>`;
   positionMapCar();
 }
@@ -84,12 +110,17 @@ function positionMapCar() {
 const allStopsSeen = () => ZONES.every(z => visited.has(z.id));
 
 function showCard(zone) {
+  const body = zone.id === 'finish'
+    ? `<p class="zone-tagline">${zone.tagline}</p>
+       <ul class="zone-points">${zone.points.map(p => `<li>${p}</li>`).join('')}</ul>
+       <div class="zone-tags">${zone.tags.map(t => `<span>${t}</span>`).join('')}</div>`
+    : `<p class="zone-line">${zone.line}</p>
+       <a class="zone-link" href="${zone.href}">${zone.linkLabel} →</a>`;
   card.innerHTML = `
-    <div class="zone-card-head"><span class="emoji" aria-hidden="true">${zone.emoji}</span><h3>${zone.title}</h3></div>
-    <p class="zone-tagline">${zone.tagline}</p>
-    <ul class="zone-points">${zone.points.map(p => `<li>${p}</li>`).join('')}</ul>
-    <div class="zone-tags">${zone.tags.map(t => `<span>${t}</span>`).join('')}</div>
-    ${zone.id !== 'finish' && allStopsSeen() ? `<p class="zone-complete">🎉 That's all seven stops! The finish line is just up the road.</p>` : ''}
+    <div class="zone-card-head"><span class="emoji" aria-hidden="true">${zone.emoji}</span>
+      <h3><span class="zone-year">${zone.year}</span> ${zone.title}</h3></div>
+    ${body}
+    ${zone.id !== 'finish' && allStopsSeen() ? `<p class="zone-complete">🎉 That's all seven stops! The open-to-work flag is just up the road.</p>` : ''}
     ${zone.cta ? `<a class="btn btn-primary" href="${zone.cta.href}">${zone.cta.label}</a>` : ''}`;
   card.hidden = false;
   requestAnimationFrame(() => card.classList.add('show'));
@@ -100,8 +131,8 @@ function finishZone() {
   const bonus = stops === ZONES.length ? 100 : 0;
   const pts = stops === 0 ? 50 : stops * 100 + bonus;
   const points = stops === 0 ? [
-    'You teleported straight to the finish line. Bold strategy, and honestly, efficient.',
-    `As the designer of the <em>Brownie &amp; Puff</em> reward function, I'm fully qualified to issue rewards, so I'll spot you <strong>50 Brownie Points</strong> for finding The End. The other 800 are waiting back up the road.`,
+    'You teleported straight to the destination. Bold strategy, and honestly, efficient.',
+    `As the designer of the <em>Brownie &amp; Puff</em> reward function, I'm fully qualified to issue rewards, so I'll spot you <strong>50 Brownie Points</strong> for finding the destination. The other 800 are waiting back up the road.`,
     `Brownie points are absolutely redeemable: <strong>mention them in an email</strong> and I'll know you were here.`,
   ] : [
     `You drove the whole road${stops === ZONES.length ? ' and caught <strong>every single stop</strong>' : ` and caught <strong>${stops} of ${ZONES.length}</strong> stops`}. Respect.`,
@@ -110,11 +141,12 @@ function finishZone() {
   ];
   return {
     id: 'finish',
-    emoji: '🏁',
-    title: 'You reached The End!',
+    emoji: '🚩',
+    year: 'Destination',
+    title: 'Open to work',
     tagline: stops === 0 ? 'Speedrun acknowledged.' : 'Most visitors take the shortcut. Not you.',
     points,
-    tags: ['🏁 finish line', `🍫 +${pts} brownie points`],
+    tags: ['🚩 open to work', `🍫 +${pts} brownie points`],
     cta: { href: 'mailto:soumyajyotidutta23@gmail.com?subject=Redeeming%20my%20brownie%20points%20🍫', label: '✉️ Redeem via email' },
   };
 }
@@ -166,6 +198,18 @@ function progress() {
 
 let wheelAngle = 0;
 function update(force = false) {
+  // Jumping over the drive (nav links, "Skip") must not count as driving it:
+  // no cards, no finish, no confetti while the stage is off screen.
+  if (PIN === null) {
+    // landing just past the drive (Skip, nav links) leaves a sliver of the
+    // stage on screen; only count it as driving when most of it is visible
+    const r = track.getBoundingClientRect();
+    const half = window.innerHeight * 0.5;
+    if (r.bottom <= half || r.top >= half) {
+      if (activeCp) { activeCp = null; hideCard(); renderMap(); }
+      return;
+    }
+  }
   const p = progress();
   const worldX = p * travel;                       // how far the car has driven
   if (!force && Math.abs(worldX - lastWorldX) < 0.1) return;
@@ -197,7 +241,7 @@ function update(force = false) {
   if (delta > 2 && skipDir !== 'down') {
     skipDir = 'down';
     skipPill.textContent = 'Skip the drive ↓';
-    skipPill.href = '#story';
+    skipPill.href = '#map';
   } else if (delta < -2 && skipDir !== 'up') {
     skipDir = 'up';
     skipPill.textContent = 'Skip back up ↑';
@@ -227,6 +271,23 @@ function update(force = false) {
   positionMapCar();
 }
 
+// In-page links that would smooth-scroll *through* the drive jump instead:
+// otherwise every nav click flashes all seven cards and fires the finish.
+document.addEventListener('click', (e) => {
+  const a = e.target.closest('a[href^="#"]');
+  if (!a || e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey) return;
+  const target = a.getAttribute('href') === '#top' ? document.body : document.getElementById(a.getAttribute('href').slice(1));
+  if (!target) return;
+  const pad = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
+  const to = Math.max(0, target.getBoundingClientRect().top + scrollY - pad);
+  const t0 = track.offsetTop, t1 = t0 + track.offsetHeight;
+  const crosses = Math.min(scrollY, to) < t1 && Math.max(scrollY, to) > t0;
+  if (!crosses) return; // short hops keep the smooth scroll
+  e.preventDefault();
+  scrollTo({ top: to, behavior: 'instant' });
+  history.pushState(null, '', a.getAttribute('href'));
+});
+
 let ticking = false;
 addEventListener('scroll', () => {
   if (ticking) return;
@@ -236,7 +297,7 @@ addEventListener('scroll', () => {
 addEventListener('resize', () => layout());
 
 if (PIN !== null) {
-  for (const sel of ['.topbar', '.hero', '#drive .wrap']) $(sel).style.display = 'none';
+  for (const sel of ['.topbar', '.hero', '#now', '#drive .wrap']) $(sel).style.display = 'none';
 }
 renderMap();
 layout();

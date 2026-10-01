@@ -22,10 +22,10 @@ A versatile ML engineer who ships real systems — from LLM post-training and ag
 
 ## Conversion & proof
 
-- Primary CTA: email him. Secondary: view the CV (PDF).
+- Primary CTA: email him. Secondary: the resume PDF (open or download). The page itself is the primary, visual resume.
 - The line a visitor remembers after 10 seconds: "Versatile ML engineer, open to work — and he built a drivable 3D portfolio."
 - Belief ladder: (1) he's open to work and easy to reach → (2) he ships serious ML systems, not toy notebooks → (3) he's versatile across LLMs, security, systems, and full-stack → (4) he'd be great to work with; the game itself proves craft and personality.
-- Proof on hand: YaraGen (Booz Allen Hamilton–sponsored, USENIX Security 2026 in prep), AutoPYara (ACSAC 2026 submission, open-sourced on PyPI), 1st place in the CSCE 689 ML-Based Cyberdefenses competition, Springer book chapter (2022), proactive research-agent manuscript (2026). Full record in `base_resume.tex`.
+- Proof on hand: YaraGen (LPS/UMD & Booz Allen Hamilton–sponsored, under review at USENIX Security '27 Cycle 1), IOCScooper++ (in preparation, Cycle 2; Texas Security Workshop 2026 talk), AutoPYara (ACSAC 2026 accepted, open-sourced on PyPI), 1st place in the CSCE 689 ML-Based Cyberdefenses competition (still #1 after five offerings), Springer book chapter (2022), proactive research-agent manuscript (2026). Page copy lives in `data/site.json`; the full record is `base_resume.tex`.
 
 ## Brand Personality
 

@@ -222,3 +222,6 @@ __marimo__/
 .codex
 .cursor
 .impeccable
+
+# Design spec handed to Claude Code; kept out of the public repo
+designdoc.md
