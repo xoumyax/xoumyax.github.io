@@ -292,6 +292,24 @@ const specs = [
       { from: 'atk', to: 'oth', dashed: true, label: 'evades' },
     ],
   },
+  {
+    id: 'chrisween',
+    aria: 'Legends of Chrisween architecture: keyboard and touch input is buffered into a fixed 60 Hz step that drives the campaign simulation of heroes, companion AI and bosses. The simulation emits events that the Canvas renderer draws, that the HUD and audio respond to, and that trigger saves. The published build is encrypted with the passcode.',
+    nodes: [
+      { id: 'in', c: 0, r: 0, lines: ['Keyboard · touch', 'remappable'] },
+      { id: 'step', c: 1, r: 0, lines: ['Fixed 60 Hz step', 'buffered inputs'] },
+      { id: 'sim', c: 2, r: 0, accent: true, lines: ['Campaign simulation', 'heroes · AI · bosses'] },
+      { id: 'ev', c: 2, r: 1, lines: ['Event stream', 'hits, deaths, XP'] },
+      { id: 'ren', c: 1, r: 1, lines: ['Canvas renderer', 'oil-painted sprites'] },
+      { id: 'hud', c: 0, r: 1, lines: ['HUD · audio', 'dialogue'] },
+      { id: 'save', c: 2, r: 2, data: true, lines: ['Save v3', 'reward ledger'] },
+      { id: 'vault', c: 0, r: 2, data: true, dashed: true, lines: ['Encrypted build', 'AES-GCM · passcode'] },
+    ],
+    edges: [
+      { from: 'in', to: 'step' }, { from: 'step', to: 'sim' }, { from: 'sim', to: 'ev' },
+      { from: 'ev', to: 'ren' }, { from: 'ren', to: 'hud' }, { from: 'ev', to: 'save' },
+    ],
+  },
 ];
 
 mkdirSync(OUT, { recursive: true });

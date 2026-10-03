@@ -455,6 +455,58 @@
       "shelf": false
     },
     {
+      "id": "chrisween",
+      "year": 2026,
+      "mapNote": "personal · passcode",
+      "title": "Legends of Chrisween",
+      "short": "Chrisween",
+      "lane": "systems",
+      "badges": [
+        {
+          "text": "Personal project · private, passcode-protected",
+          "kind": "note"
+        }
+      ],
+      "oneLine": "A browser action-adventure across two oil-painted worlds and twelve stages, with a partner AI that fights beside you, shared progression and a three-phase final boss.",
+      "metrics": [
+        {
+          "value": "12",
+          "label": "authored stages"
+        },
+        {
+          "value": "60 Hz",
+          "label": "fixed-step simulation"
+        },
+        {
+          "value": "19",
+          "label": "simulation contract tests"
+        }
+      ],
+      "bullets": [
+        "A pure simulation drives grounded side-scrolling combat: telegraphed enemy attacks, a companion AI that follows your path and shares every rule, XP across ten levels, and an idempotent reward ledger so reloads can never farm progress.",
+        "Inputs are buffered into a fixed 60 Hz step, so equal input sequences give identical outcomes at 30, 60 or 120 FPS; tests also prove every stage route is reachable and the XP budget lands the final boss at levels 9–10.",
+        "Sprite frames are re-cut with measured foot pivots and run through a Kuwahara oil-paint pass; the published build is AES-GCM encrypted with a passcode and served by a service worker on static GitHub Pages."
+      ],
+      "tags": [
+        "Canvas 2D",
+        "JavaScript",
+        "game AI",
+        "Web Crypto",
+        "service workers",
+        "Python imaging"
+      ],
+      "diagram": "assets/diagrams/chrisween.svg",
+      "caption": "The simulation never touches the screen; everything visible reacts to its event stream.",
+      "links": [
+        {
+          "label": "Play (passcode)",
+          "href": "https://xoumyax.github.io/legends-of-chrisween/"
+        }
+      ],
+      "visibility": "public",
+      "shelf": false
+    },
+    {
       "id": "fishstick",
       "year": 2025,
       "title": "Sturdy Fishstick",
