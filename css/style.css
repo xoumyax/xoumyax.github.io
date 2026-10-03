@@ -1076,7 +1076,7 @@ footer { padding: var(--space-lg) 0 var(--space-xl); color: var(--muted); font-s
   background: var(--l-gold); color: #132126; font: 800 .95rem/1 var(--font-body); text-decoration: none;
   clip-path: polygon(1% 8%, 99% 0, 100% 90%, 3% 100%); transition: background .2s, gap .25s var(--ease-out);
 }
-.leisure-cta:hover, .leisure-cta:focus-visible { background: var(--l-gold-hi); gap: 1.2rem; }
+.leisure-cta:hover, .leisure-cta:focus-visible { background: var(--l-gold-hi); color: #132126; gap: 1.2rem; }
 .leisure-cta:focus-visible { outline: 3px solid var(--l-text); outline-offset: 3px; }
 .leisure-note { margin: 0; font: 700 .72rem/1 var(--font-body); color: #9aa6a2; letter-spacing: .04em; }
 .stop.leisure:hover .leisure-art { transform: scaleX(-1) scale(1.03); }
