@@ -48,6 +48,9 @@
   #status[data-kind=ok] { color: var(--ok); }
   .track { height: 2px; background: #e9cf981f; overflow: hidden; }
   .track i { display: block; height: 100%; width: 0; background: var(--gold); transition: width .2s; }
+  .privacy { font-size: 12px; line-height: 1.65; color: #d9d2c1; margin: 4px 0 0; padding: 12px 14px; border-left: 2px solid var(--gold); background: #0b1c21b3; max-width: 46ch; overflow-wrap: anywhere; }
+  .privacy a { color: var(--gold); text-underline-offset: 3px; }
+  .privacy a:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
   .note { font-size: 10px; color: #8d9a97; line-height: 1.6; margin: 0; }
   [hidden] { display: none !important; }
   @media (max-width: 700px) { .shade { background: linear-gradient(0deg, #071116f5 0%, #071116d9 55%, #07111640 100%); } main { align-self: end; } .art { object-position: 66% 30%; } }
@@ -73,6 +76,7 @@
   <button class="primary" id="enter" type="button" hidden>Continue your journey <span aria-hidden="true">⟶</span></button>
   <p id="status" role="status" aria-live="polite"></p>
   <button class="link" id="forget" type="button">Forget this device</button>
+  <p class="privacy">Unless we’ve said so explicitly or given you access personally, we keep this game private for our privacy. For access, contact Soumya (<a href="mailto:soumyajyotidutta23@gmail.com">soumyajyotidutta23@gmail.com</a>) or Molly (<a href="mailto:smallikao1014@gmail.com">smallikao1014@gmail.com</a>).</p>
   <p class="note">Everything beyond this page is encrypted. Once unlocked, the game stays available in this browser until you choose “Forget this device”.</p>
 </main>
 <script type="module" src="unlock.js"></script>

@@ -125,12 +125,32 @@ function projectCard(p) {
     </article>`;
 }
 
+/* ── Off the clock: hobbies, and the game that gathers them ── */
+function leisureCard(l) {
+  return `
+    <article class="stop leisure" id="leisure" aria-labelledby="leisure-title">
+      <img class="leisure-art" src="${attr(l.image)}" alt="${attr(l.imageAlt)}" loading="lazy" />
+      <div class="leisure-copy">
+        <p class="leisure-kicker">${l.kicker}</p>
+        <h3 id="leisure-title">${l.title}</h3>
+        <p class="leisure-line">${l.line}</p>
+        <ul class="leisure-hobbies" aria-label="Hobbies">${l.hobbies.map(h => `<li>${h}</li>`).join('')}</ul>
+        <a class="leisure-cta" href="${attr(l.cta.href)}">${l.cta.label} <span aria-hidden="true">⟶</span></a>
+        <p class="leisure-note">${l.note}</p>
+      </div>
+    </article>`;
+}
+
 function renderProjects(d) {
   const cards = d.projects.filter(p => !p.shelf)
     .map((p, i) => ({ p, i }))
     .sort((a, b) => b.p.year - a.p.year || a.i - b.i)   // newest first; ties keep file order
     .map(({ p }) => projectCard(p)).join('');
   $('#project-list').innerHTML = cards;
+  if (d.leisure) {
+    const after = document.getElementById(`project-${d.leisure.after}`);
+    if (after) after.insertAdjacentHTML('afterend', leisureCard(d.leisure));
+  }
 
   const shelf = d.projects.filter(p => p.shelf)
     .sort((a, b) => (b.year ?? -1) - (a.year ?? -1));

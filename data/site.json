@@ -1074,5 +1074,26 @@
       "term": "Spring 2023",
       "line": "Lectures, grading and labs."
     }
-  ]
+  ],
+  "leisure": {
+    "after": "yaragen",
+    "kicker": "Off the clock",
+    "title": "Art, games, music, books, trails",
+    "line": "Away from the lab I paint and sketch, play Switch games, listen to classical and rock, read, and hike. <strong>Legends of Chrisween</strong> is where all of it meets: an oil-painted adventure with Puff and Brownie across two worlds and twelve stages.",
+    "hobbies": [
+      "🎨 Art",
+      "🎮 Switch games",
+      "🎻 Classical",
+      "🎸 Rock",
+      "📚 Books",
+      "🥾 Hiking"
+    ],
+    "cta": {
+      "label": "Play Legends of Chrisween",
+      "href": "legends-of-chrisween/"
+    },
+    "note": "Private · passcode required",
+    "image": "assets/leisure-oil.jpg",
+    "imageAlt": "An oil painting of Puff and Brownie hiking a misty mountain ridge at sunrise"
+  }
 }
