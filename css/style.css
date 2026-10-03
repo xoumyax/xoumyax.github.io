@@ -1093,3 +1093,16 @@ footer { padding: var(--space-lg) 0 var(--space-xl); color: var(--muted); font-s
   .hero-ctas .btn-big { font-size: clamp(.7rem, 3.3vw, .9rem); padding: .7rem clamp(.45rem, 2.2vw, .75rem); }
   .hero-ctas .resume-ctl .btn-icon { padding-inline: .5rem; }
 }
+
+/* One rhythm down the hero: sponsor note → chips → buttons → Currently building. */
+:root { --hero-gap: 2rem; }
+.hero { padding-bottom: 0; }
+.hero-sponsor { margin-bottom: var(--hero-gap); }
+.proof-chips { margin-bottom: var(--hero-gap); }
+#now { padding-top: var(--hero-gap); }
+@media (max-width: 860px) { .hero-grid { row-gap: var(--hero-gap); } }
+#now .stop.leisure { margin-top: var(--hero-gap); }
+.hero-car svg { display: block; margin-inline: auto; }
+/* Wider than the card and anchored left, so the hikers land right of the text. */
+.leisure-art { inset: 0 auto 0 0; width: 128%; }
+@media (max-width: 720px) { .leisure-art { width: 100%; } }

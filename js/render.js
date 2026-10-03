@@ -148,7 +148,8 @@ function renderProjects(d) {
     .map(({ p }) => projectCard(p)).join('');
   $('#project-list').innerHTML = cards;
   if (d.leisure) {
-    const after = document.getElementById(`project-${d.leisure.after}`);
+    // "now" places it under the Currently building card; otherwise after the named project.
+    const after = d.leisure.after === 'now' ? $('#now-slot').lastElementChild : document.getElementById(`project-${d.leisure.after}`);
     if (after) after.insertAdjacentHTML('afterend', leisureCard(d.leisure));
   }
 
