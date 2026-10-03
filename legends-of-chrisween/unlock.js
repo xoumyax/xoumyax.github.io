@@ -73,7 +73,7 @@ async function main() {
   $('#enter').addEventListener('click', () => { location.href = 'play/'; });
   $('#form').addEventListener('submit', async event => {
     event.preventDefault();
-    const passcode = $('#passcode').value;
+    const passcode = $('#passcode').value.trim();
     if (!passcode) return;
     $('#submit').disabled = true; $('#passcode').disabled = true; $('.track').hidden = false;
     setStatus('Checking the passcode…');
