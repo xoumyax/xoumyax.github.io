@@ -1,6 +1,6 @@
 // Serves the decrypted game from Cache Storage under ./play/.
 // Without an unlocked cache for this build, play/ redirects to the passcode page.
-const BUILD = 'ef1ee04ef0d6';
+const BUILD = '0a885d6e4a0b';
 const CACHE = `chrisween-${BUILD}`;
 const SCOPE = new URL('./', self.location).href;
 const PLAY = `${SCOPE}play/`;
