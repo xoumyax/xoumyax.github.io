@@ -50,6 +50,7 @@
             <a href="Soumyajyoti_Dutta_Resume.pdf" download="Soumyajyoti_Dutta_Resume.pdf">⬇ Download PDF</a>
           </div>
         </details>
+        <button class="sq-open" id="sq-open" aria-haspopup="dialog" aria-controls="sq-drawer"><span class="sq-side">Side </span><span class="sq-word">quests</span></button>
         <a class="nav-cta" href="mailto:soumyajyotidutta23@gmail.com">Email me</a>
         <button class="theme-toggle" id="theme-toggle" aria-label="Switch theme">🌙</button>
       </div>
@@ -330,6 +331,19 @@
   <footer>
     <div class="wrap">© 2026 Soumyajyoti Dutta · built by hand, driven by a tiny 4Runner · no cookies, no trackers</div>
   </footer>
+
+  <!-- ── Side quests: a drawer off the top bar; entries come from data/site.json ── -->
+  <dialog class="sq-drawer" id="sq-drawer" aria-labelledby="sq-title">
+    <div class="sq-inner">
+      <header class="sq-head">
+        <h2 id="sq-title">Side quests</h2>
+        <button class="sq-close" id="sq-close" aria-label="Close side quests">✕</button>
+      </header>
+      <p class="sq-line" id="sq-line"></p>
+      <ul class="sq-hobbies" id="sq-hobbies" aria-label="Hobbies"></ul>
+      <div class="sq-entries" id="sq-entries"></div>
+    </div>
+  </dialog>
 
   <canvas id="confetti" aria-hidden="true"></canvas>
 

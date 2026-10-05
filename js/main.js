@@ -49,6 +49,13 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && resumeMenu.open) { resumeMenu.open = false; resumeMenu.querySelector('summary').focus(); }
 });
 
+/* ── Side quests drawer: a modal dialog, so Escape and focus come for free ── */
+const sqDrawer = $('#sq-drawer');
+$('#sq-open').addEventListener('click', () => { resumeMenu.open = false; sqDrawer.showModal(); });
+$('#sq-close').addEventListener('click', () => sqDrawer.close());
+// A click on the dialog itself (not its contents) lands on the backdrop
+sqDrawer.addEventListener('click', (e) => { if (e.target === sqDrawer) sqDrawer.close(); });
+
 /* ── Content: one data file drives every section and the drive ── */
 const data = await fetch('data/site.json').then(r => r.json());
 renderAll(data);

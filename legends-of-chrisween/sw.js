@@ -1,27 +1,10 @@
-// Serves the decrypted game from Cache Storage under ./play/.
-// Without an unlocked cache for this build, play/ redirects to the passcode page.
-const BUILD = '0a885d6e4a0b';
-const CACHE = `chrisween-${BUILD}`;
-const SCOPE = new URL('./', self.location).href;
-const PLAY = `${SCOPE}play/`;
-
+// The game moved to ../legends-of-lantern-town/. Replaces the old worker: drop its caches,
+// unregister, and send open tabs to the new address.
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', event => {
   event.waitUntil((async () => {
-    for (const key of await caches.keys()) if (key.startsWith('chrisween-') && key !== CACHE) await caches.delete(key);
-    await self.clients.claim();
-  })());
-});
-
-self.addEventListener('fetch', event => {
-  const url = new URL(event.request.url);
-  url.search = ''; url.hash = '';
-  if (event.request.method !== 'GET' || !url.href.startsWith(PLAY)) return;
-  const key = url.href.endsWith('/') ? `${url.href}index.html` : url.href;
-  event.respondWith((async () => {
-    const hit = await (await caches.open(CACHE)).match(key);
-    if (hit) return hit;
-    if (event.request.mode === 'navigate') return Response.redirect(SCOPE, 302);
-    return new Response('Locked', { status: 403 });
+    for (const key of await caches.keys()) if (key.startsWith('chrisween-')) await caches.delete(key);
+    await self.registration.unregister();
+    for (const client of await self.clients.matchAll({ type: 'window' })) client.navigate(new URL('../legends-of-lantern-town/', self.registration.scope).href);
   })());
 });

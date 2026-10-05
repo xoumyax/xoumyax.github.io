@@ -125,20 +125,22 @@ function projectCard(p) {
     </article>`;
 }
 
-/* ── Off the clock: hobbies, and the game that gathers them ── */
-function leisureCard(l) {
-  return `
-    <article class="stop leisure" id="leisure" aria-labelledby="leisure-title">
-      <img class="leisure-art" src="${attr(l.image)}" alt="${attr(l.imageAlt)}" loading="lazy" />
-      <div class="leisure-copy">
-        <p class="leisure-kicker">${l.kicker}</p>
-        <h3 id="leisure-title">${l.title}</h3>
-        <p class="leisure-line">${l.line}</p>
-        <ul class="leisure-hobbies" aria-label="Hobbies">${l.hobbies.map(h => `<li>${h}</li>`).join('')}</ul>
-        <a class="leisure-cta" href="${attr(l.cta.href)}">${l.cta.label} <span aria-hidden="true">⟶</span></a>
-        <p class="leisure-note">${l.note}</p>
+/* ── Side quests drawer: hobbies, then one card per quest (the game first) ── */
+function renderSideQuests(d) {
+  const s = d.sideQuests;
+  $('#sq-line').innerHTML = s.line;
+  $('#sq-hobbies').innerHTML = s.hobbies.map(h => `<li>${h}</li>`).join('');
+  $('#sq-entries').innerHTML = s.entries.map(e => `
+    <article class="sq-entry" id="quest-${e.id}" aria-labelledby="quest-${e.id}-title">
+      <img class="sq-art" src="${attr(e.image)}" alt="${attr(e.imageAlt)}" loading="lazy" />
+      <div class="sq-copy">
+        <p class="sq-kicker">${e.kicker}</p>
+        <h3 id="quest-${e.id}-title">${e.title}</h3>
+        <p class="sq-entry-line">${e.line}</p>
+        <a class="sq-cta" href="${attr(e.cta.href)}">${e.cta.label} <span aria-hidden="true">⟶</span></a>
+        <p class="sq-note">${e.note}</p>
       </div>
-    </article>`;
+    </article>`).join('');
 }
 
 function renderProjects(d) {
@@ -147,11 +149,6 @@ function renderProjects(d) {
     .sort((a, b) => b.p.year - a.p.year || a.i - b.i)   // newest first; ties keep file order
     .map(({ p }) => projectCard(p)).join('');
   $('#project-list').innerHTML = cards;
-  if (d.leisure) {
-    // "now" places it under the Currently building card; otherwise after the named project.
-    const after = d.leisure.after === 'now' ? $('#now-slot').lastElementChild : document.getElementById(`project-${d.leisure.after}`);
-    if (after) after.insertAdjacentHTML('afterend', leisureCard(d.leisure));
-  }
 
   const shelf = d.projects.filter(p => p.shelf)
     .sort((a, b) => (b.year ?? -1) - (a.year ?? -1));
@@ -295,4 +292,5 @@ export function renderAll(d) {
   renderTimeline(d);
   renderSkills(d);
   renderPubs(d);
+  renderSideQuests(d);
 }

@@ -22,7 +22,7 @@ function setStatus(text, kind = '') { const s = $('#status'); s.textContent = te
 
 async function unlockedBuild(meta) {
   if (!('caches' in window)) return false;
-  return (await caches.keys()).includes(`chrisween-${meta.build}`) && !!(await (await caches.open(`chrisween-${meta.build}`)).match(`${SCOPE}play/index.html`));
+  return (await caches.keys()).includes(`lantern-${meta.build}`) && !!(await (await caches.open(`lantern-${meta.build}`)).match(`${SCOPE}play/index.html`));
 }
 
 async function registerWorker() {
@@ -36,7 +36,7 @@ async function unlock(passcode, meta) {
   let manifest;
   try { manifest = JSON.parse(dec.decode(await decryptBlob(key, 'vault/manifest.bin'))); }
   catch { throw new Error('wrong'); }
-  const cache = await caches.open(`chrisween-${meta.build}`);
+  const cache = await caches.open(`lantern-${meta.build}`);
   const entries = Object.entries(manifest.files);
   const total = entries.reduce((n, [, f]) => n + f.size, 0);
   let done = 0;
@@ -55,7 +55,7 @@ async function unlock(passcode, meta) {
 }
 
 async function forget() {
-  for (const k of await caches.keys()) if (k.startsWith('chrisween-')) await caches.delete(k);
+  for (const k of await caches.keys()) if (k.startsWith('lantern-')) await caches.delete(k);
   for (const r of await navigator.serviceWorker.getRegistrations()) if (r.scope === SCOPE) await r.unregister();
   try { for (const k of Object.keys(localStorage)) if (k.startsWith('puff-brownie')) localStorage.removeItem(k); } catch { /* storage blocked */ }
   setStatus('This device has forgotten the game and its saves.', 'ok');

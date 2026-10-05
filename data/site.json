@@ -455,11 +455,11 @@
       "shelf": false
     },
     {
-      "id": "chrisween",
+      "id": "lantern-town",
       "year": 2026,
       "mapNote": "personal · passcode",
-      "title": "Legends of Chrisween",
-      "short": "Chrisween",
+      "title": "Legends of Lantern Town",
+      "short": "Lantern Town",
       "lane": "systems",
       "badges": [
         {
@@ -495,12 +495,12 @@
         "service workers",
         "Python imaging"
       ],
-      "diagram": "assets/diagrams/chrisween.svg",
+      "diagram": "assets/diagrams/lantern-town.svg",
       "caption": "The simulation never touches the screen; everything visible reacts to its event stream.",
       "links": [
         {
           "label": "Play (passcode)",
-          "href": "https://xoumyax.github.io/legends-of-chrisween/"
+          "href": "https://xoumyax.github.io/legends-of-lantern-town/"
         }
       ],
       "visibility": "public",
@@ -1075,11 +1075,9 @@
       "line": "Lectures, grading and labs."
     }
   ],
-  "leisure": {
-    "after": "now",
-    "kicker": "Side quests",
-    "title": "Art, games, music, books, trails",
-    "line": "Away from the lab I study art and try to understand what the artist was thinking, play Switch games, listen to classical and rock, read, and hike. <strong>Legends of Chrisween</strong> is where all of it meets: an oil-painted adventure with Puff and Brownie across two worlds and twelve stages.",
+  "sideQuests": {
+    "title": "Side quests",
+    "line": "Away from the lab I study art and try to understand what the artist was thinking, play Switch games, listen to classical and rock, read, and hike.",
     "hobbies": [
       "🎨 Art",
       "🎮 Switch games",
@@ -1088,12 +1086,20 @@
       "📚 Books",
       "🥾 Hiking"
     ],
-    "cta": {
-      "label": "Request access",
-      "href": "legends-of-chrisween/"
-    },
-    "note": "Private · by invitation only",
-    "image": "assets/leisure-oil.jpg",
-    "imageAlt": "An oil painting of Puff and Brownie hiking a misty mountain ridge at sunrise"
+    "entries": [
+      {
+        "id": "lantern-town",
+        "kicker": "Game · 2026",
+        "title": "Legends of Lantern Town",
+        "line": "Where all of it meets: an oil-painted adventure with Puff and Brownie across two worlds and twelve stages.",
+        "cta": {
+          "label": "Request access",
+          "href": "legends-of-lantern-town/"
+        },
+        "note": "Private · by invitation only",
+        "image": "assets/leisure-oil.jpg",
+        "imageAlt": "An oil painting of Puff and Brownie hiking a misty mountain ridge at sunrise"
+      }
+    ]
   }
 }

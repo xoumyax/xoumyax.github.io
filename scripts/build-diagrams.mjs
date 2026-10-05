@@ -293,8 +293,8 @@ const specs = [
     ],
   },
   {
-    id: 'chrisween',
-    aria: 'Legends of Chrisween architecture: keyboard and touch input is buffered into a fixed 60 Hz step that drives the campaign simulation of heroes, companion AI and bosses. The simulation emits events that the Canvas renderer draws, that the HUD and audio respond to, and that trigger saves. The published build is encrypted with the passcode.',
+    id: 'lantern-town',
+    aria: 'Legends of Lantern Town architecture: keyboard and touch input is buffered into a fixed 60 Hz step that drives the campaign simulation of heroes, companion AI and bosses. The simulation emits events that the Canvas renderer draws, that the HUD and audio respond to, and that trigger saves. The published build is encrypted with the passcode.',
     nodes: [
       { id: 'in', c: 0, r: 0, lines: ['Keyboard · touch', 'remappable'] },
       { id: 'step', c: 1, r: 0, lines: ['Fixed 60 Hz step', 'buffered inputs'] },
