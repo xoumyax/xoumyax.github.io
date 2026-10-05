@@ -1,6 +1,6 @@
 // Serves the decrypted game from Cache Storage under ./play/.
 // Without an unlocked cache for this build, play/ redirects to the passcode page.
-const BUILD = 'ed0cc4346841';
+const BUILD = 'a6c3a993a75f';
 const CACHE = `lantern-${BUILD}`;
 const SCOPE = new URL('./', self.location).href;
 const PLAY = `${SCOPE}play/`;
