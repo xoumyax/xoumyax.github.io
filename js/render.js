@@ -37,6 +37,12 @@ function renderHero(d) {
       <span class="hero-demo-text">${d.hero.demo.text} <span class="hero-demo-note">${d.hero.demo.note}</span>
       <span class="hero-demo-go">${d.hero.demo.linkLabel} ↗</span></span>`;
     dm.hidden = false;
+    if (d.hero.demo.steps?.length) {
+      const g = $('#hero-demo-guide');
+      g.innerHTML = `<summary>${d.hero.demo.guideLabel}</summary>
+        <ol>${d.hero.demo.steps.map(st => `<li>${st}</li>`).join('')}</ol>`;
+      g.hidden = false;
+    }
   }
   $('#hero-chips').innerHTML = d.hero.proofChips
     .map(c => `<li><a class="proof-chip" href="${attr(c.href)}">${c.label}</a></li>`).join('');

@@ -505,6 +505,22 @@ a:hover { color: var(--ink); }
 .hero-demo-text { font-size: 0.98rem; line-height: 1.45; }
 .hero-demo-note { color: var(--muted); }
 .hero-demo-go { font-weight: 800; color: var(--go); white-space: nowrap; }
+.hero-demo-guide { max-width: 58ch; margin: 0 0 var(--space-md); padding-inline: 0.9rem; }
+.hero-demo-guide[hidden] { display: none; }
+.hero-demo-guide summary {
+  display: inline-flex; align-items: center; min-height: 44px; cursor: pointer;
+  font-family: var(--font-display); font-weight: 700; font-size: 0.95rem; color: var(--go);
+  list-style: none;
+}
+.hero-demo-guide summary::-webkit-details-marker { display: none; }
+.hero-demo-guide summary::before {
+  content: "▸"; display: inline-block; margin-right: 0.45rem;
+  transition: rotate 0.15s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.hero-demo-guide[open] summary::before { rotate: 90deg; }
+.hero-demo-guide ol { margin: 0.1rem 0 0.4rem 1.3rem; font-size: 0.95rem; line-height: 1.5; color: var(--muted); }
+.hero-demo-guide li + li { margin-top: 0.2rem; }
+.hero-demo-guide strong, .hero-demo-guide em { color: var(--ink); }
 
 .proof-chips { list-style: none; display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: var(--space-lg); }
 .proof-chip {
@@ -1064,6 +1080,7 @@ footer { padding: var(--space-lg) 0 var(--space-xl); color: var(--muted); font-s
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .badge-open .dot, .hero-demo-label .dot, .hero h1 .ship { animation: none; }
+  .hero-demo-guide summary::before { transition: none; }
   .btn { transition: none; }
   .sky-cloud, .sky-stars, .firefly { animation: none; }
   .journey-stage svg * { transition: none; }
@@ -1149,6 +1166,8 @@ body:has(.sq-drawer[open]) { overflow: hidden; }
 .hero-sponsor { margin-bottom: var(--hero-gap); }
 .hero-demo { margin-bottom: var(--hero-gap); }
 .hero-sponsor:has(+ .hero-demo:not([hidden])) { margin-bottom: 0.6rem; }
+.hero-demo:has(+ .hero-demo-guide:not([hidden])) { margin-bottom: 0; }
+.hero-demo-guide { margin-bottom: calc(var(--hero-gap) - 0.6rem); }
 .proof-chips { margin-bottom: var(--hero-gap); }
 #now { padding-top: var(--hero-gap); }
 #now + #drive { padding-top: var(--hero-gap); }

@@ -23,7 +23,14 @@
       "text": "<strong>YARAikiba</strong>, my YARA co-analyst: turn threat reports, descriptions and samples into YARA rules.",
       "note": "Sign in with Google for guest access.",
       "href": "https://tabby-reuse-grandma.ngrok-free.dev",
-      "linkLabel": "Try it"
+      "linkLabel": "Try it",
+      "guideLabel": "How to sign in as a guest",
+      "steps": [
+        "Sign in with your Google account.",
+        "<em>Are you an admin?</em> Choose <strong>No</strong>.",
+        "<em>Are you a study participant?</em> Choose <strong>No</strong>.",
+        "Create an account to use the agent, and you're good to go."
+      ]
     },
     "proofChips": [
       {
