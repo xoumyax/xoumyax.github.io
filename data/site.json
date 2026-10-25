@@ -18,6 +18,13 @@
       "href": "#project-yaragen",
       "linkLabel": "See the project"
     },
+    "demo": {
+      "label": "Live demo",
+      "text": "<strong>YARAikiba</strong>, my YARA co-analyst: turn threat reports, descriptions and samples into YARA rules.",
+      "note": "Sign in with Google for guest access.",
+      "href": "https://tabby-reuse-grandma.ngrok-free.dev",
+      "linkLabel": "Try it"
+    },
     "proofChips": [
       {
         "label": "ACSAC 2026 · Accepted",

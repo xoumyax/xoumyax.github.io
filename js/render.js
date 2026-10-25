@@ -30,6 +30,14 @@ function renderHero(d) {
       <span class="hero-sponsor-text">${d.hero.sponsor.text} <span class="hero-sponsor-go">${d.hero.sponsor.linkLabel} →</span></span>`;
     sp.hidden = false;
   }
+  if (d.hero.demo) {
+    const dm = $('#hero-demo');
+    dm.href = d.hero.demo.href;
+    dm.innerHTML = `<span class="hero-demo-label"><span class="dot" aria-hidden="true"></span> ${d.hero.demo.label}</span>
+      <span class="hero-demo-text">${d.hero.demo.text} <span class="hero-demo-note">${d.hero.demo.note}</span>
+      <span class="hero-demo-go">${d.hero.demo.linkLabel} ↗</span></span>`;
+    dm.hidden = false;
+  }
   $('#hero-chips').innerHTML = d.hero.proofChips
     .map(c => `<li><a class="proof-chip" href="${attr(c.href)}">${c.label}</a></li>`).join('');
 }

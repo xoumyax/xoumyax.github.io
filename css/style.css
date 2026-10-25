@@ -480,6 +480,32 @@ a:hover { color: var(--ink); }
 .hero-sponsor abbr { text-decoration: none; }
 .hero-sponsor-go { font-weight: 800; color: var(--brand); white-space: nowrap; }
 
+/* Live demo card: same shape as the sponsor card, open-to-work green */
+.hero-demo {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 0.4rem 0.75rem;
+  margin: 0 0 var(--space-md);
+  padding: 0.6rem 0.9rem; max-width: 58ch;
+  color: var(--ink); text-decoration: none;
+  background: var(--surface); border: 1.5px solid var(--go);
+  border-radius: 14px;
+  transition: background-color 0.15s;
+}
+.hero-demo:hover { background: var(--go-soft); color: var(--ink); }
+.hero-demo[hidden] { display: none; }
+.hero-demo-label {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  font-family: var(--font-display); font-weight: 800; font-size: 0.78rem;
+  color: var(--go); background: var(--go-soft);
+  border-radius: var(--radius-pill); padding: 0.15rem 0.6rem; white-space: nowrap;
+}
+.hero-demo-label .dot {
+  width: 8px; height: 8px; border-radius: 50%; background: var(--go);
+  animation: pulse 2.4s ease-in-out infinite;
+}
+.hero-demo-text { font-size: 0.98rem; line-height: 1.45; }
+.hero-demo-note { color: var(--muted); }
+.hero-demo-go { font-weight: 800; color: var(--go); white-space: nowrap; }
+
 .proof-chips { list-style: none; display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: var(--space-lg); }
 .proof-chip {
   display: inline-flex; align-items: center; min-height: 36px;
@@ -1037,7 +1063,7 @@ footer { padding: var(--space-lg) 0 var(--space-xl); color: var(--muted); font-s
 /* ── Motion preferences ─────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  .badge-open .dot, .hero h1 .ship { animation: none; }
+  .badge-open .dot, .hero-demo-label .dot, .hero h1 .ship { animation: none; }
   .btn { transition: none; }
   .sky-cloud, .sky-stars, .firefly { animation: none; }
   .journey-stage svg * { transition: none; }
@@ -1121,6 +1147,8 @@ body:has(.sq-drawer[open]) { overflow: hidden; }
 :root { --hero-gap: 2rem; }
 .hero { padding-bottom: 0; }
 .hero-sponsor { margin-bottom: var(--hero-gap); }
+.hero-demo { margin-bottom: var(--hero-gap); }
+.hero-sponsor:has(+ .hero-demo:not([hidden])) { margin-bottom: 0.6rem; }
 .proof-chips { margin-bottom: var(--hero-gap); }
 #now { padding-top: var(--hero-gap); }
 #now + #drive { padding-top: var(--hero-gap); }
