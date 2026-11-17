@@ -1,7 +1,7 @@
 import { test, expect } from 'vitest';
-import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { checkText } from '../../src/lib/claims';
+import { trackedTextFiles } from './helpers';
 
 // The "never in the repo" rule, enforced on the repo: every tracked text file passes the private
 // claims guard, not only src/content and the rendered pages (README, docs, tests, scripts, code
@@ -10,14 +10,6 @@ import { checkText } from '../../src/lib/claims';
 // Skipped: binaries (by extension or a NUL byte), the verbatim course material under
 // public/CSCE-313/, and lockfiles. resume/*.tex are checked with the PDF rules (html-only
 // patterns skipped), as the PDFs they build.
-
-const BINARY = /\.(png|jpe?g|gif|webp|avif|ico|pdf|woff2?|ttf|otf|zip|gz|mp4|webm|mp3)$/i;
-const SKIP = [/^public\/CSCE-313\//, /(^|\/)package-lock\.json$/, /(^|\/)(yarn\.lock|pnpm-lock\.yaml)$/];
-
-export function trackedTextFiles(): string[] {
-  const out = execFileSync('git', ['ls-files', '-z'], { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
-  return out.split('\0').filter((f) => f && !BINARY.test(f) && !SKIP.some((re) => re.test(f)));
-}
 
 test('every tracked text file passes the private claims guard', () => {
   const files = trackedTextFiles();
