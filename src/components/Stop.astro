@@ -7,7 +7,6 @@ import type { JourneyStop, Project } from '../lib/schema';
 
 interface Props { stop: JourneyStop; index: number; count: number; projects: Map<string, Project> }
 const { stop, index, count, projects } = Astro.props;
-const side = 'left'; // panels stay left on desktop; the world frames each stop's landmark on the right
 const cards = stop.items.map((item) => {
   if (typeof item !== 'string') return { kind: 'text' as const, ...item };
   const project = projects.get(item);
@@ -15,7 +14,7 @@ const cards = stop.items.map((item) => {
   return { kind: 'project' as const, project };
 });
 ---
-<section id={`stop-${stop.id}`} class="stop" data-stop={stop.id} data-landmark={stop.landmark} data-side={side} aria-labelledby={`stop-${stop.id}-title`}>
+<section id={`stop-${stop.id}`} class="stop" data-stop={stop.id} aria-labelledby={`stop-${stop.id}-title`}>
   <div class="wrap inner">
     <header class="panel head" data-panel>
       <p class="label"><span class="n">{String(index + 1).padStart(2, '0')} / {String(count).padStart(2, '0')}</span> <span class="years">{stop.years}</span></p>

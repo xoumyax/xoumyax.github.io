@@ -3,8 +3,6 @@ import { checkText, check57x } from '../../src/lib/claims';
 
 const PLACEHOLDER = '[[TODO-CONTENT]]';
 const PLACEHOLDER_OK = new Set(['/personal/']);
-/** A build with the engine bench (the e2e build; playwright.config.ts sets it). */
-const WORLD_TEST = process.env.WORLD_TEST === '1';
 
 async function crawl(request: import('@playwright/test').APIRequestContext) {
   const seen = new Map<string, string>(); // path -> html
@@ -84,37 +82,29 @@ test('every internal link resolves and every page passes the content guards', as
       if (left) problems.push(`${path}: undecoded entity ${left[0]}`);
     }
     if (text.includes(PLACEHOLDER) && !PLACEHOLDER_OK.has(path)) problems.push(`${path}: live placeholder`);
-    if (/href="\/world-test/.test(html)) problems.push(`${path}: links to /world-test`);
   }
   expect(problems).toEqual([]);
 });
 
-test('every page has a social preview: og:image (the poster) and a large twitter card (M13)', async ({ request }) => {
+test('every page has a social preview: og:image (the hero scene) and a large twitter card (M13)', async ({ request }) => {
   for (const path of ['/', '/resume/', '/projects/yaragen/']) {
     const html = await (await request.get(path)).text();
     const img = html.match(/<meta property="og:image" content="([^"]+)"/)?.[1];
-    expect(img, path).toMatch(/^https:\/\/xoumyax\.github\.io\/world\/poster\.webp\?v=[0-9a-f]{12}$/);
+    expect(img, path).toBe('https://xoumyax.github.io/og.png');
     expect(html, path).toContain('<meta name="twitter:card" content="summary_large_image"');
-    const local = new URL(img!).pathname + new URL(img!).search;
+    const local = new URL(img!).pathname;
     expect((await request.get(local)).status(), local).toBe(200);
   }
 });
 
-test('the sitemap lists the public pages, with slashes, and no /world-test or /personal (M13)', async ({ request }) => {
+test('the sitemap lists the public pages, with slashes, and no /personal (M13)', async ({ request }) => {
   const res = await request.get('/sitemap.xml');
   expect(res.status()).toBe(200);
   const locs = [...(await res.text()).matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => new URL(m[1]).pathname);
   for (const p of ['/', '/resume/', '/projects/', '/teaching/', '/study/', '/projects/yaragen/']) expect(locs).toContain(p);
   for (const p of locs) {
     expect(p.endsWith('/'), p).toBe(true);
-    expect(p).not.toMatch(/world-test|personal/);
+    expect(p).not.toMatch(/personal/);
     expect((await request.get(p)).status(), p).toBe(200);
   }
-});
-
-test('/world-test exists only in a WORLD_TEST build, and is noindex there (M8)', async ({ request }) => {
-  const res = await request.get('/world-test/');
-  if (!WORLD_TEST) { expect(res.status()).toBe(404); return; }
-  expect(res.status()).toBe(200);
-  expect(await res.text()).toContain('<meta name="robots" content="noindex"');
 });

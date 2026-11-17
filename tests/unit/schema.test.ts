@@ -1,4 +1,6 @@
 import { test, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { parse } from 'yaml';
 import { getConfig, getJourney, getProfile, getProjects, getStudy } from '../../src/lib/data';
 
 test('singletons validate', () => {
@@ -25,4 +27,9 @@ test('YARAikiba config carries the URL and four guest steps', () => {
   expect(c.yaraikiba.steps).toHaveLength(4);
   expect(c.resumePdf).toBe('/Soumyajyoti_Dutta_Resume.pdf');
   expect(c.cvPdf).toBe('/Soumyajyoti_Dutta_CV.pdf');
+});
+
+test('journey has no landmark field', () => {
+  const raw = parse(readFileSync('src/content/journey.yaml', 'utf8')) as { stops: Record<string, unknown>[] };
+  for (const s of raw.stops) expect(Object.keys(s), String(s.id)).not.toContain('landmark');
 });

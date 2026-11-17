@@ -2,7 +2,7 @@
 
 Personal site of Soumyajyoti Dutta, built with [Astro](https://astro.build) and deployed to GitHub Pages by GitHub Actions.
 
-- `/`: the journey, a scroll-driven walk down a Big Bend ASCII diorama (Three.js), with every word in plain HTML.
+- `/`: the journey, a scroll through six stops over a pixel-art Big Bend backdrop, with every word in plain HTML.
 - `/resume`, `/projects`, `/projects/<slug>`, `/teaching`, `/study`, `/personal`.
 - `/CSCE-313/…`: TA course material, served byte-for-byte from `public/CSCE-313/`.
 - `/Soumyajyoti_Dutta_Resume.pdf` (one page) and `/Soumyajyoti_Dutta_CV.pdf` (full CV).
@@ -26,11 +26,13 @@ npm run dev         # http://localhost:4321
 npm run build       # → dist/
 npm run test:unit   # schemas, content guards (incl. every tracked file), PDFs
 npm run typecheck   # astro sync + tsc --noEmit
-npm run test:e2e    # Playwright: desktop + phone (+ world on Brave, nowebgl)
+npm run test:e2e    # Playwright: desktop + phone
 npm test            # all three
 ```
 
-The e2e suite builds the site with `WORLD_TEST=1` and serves it on `$PORT` (default 4321). That flag adds the engine bench at `/world-test` and lets `/` honour the test parameters (`?debug=1`, `?governor=off`, `?t=`, `?tier=`); a plain `npm run build` (the deploy) has neither. The `world` project drives Brave with the Metal GPU flags; set `WORLD_BROWSER` to use another Chromium build. To recapture the poster: `WORLD_TEST=1 npm run build && PORT=4417 npm run preview`, then `PORT=4417 node scripts/capture-poster.mjs`.
+The e2e suite builds the site and serves it on `$PORT` (default 4321).
+
+The pixel scenes in `public/scenes/` are regenerated with `.venv/bin/python scripts/pixel-scenes.py <path-to-album-dir>`.
 
 ## Edit content
 

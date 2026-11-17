@@ -4,14 +4,12 @@ stops:
     title: B.Tech. in Electronics & Communication
     place: SRM Institute of Science and Technology, Chennai
     summary: Where it started — signals, circuits, and the first neural networks, including a CNN for carotid-artery ultrasound that became a Springer book chapter.
-    landmark: trailhead
     items: [carotid-ultrasound]
   - id: cognizant
     years: 2021–22
     title: Software engineer, client-embedded
     place: Cognizant Technology Solutions, Kolkata
     summary: Joined as an intern in February 2021 and converted to full-time — a year embedded with TJX Companies, shipping a logistics-automation platform.
-    landmark: ranger
     items:
       - title: Intern → full-time
         text: Feb–Jun 2021 internship on a client logistics platform, converted to a full-time offer.
@@ -22,7 +20,6 @@ stops:
     title: M.S. in Computer Engineering
     place: Texas A&M University
     summary: Machine learning for security, data-science competitions, and a first taste of teaching.
-    landmark: school
     items:
       - ml-malware-detection
       - wildfire
@@ -38,14 +35,12 @@ stops:
     title: Ph.D. in Computer Science, Botacin's Lab
     place: Texas A&M University
     summary: LLMs that write, check and explain detection rules — from malware clustering to a hosted analyst agent.
-    landmark: trailer
     items: [autopyara, yaragen, yaraikiba, iocscooper-plus-plus, hellopentagon, vlm-evaluation, hawkeye, breast-cancer-classification, yara-sentencepiece]
   - id: now
     years: "2026"
     title: Now
     place: College Station, Texas
     summary: Research agents that ask before they search, a vision-security benchmark, and teaching systems programming.
-    landmark: dome
     items:
       - proactive-research-agent
       - depixelation

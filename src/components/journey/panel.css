@@ -1,4 +1,4 @@
-/* Shared surfaces for the landing page. Panels must read over any world frame. */
+/* Shared surfaces for the landing page. Panels must read over the pixel-scene backdrop. */
 .panel {
   background: color-mix(in oklab, var(--paper) 84%, transparent);
   -webkit-backdrop-filter: blur(14px) saturate(1.15);

@@ -1,5 +1,3 @@
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
 import { test, expect, type Page } from '@playwright/test';
 import { checkText } from '../../src/lib/claims';
 import { getProfile, getJourney, getConfig } from '../../src/lib/data';
@@ -57,24 +55,6 @@ async function checkContent(page: Page) {
   await expect(river.locator(`a[href="${cfg.resumePdf}"]`)).toHaveCount(1);
   await expect(river.locator(`a[href="${cfg.cvPdf}"]`)).toHaveCount(1);
 
-  // World layer contract.
-  const layer = page.locator('#world-layer');
-  await expect(layer).toHaveAttribute('aria-hidden', 'true');
-  const ls = await layer.evaluate((el) => {
-    const s = getComputedStyle(el);
-    return { position: s.position, pe: s.pointerEvents, z: s.zIndex, bg: s.backgroundImage };
-  });
-  expect(ls).toMatchObject({ position: 'fixed', pe: 'none' });
-  expect(Number(ls.z)).toBeLessThan(0);
-  expect(ls.bg).toContain('gradient');
-  await expect(layer.locator('canvas#world')).toHaveCount(1);
-  await expect(page.locator('#landmarks')).toHaveCount(1);
-  expect(await page.locator('#world-layer #landmarks').count()).toBe(0);
-  const poster = layer.locator('#world-poster');
-  if (await poster.count()) {
-    expect(await poster.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
-  }
-
   // Card rows scroll horizontally with snap.
   const rows = await main.locator('[data-card-row]').evaluateAll((els) => els.map((e) => {
     const s = getComputedStyle(e);
@@ -88,7 +68,7 @@ async function checkContent(page: Page) {
   expect(checkText(text, '/')).toEqual([]);
 }
 
-test('landing content, stops and world layer', async ({ page }) => {
+test('landing content and stops', async ({ page }) => {
   await checkContent(page);
 });
 
@@ -97,13 +77,6 @@ test.describe('without JavaScript', () => {
   test('landing renders fully', async ({ page }) => {
     await checkContent(page);
   });
-});
-
-// Task 11 replaced the `<!-- world:boot -->` marker with the boot script, at the top level just before </Base>.
-test('the world boot script sits where the world:boot marker was', () => {
-  const src = readFileSync(join(process.cwd(), 'src/pages/index.astro'), 'utf8');
-  expect(src).not.toContain('<!-- world:boot -->');
-  expect(src).toMatch(/^ {2}<script>\n {4}import \{ boot \} from '\.\.\/world\/boot';\n {4}boot\(\);\n {2}<\/script>\n<\/Base>$/m);
 });
 
 for (const [w, h] of [[320, 640], [844, 390], [390, 844]] as const) {

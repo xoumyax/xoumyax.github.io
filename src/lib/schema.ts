@@ -3,12 +3,10 @@ import { z } from 'zod';
 export const STOP_IDS = ['srm', 'cognizant', 'ms', 'phd', 'now', 'river'] as const;
 export const PROJECT_STOPS = ['srm', 'cognizant', 'ms', 'phd', 'now'] as const;
 export const AREAS = ['post-training-eval', 'agents', 'security', 'systems', 'other'] as const;
-export const LANDMARK_IDS = ['ranger', 'trailer', 'dome', 'school', 'trailhead'] as const;
 export const TONES = ['amber', 'rust', 'sage', 'storm', 'sand'] as const;
 
 export type StopId = (typeof STOP_IDS)[number];
 export type Area = (typeof AREAS)[number];
-export type LandmarkId = (typeof LANDMARK_IDS)[number];
 
 const url = z.string().url();
 const link = z.object({ label: z.string().min(1), href: url });
@@ -56,7 +54,6 @@ export const JourneySchema = z.object({
       title: z.string(),
       place: z.string(),
       summary: z.string(),
-      landmark: z.enum(LANDMARK_IDS).optional(),
       items: z.array(journeyItem).default([]),
     }))
     .refine((s) => s.map((x) => x.id).join() === STOP_IDS.join(), { message: `stop ids must be exactly ${STOP_IDS.join(', ')} in order` }),
