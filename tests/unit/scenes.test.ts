@@ -30,7 +30,7 @@ test('every scene id has both files at the stated sizes', () => {
 test('all 14 scenes share one palette', () => {
   const plte = all.map(({ file }) => chunks(file).find((c) => c.type === 'PLTE')!.data.toString('hex'));
   expect(new Set(plte).size).toBe(1);
-  expect(plte[0].length / 2).toBeLessThanOrEqual(28 * 3);
+  expect(plte[0].length / 2).toBe(28 * 3);
 });
 
 test('no metadata chunks', () => {

@@ -105,9 +105,9 @@ def main():
     for k in SCENES:
         for name, im in ((k, lands[k]), (k + '-m', ports[k])):
             done[name] = render(im, pal)
-            done[name].save(os.path.join(out_dir, name + '.png'), optimize=True)
+            done[name].save(os.path.join(out_dir, name + '.png'), compress_level=9)
     og = done['hero'].resize((LAND[0] * 6, LAND[1] * 6), Image.NEAREST)
-    og.save(os.path.join(ROOT, 'public', 'og.png'), optimize=True)
+    og.save(os.path.join(ROOT, 'public', 'og.png'), compress_level=9)
     if sheet:
         pad, lab, s = 8, 14, 2
         cw = max(LAND[0], PORT[0]) * s
