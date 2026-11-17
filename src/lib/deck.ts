@@ -28,10 +28,12 @@ export function initDecks(root: ParentNode = document): void {
     const base = () => want ?? at();
     const go = (k: number) => {
       const t = Math.max(0, Math.min(last, k));
+      if (t === at()) { want = null; return; }
       want = t;
       track.scrollTo({ left: t * track.clientWidth, behavior: reduce.matches ? 'auto' : 'smooth' });
     };
-    const settle = () => { want = null; };
+    const settle = () => { want = null; sync(); };
+    let timer = 0;
     const measure = () => {
       nums.forEach((b) => { b.hidden = false; });
       gapLo.hidden = gapHi.hidden = true;
@@ -54,12 +56,16 @@ export function initDecks(root: ParentNode = document): void {
     nums.forEach((b, j) => b.addEventListener('click', () => go(j)));
     prev.addEventListener('click', () => go(base() - 1));
     next.addEventListener('click', () => go(base() + 1));
-    track.addEventListener('scroll', sync, { passive: true });
+    // Scroll events refresh the pager; a quiet gap settles it, for browsers without scrollend.
+    track.addEventListener('scroll', () => { sync(); clearTimeout(timer); timer = window.setTimeout(settle, 150); }, { passive: true });
+    track.addEventListener('focusin', settle);
     track.addEventListener('scrollend', settle);
     for (const ev of ['pointerdown', 'touchstart', 'wheel']) track.addEventListener(ev, settle, { passive: true });
     track.addEventListener('keydown', (e) => {
-      if (e.target !== track || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
-      if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+      if (e.target !== track || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight')) {
+        settle(); // not ours: the browser may scroll the track itself
+        return;
+      }
       e.preventDefault();
       go(base() + (e.key === 'ArrowRight' ? 1 : -1));
     });

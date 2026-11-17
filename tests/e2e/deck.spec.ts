@@ -45,9 +45,8 @@ test('arrow keys move one card and the pager follows', async ({ page }) => {
   const track = phd(page).locator('[data-track]');
   await track.focus();
   await page.keyboard.press('ArrowRight');
-  await page.waitForTimeout(600);
+  await expect(phd(page).locator('[data-go="1"]')).toHaveAttribute('aria-current', 'true');
   await page.keyboard.press('ArrowRight');
-  await page.waitForTimeout(600);
   await expect(phd(page).locator('[data-go="2"]')).toHaveAttribute('aria-current', 'true');
   expect(await track.evaluate((e) => getComputedStyle(e).outlineStyle)).not.toBe('none');
 });
@@ -90,6 +89,31 @@ test('arrow keys in a focused card link are left to the browser', async ({ page 
   });
   await page.keyboard.press('ArrowRight');
   expect(await page.evaluate(() => (window as any).__prevented)).toBe(false);
+});
+
+test('ArrowLeft at the first card and ArrowRight at the last are not remembered', async ({ page }) => {
+  await page.goto('/');
+  const track = phd(page).locator('[data-track]');
+  await track.focus();
+  await page.keyboard.press('ArrowLeft');
+  await page.keyboard.press('ArrowRight');
+  await expect(phd(page).locator('[data-go="1"]')).toHaveAttribute('aria-current', 'true');
+  await track.evaluate((t) => { t.scrollLeft = 8 * t.clientWidth; });
+  await expect(phd(page).locator('[data-go="8"]')).toHaveAttribute('aria-current', 'true');
+  await page.keyboard.press('ArrowRight');
+  await page.keyboard.press('ArrowLeft');
+  await expect(phd(page).locator('[data-go="7"]')).toHaveAttribute('aria-current', 'true');
+});
+
+test('focusing a link in an off-screen card brings the pager along', async ({ page }) => {
+  await page.goto('/');
+  const track = phd(page).locator('[data-track]');
+  await track.locator('a').nth(5).focus();
+  await expect.poll(async () => track.evaluate((t) => Math.round(t.scrollLeft / t.clientWidth))).toBeGreaterThan(0);
+  await expect.poll(async () => {
+    const k = await track.evaluate((t) => Math.round(t.scrollLeft / t.clientWidth));
+    return phd(page).locator(`[data-go="${k}"]`).getAttribute('aria-current');
+  }).toBe('true');
 });
 
 test('phone pager fits', async ({ page }, info) => {
