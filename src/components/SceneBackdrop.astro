@@ -11,7 +11,9 @@ import { sceneUrl } from '../lib/scenes';
 
 <style>
   .scenes {
-    position: fixed; inset: 0; z-index: -1;
+    /* Large-viewport height: a phone's URL bar sliding away must not resize the backdrop. */
+    position: fixed; top: 0; left: 0; right: 0; z-index: -1;
+    height: 100vh; height: 100lvh;
     overflow: hidden; pointer-events: none;
     background: var(--storm);
   }

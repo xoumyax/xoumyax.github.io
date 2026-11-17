@@ -8,7 +8,8 @@ interface Loaded { w: number; h: number; frames: (Uint32Array | null)[]; order: 
 export function initScenes(): void {
   const cv = document.getElementById('scene') as HTMLCanvasElement | null;
   const ctx = cv?.getContext('2d', { willReadFrequently: true });
-  if (!cv || !ctx) return;
+  const layer = cv?.parentElement;
+  if (!cv || !ctx || !layer) return;
   const sections = [...document.querySelectorAll<HTMLElement>('[data-section]')];
   if (sections.length === 0) return;
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
@@ -53,7 +54,8 @@ export function initScenes(): void {
   // Use the set that fits the viewport as soon as it is loaded.
   function adopt(): void {
     fit(); // keep the current canvas covering the viewport while a new set loads (or fails)
-    const want = pickSet(innerWidth, innerHeight);
+    const v = view();
+    const want = pickSet(v.w, v.h);
     const next = loaded.get(want);
     if (!next) { void load(want); return; }
     if (curSet !== want) {
@@ -67,11 +69,24 @@ export function initScenes(): void {
     draw(true);
   }
 
+  // The layer is 100lvh tall (the viewport with a phone's URL bar hidden), so the scale is taken
+  // from its rect. Where lvh follows innerHeight anyway, the scale only grows while the set and
+  // the width stay the same: a URL bar sliding in and out never rescales the whole backdrop.
+  let fitKey = '';
+  let fitScale = 0;
+  function view(): { w: number; h: number } {
+    const r = layer!.getBoundingClientRect();
+    return { w: Math.max(innerWidth, r.width), h: Math.max(innerHeight, r.height) };
+  }
   function fit(): void {
     if (!cur) return;
-    const s = integerScale(innerWidth, innerHeight, cur.w, cur.h);
-    cv!.style.width = `${cur.w * s}px`;
-    cv!.style.height = `${cur.h * s}px`;
+    const v = view();
+    const key = `${cur.w}x${cur.h}@${innerWidth}`;
+    const s = integerScale(v.w, v.h, cur.w, cur.h);
+    fitScale = key === fitKey ? Math.max(fitScale, s) : s;
+    fitKey = key;
+    cv!.style.width = `${cur.w * fitScale}px`;
+    cv!.style.height = `${cur.h * fitScale}px`;
   }
 
   // A scene that failed to load borrows its nearest loaded neighbour.

@@ -122,6 +122,42 @@ test('portrait to landscape with the landscape set failing still covers the view
   expect(await page.locator('#scene').evaluate((c) => { const r = c.getBoundingClientRect(); return r.left <= 0 && r.top <= 0 && r.right >= innerWidth && r.bottom >= innerHeight; })).toBe(true);
 });
 
+test('a phone URL bar showing and hiding does not rescale the backdrop', async ({ page }) => {
+  // Headless Chromium has no URL bar, so 100lvh follows the viewport here: the first growth to
+  // 895 may rescale, but going back to 839 (the bar showing again) must not shrink the scene.
+  const covers = () => page.locator('#scene').evaluate((c) => {
+    const r = c.getBoundingClientRect();
+    return r.left <= 0 && r.top <= 0 && r.right >= innerWidth && r.bottom >= innerHeight;
+  });
+  const size = () => page.locator('#scene').evaluate((c) => { const r = c.getBoundingClientRect(); return [r.width, r.height]; });
+  const settle = () => page.evaluate(() => new Promise((ok) => requestAnimationFrame(() => requestAnimationFrame(ok))));
+  await page.setViewportSize({ width: 412, height: 839 });
+  await page.goto('/');
+  await page.waitForSelector('#scene:not([hidden])');
+  expect(await covers()).toBe(true);
+  await page.setViewportSize({ width: 412, height: 895 });
+  await settle();
+  expect(await covers()).toBe(true);
+  const big = await size();
+  await page.setViewportSize({ width: 412, height: 839 });
+  await settle();
+  expect(await covers()).toBe(true);
+  expect(await size()).toEqual(big);
+  await page.setViewportSize({ width: 412, height: 895 });
+  await settle();
+  expect(await size()).toEqual(big);
+  // The layer is sized to the large viewport, like the old 100lvh backdrop.
+  const [layer, lvh] = await page.evaluate(() => {
+    const probe = document.createElement('div');
+    probe.style.cssText = 'position:fixed;top:0;height:100lvh;width:1px';
+    document.body.append(probe);
+    const h = probe.getBoundingClientRect().height;
+    probe.remove();
+    return [document.querySelector('.scenes')!.getBoundingClientRect().height, h];
+  });
+  expect(layer).toBe(lvh);
+});
+
 test('end key lands on the river scene', async ({ page }) => {
   await page.goto('/');
   await page.waitForSelector('#scene:not([hidden])');
