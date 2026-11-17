@@ -1,5 +1,5 @@
 """Turn Big Bend photos into the seven pixel-art home-page scenes, one shared palette.
-usage: python -I scripts/pixel-scenes.py <album_dir> [--sheet <out.png>]
+usage: python -I scripts/pixel-scenes.py <album_dir> [--sheet <out.png>] [--new-palette]
 Writes public/scenes/<id>.png (240x135), <id>-m.png (120x214) and public/og.png (1440x810).
 This is the only file in the repo allowed to name the source photos."""
 import os, sys
@@ -21,6 +21,18 @@ SCENES = {
     'now':       ('IMG_7089.JPG', (0.5, 0.55), (0.5, 0.55)),
     'river':     ('IMG_7241.JPG', (0.5, 0.55), (0.5, 0.55)),
 }
+# The shared palette, fixed so a crop change never recolours the other scenes. It was made by
+# build_palette() (median cut + k-means over the seven landscape crops, each colour pulled
+# toward the site tokens); run with --new-palette to print a fresh one instead of using it.
+PALETTE = [
+    (244, 241, 236), (210, 216, 223), (193, 202, 213), (219, 200, 176),
+    (169, 204, 227), (185, 211, 194), (171, 185, 201), (136, 179, 159),
+    (174, 157, 124), (143, 152, 156), (118, 163, 151), (140, 133, 113),
+    (110, 159, 193), (89, 131, 134), (67, 128, 182), (239, 141, 25),
+    (107, 103, 102), (58, 110, 113), (88, 109, 65), (95, 86, 83),
+    (54, 69, 35), (66, 50, 44), (20, 93, 152), (52, 76, 99),
+    (24, 39, 54), (40, 47, 29), (31, 31, 17), (14, 15, 8),
+]
 TOKENS = [(0xF5,0xF2,0xEC),(0x1D,0x1B,0x18),(0xE9,0xDC,0xC4),(0x8A,0x9A,0x6B),
           (0xA4,0x50,0x2E),(0x4F,0x62,0x72),(0xF0,0xA4,0x3A)]
 LIGHT_TOKENS = TOKENS[:3]   # paper, ink, sand: the only pull targets for pale, low-chroma colours
@@ -32,7 +44,6 @@ def chroma(c): return max(c) - min(c)
 
 def load(path, size, focal):
     im = ImageOps.exif_transpose(Image.open(path)).convert('RGB')
-    im.draft('RGB', (size[0] * 8, size[1] * 8))
     im = ImageOps.fit(im, size, Image.LANCZOS, centering=focal)
     im = ImageEnhance.Contrast(im).enhance(1.18)
     return ImageEnhance.Color(im).enhance(1.12)
@@ -79,11 +90,11 @@ def render(im, pal):
     for y in range(h):
         for x in range(w):
             o = (BAYER[y % 4][x % 4] / 16 - 0.5) * STRENGTH
-            p = tame(px[x, y])
-            p = tuple(v + o for v in p)
+            c = tame(px[x, y])
+            p = tuple(v + o for v in c)
             # Warm cream shadows (horse, dome) sit nearer a vivid orange entry than any tan one;
             # only genuinely saturated source pixels may land on a vivid palette entry.
-            pool = range(len(pal)) if chroma(tame(px[x, y])) > 110 or not vivid else calm
+            pool = range(len(pal)) if chroma(c) > 110 or not vivid else calm
             idx.append(min(pool, key=lambda i: d2(p, pal[i])))
     out = Image.new('P', im.size)
     flat = [v for c in pal for v in c]
@@ -98,7 +109,10 @@ def main():
     sheet = args[args.index('--sheet') + 1] if '--sheet' in args else None
     lands = {k: load(os.path.join(album, v[0]), LAND, v[1]) for k, v in SCENES.items()}
     ports = {k: load(os.path.join(album, v[0]), PORT, v[2]) for k, v in SCENES.items()}
-    pal = build_palette(list(lands.values()))
+    if '--new-palette' in args:
+        print(build_palette(list(lands.values())))
+        return
+    pal = PALETTE
     out_dir = os.path.join(ROOT, 'public', 'scenes')
     os.makedirs(out_dir, exist_ok=True)
     done = {}
@@ -125,4 +139,5 @@ def main():
         sh.save(sheet)
     print('palette', len(pal), 'files', len(done) + 1)
 
-main()
+if __name__ == '__main__':
+    main()
