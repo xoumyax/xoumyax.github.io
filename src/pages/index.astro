@@ -1,6 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import Hero from '../components/Hero.astro';
+import SceneBackdrop from '../components/SceneBackdrop.astro';
 import Stop from '../components/Stop.astro';
 import Contact from '../components/journey/Contact.astro';
 import { getProfile, getJourney, getProjects, getConfig } from '../lib/data';
@@ -29,11 +30,14 @@ if (!yk) throw new Error('index: the yaraikiba project is missing');
       </Stop>
     ))}
   </div>
+  <SceneBackdrop />
 </Base>
 
 <script>
   import { initDecks } from '../lib/deck';
+  import { initScenes } from '../scripts/scenes';
   initDecks();
+  initScenes();
 </script>
 
 <style>
