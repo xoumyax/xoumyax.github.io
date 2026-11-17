@@ -1,5 +1,5 @@
 ---
-import CardRow from './CardRow.astro';
+import CardDeck from './CardDeck.astro';
 import ProjectCard from './ProjectCard.astro';
 import TextCard from './journey/TextCard.astro';
 import './journey/panel.css';
@@ -15,7 +15,7 @@ const cards = stop.items.map((item) => {
 });
 ---
 <section id={`stop-${stop.id}`} class="stop" data-stop={stop.id} aria-labelledby={`stop-${stop.id}-title`}>
-  <div class="wrap inner">
+  <div class="wrap grid">
     <header class="panel head" data-panel>
       <p class="label"><span class="n">{String(index + 1).padStart(2, '0')} / {String(count).padStart(2, '0')}</span> <span class="years">{stop.years}</span></p>
       <h2 id={`stop-${stop.id}-title`}>{stop.title}</h2>
@@ -24,9 +24,9 @@ const cards = stop.items.map((item) => {
       <slot />
     </header>
     {cards.length > 0 && (
-      <CardRow label={`${stop.title}: ${cards.length} items`}>
+      <CardDeck label={`${stop.title}: ${cards.length} items`} count={cards.length}>
         {cards.map((c) => (c.kind === 'project' ? <ProjectCard project={c.project} /> : <TextCard title={c.title} text={c.text} />))}
-      </CardRow>
+      </CardDeck>
     )}
   </div>
 </section>
@@ -38,8 +38,16 @@ const cards = stop.items.map((item) => {
     padding-block: clamp(4rem, 14vh, 9rem);
     pointer-events: none;
   }
-  .inner { display: flex; flex-direction: column; min-width: 0; }
-  .head { width: min(100%, 38rem); }
+  .grid {
+    display: grid; gap: clamp(1rem, 2.5vw, 2rem);
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+    align-items: end;
+  }
+  @media (max-width: 56rem) {
+    .grid { grid-template-columns: minmax(0, 1fr); }
+    .grid > :global(.deck) { width: min(100%, 17rem); justify-self: center; }
+  }
+  .head { min-width: 0; }
   .label { display: flex; gap: .9rem; align-items: baseline; margin-bottom: .6rem; opacity: 1; }
   .n { opacity: .78; }
   .years { font-size: .85rem; font-weight: 650; letter-spacing: .06em; }

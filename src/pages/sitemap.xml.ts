@@ -1,5 +1,5 @@
 // /sitemap.xml (M13): the site's public pages, with the trailing slash Pages serves them at.
-// Not listed: /personal (a placeholder for now), /world-test (never in the deploy build), 404.
+// Not listed: /personal (a placeholder for now), 404.
 import type { APIRoute } from 'astro';
 import { getProjects } from '../lib/data';
 

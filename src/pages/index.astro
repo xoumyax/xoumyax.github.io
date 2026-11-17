@@ -31,9 +31,14 @@ if (!yk) throw new Error('index: the yaraikiba project is missing');
   </div>
 </Base>
 
+<script>
+  import { initDecks } from '../lib/deck';
+  initDecks();
+</script>
+
 <style>
   /* Stacking: the content sits above the page backdrop. Content wrappers pass pointer
-     events through; only [data-panel] and [data-card-row] take them. */
+     events through; only [data-panel] and [data-deck] take them. */
   :global(.hero), .journey { position: relative; z-index: 1; }
   .journey { pointer-events: none; }
   /* The shared footer sits over the backdrop; give it paper to stand on. */

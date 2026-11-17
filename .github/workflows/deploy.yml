@@ -31,7 +31,6 @@ jobs:
       # runs locally: `npm test`, and the pre-push hook ./setup.sh installs.
       - run: npm run test:unit
       - run: npm run typecheck
-      # No WORLD_TEST here: the deployed site has no /world-test and ignores the test parameters.
       - run: npm run build
       - uses: actions/upload-pages-artifact@v3
         with:

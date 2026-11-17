@@ -88,6 +88,6 @@ for (const [w, h] of [[320, 640], [844, 390], [390, 844]] as const) {
     const rows = await page.locator('[data-card-row]').evaluateAll((els) =>
       els.map((e) => ({ n: e.children.length, sw: e.scrollWidth, cw: e.clientWidth })));
     expect(rows.length).toBeGreaterThan(0);
-    for (const r of rows) if (r.n > 2) expect(r.sw).toBeGreaterThan(r.cw);
+    for (const r of rows) if (r.n > 1) expect(r.sw).toBeGreaterThan(r.cw);
   });
 }

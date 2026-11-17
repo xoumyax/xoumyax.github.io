@@ -11,7 +11,7 @@
   pointer-events: auto;
 }
 
-/* Cards in a row: near-opaque, no blur (many of them sit over the live canvas). */
+/* Cards in a row: near-opaque, no blur (many of them sit over the backdrop). */
 .j-card {
   display: flex; flex-direction: column;
   background: color-mix(in oklab, var(--paper) 94%, transparent);

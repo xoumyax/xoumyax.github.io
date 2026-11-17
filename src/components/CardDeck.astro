@@ -1,0 +1,54 @@
+---
+// One card at a time in a natively scrolling, snapping track, with a numbered pager (when there
+// is more than one card). Any card component drops in; the deck sizes each child to the track.
+interface Props { label: string; count: number }
+const { label, count } = Astro.props;
+---
+<div class="deck" data-deck>
+  <div class="card-row" data-card-row data-track role="region" aria-label={label} tabindex="0">
+    <slot />
+  </div>
+  {count > 1 && (
+    <nav class="pager" aria-label="Choose a card">
+      <button type="button" data-prev aria-label="Previous card" disabled>‹</button>
+      <span class="gap" data-gap-lo aria-hidden="true" hidden>…</span>
+      {Array.from({ length: count }, (_, i) => (
+        <button type="button" data-go={i} aria-label={`Card ${i + 1} of ${count}`} aria-current={i === 0 ? 'true' : undefined}>{i + 1}</button>
+      ))}
+      <span class="gap" data-gap-hi aria-hidden="true" hidden>…</span>
+      <button type="button" data-next aria-label="Next card">›</button>
+    </nav>
+  )}
+</div>
+
+<style>
+  .deck { min-width: 0; --card-tilt: 0; pointer-events: auto; }
+  .card-row {
+    display: flex; min-width: 0;
+    overflow-x: auto; overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    border-radius: 1rem;
+  }
+  .card-row::-webkit-scrollbar { display: none; }
+  .card-row > :global(*) { flex: 0 0 100%; width: 100%; min-width: 0; scroll-snap-align: start; }
+  .card-row:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+  .pager { display: flex; justify-content: center; align-items: center; gap: .3rem; margin-top: .7rem; min-width: 0; }
+  .pager button {
+    flex: none;
+    font: 600 .85rem/1 var(--font-mono); min-width: 2rem; height: 2rem; padding: 0 .3rem;
+    border-radius: 999px; cursor: pointer;
+    border: 1px solid color-mix(in oklab, var(--ink) 14%, transparent);
+    background: color-mix(in oklab, var(--paper) 86%, transparent); color: var(--ink);
+  }
+  .pager button[hidden], .gap[hidden] { display: none; }
+  .pager button[aria-current='true'] { background: var(--ink); color: var(--paper); }
+  .pager button:disabled { opacity: .4; cursor: default; }
+  .pager button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .gap { flex: none; font: 600 .85rem/1 var(--font-mono); opacity: .7; }
+  @media (max-width: 40rem) {
+    .pager { gap: .15rem; }
+    .pager button { min-width: 1.55rem; height: 1.7rem; font-size: .75rem; padding: 0; }
+  }
+</style>
