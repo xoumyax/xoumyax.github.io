@@ -3,13 +3,13 @@ import Base from '../layouts/Base.astro';
 import Section from '../components/resume/Section.astro';
 import DownloadBar from '../components/resume/DownloadBar.astro';
 import { getProfile, getProjects, getConfig } from '../lib/data';
+import { lastYear } from '../lib/years';
 
 const p = getProfile();
 const cfg = getConfig();
 const allProjects = await getProjects();
 const featured = allProjects.filter((x) => x.featured);
 // Newest first, by the last year a project ran (stable sort keeps journey order within a year).
-const lastYear = (y: string) => Math.max(...(y.match(/\d{4}/g) ?? ['0']).map(Number));
 const others = allProjects.filter((x) => !x.featured).sort((a, b) => lastYear(b.years) - lastYear(a.years));
 ---
 <Base title="Resume" description={`Resume of ${p.name}: ${p.role}.`} theme="paper">

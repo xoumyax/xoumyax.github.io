@@ -91,3 +91,17 @@ for (const [w, h] of [[320, 640], [844, 390], [390, 844]] as const) {
     for (const r of rows) if (r.n > 1) expect(r.sw).toBeGreaterThan(r.cw);
   });
 }
+
+for (const id of STOP_IDS) {
+  test(`/#stop-${id} lands on its stop`, async ({ page }) => {
+    await page.goto(`/#stop-${id}`);
+    await page.waitForLoadState('load');
+    await expect.poll(() => page.evaluate((id) => {
+      const pad = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
+      const top = document.getElementById(`stop-${id}`)!.getBoundingClientRect().top;
+      const atEnd = Math.ceil(scrollY + innerHeight) >= document.documentElement.scrollHeight;
+      // At the scroll padding, or (for the last stop on a short screen) as far as the page scrolls.
+      return Math.abs(top - pad) <= 2 || (atEnd && top >= pad - 2 && top < innerHeight / 2);
+    }, id)).toBe(true);
+  });
+}
