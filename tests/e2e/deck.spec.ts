@@ -52,6 +52,46 @@ test('arrow keys move one card and the pager follows', async ({ page }) => {
   expect(await track.evaluate((e) => getComputedStyle(e).outlineStyle)).not.toBe('none');
 });
 
+test('rapid arrow presses each move one card', async ({ page }) => {
+  await page.goto('/');
+  await phd(page).locator('[data-track]').focus();
+  for (let i = 0; i < 3; i++) await page.keyboard.press('ArrowRight');
+  await expect(phd(page).locator('[data-go="3"]')).toHaveAttribute('aria-current', 'true');
+});
+
+test('rapid Next clicks each move one card', async ({ page }) => {
+  await page.goto('/');
+  await phd(page).scrollIntoViewIfNeeded();
+  const next = phd(page).locator('[data-next]');
+  for (let i = 0; i < 3; i++) await next.dispatchEvent('click');
+  await expect(phd(page).locator('[data-go="3"]')).toHaveAttribute('aria-current', 'true');
+});
+
+test('a swipe resyncs the target before the next key press', async ({ page }) => {
+  await page.goto('/');
+  const track = phd(page).locator('[data-track]');
+  await track.focus();
+  await page.keyboard.press('ArrowRight');
+  await expect(phd(page).locator('[data-go="1"]')).toHaveAttribute('aria-current', 'true');
+  await track.evaluate((t) => { t.dispatchEvent(new Event('touchstart')); t.scrollLeft = 5 * t.clientWidth; });
+  await expect(phd(page).locator('[data-go="5"]')).toHaveAttribute('aria-current', 'true');
+  await page.keyboard.press('ArrowRight');
+  await expect(phd(page).locator('[data-go="6"]')).toHaveAttribute('aria-current', 'true');
+});
+
+test('arrow keys in a focused card link are left to the browser', async ({ page }) => {
+  await page.goto('/');
+  const link = phd(page).locator('[data-track] a').first();
+  await link.focus();
+  // The deck must not claim the key: it is never preventDefault()ed by the track handler.
+  await page.evaluate(() => {
+    (window as any).__prevented = null;
+    document.addEventListener('keydown', (e) => { (window as any).__prevented = e.defaultPrevented; });
+  });
+  await page.keyboard.press('ArrowRight');
+  expect(await page.evaluate(() => (window as any).__prevented)).toBe(false);
+});
+
 test('phone pager fits', async ({ page }, info) => {
   test.skip(info.project.name !== 'phone');
   await page.goto('/');

@@ -22,17 +22,24 @@ export function initDecks(root: ParentNode = document): void {
     let fits = true;
 
     const at = () => Math.max(0, Math.min(last, Math.round(track.scrollLeft / track.clientWidth)));
-    const go = (k: number) => track.scrollTo({
-      left: Math.max(0, Math.min(last, k)) * track.clientWidth,
-      behavior: reduce.matches ? 'auto' : 'smooth',
-    });
+    // Last requested card while a programmatic scroll is in flight; null once the track settles
+    // or the user takes over, so relative moves never read a half-scrolled position.
+    let want: number | null = null;
+    const base = () => want ?? at();
+    const go = (k: number) => {
+      const t = Math.max(0, Math.min(last, k));
+      want = t;
+      track.scrollTo({ left: t * track.clientWidth, behavior: reduce.matches ? 'auto' : 'smooth' });
+    };
+    const settle = () => { want = null; };
     const measure = () => {
       nums.forEach((b) => { b.hidden = false; });
       gapLo.hidden = gapHi.hidden = true;
       fits = pager.scrollWidth <= pager.clientWidth;
     };
     const sync = () => {
-      const k = at();
+      if (want !== null && Math.abs(track.scrollLeft - want * track.clientWidth) < 2) want = null;
+      const k = want ?? at();
       const { lo, hi } = pagerWindow(nums.length, k, fits);
       nums.forEach((b, j) => {
         if (j === k) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current');
@@ -45,13 +52,16 @@ export function initDecks(root: ParentNode = document): void {
     };
 
     nums.forEach((b, j) => b.addEventListener('click', () => go(j)));
-    prev.addEventListener('click', () => go(at() - 1));
-    next.addEventListener('click', () => go(at() + 1));
+    prev.addEventListener('click', () => go(base() - 1));
+    next.addEventListener('click', () => go(base() + 1));
     track.addEventListener('scroll', sync, { passive: true });
+    track.addEventListener('scrollend', settle);
+    for (const ev of ['pointerdown', 'touchstart', 'wheel']) track.addEventListener(ev, settle, { passive: true });
     track.addEventListener('keydown', (e) => {
+      if (e.target !== track || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
       if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
       e.preventDefault();
-      go(at() + (e.key === 'ArrowRight' ? 1 : -1));
+      go(base() + (e.key === 'ArrowRight' ? 1 : -1));
     });
     addEventListener('resize', () => { measure(); sync(); });
     measure(); sync();
