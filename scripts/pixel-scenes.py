@@ -15,16 +15,16 @@ PULL = 0.22
 # Crops are judged on the built page with the section centred: the panel and deck cover most of
 # the middle, so each subject is placed in what they leave free. hero: the Chisos peak right of
 # the YARAikiba card (desktop), in the band above the intro panel (phone). phd: the horse's head
-# and body above the PhD panel (desktop), its head beside the deck (phone). now (phone): the lit
-# door left of the deck.
+# and body above the PhD panel (desktop), its head and back below the pager (phone). now (phone):
+# the lit door left of the deck. river (phone): the camp between the panel and the footer.
 SCENES = {
     'hero':      ('DSC04135.JPG', (0.42, 1, 1.3), (0.85, 1, 1.9)),
     'srm':       ('DSC04305.JPG', (0.5, 0.55), (0.5, 0.55)),
     'cognizant': ('DSC04343.JPG', (0.5, 0.55), (0.5, 0.55)),
     'ms':        ('IMG_1444.JPG', (0.5, 0.55), (0.5, 0.55)),
-    'phd':       ('DSC04340.JPG', (0.82, 1, 1.8), (0.43, 0.55)),
+    'phd':       ('DSC04340.JPG', (0.82, 1, 1.8), (0.52, 0, 1.35)),
     'now':       ('IMG_7089.JPG', (0.5, 0.55), (1, 0.5, 1.27)),
-    'river':     ('IMG_7241.JPG', (0.5, 0.55), (0.5, 0.55)),
+    'river':     ('IMG_7241.JPG', (0.5, 0.55), (0.55, 0, 1.22)),
 }
 # The shared palette, fixed so a crop change never recolours the other scenes. It was made by
 # build_palette() (median cut + k-means over the seven landscape crops, each colour pulled
