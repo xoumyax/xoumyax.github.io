@@ -26,10 +26,70 @@ test('pager click moves the deck, not the page', async ({ page }) => {
 test('prev and next stop at the ends', async ({ page }) => {
   await page.goto('/');
   await phd(page).scrollIntoViewIfNeeded();
-  await expect(phd(page).locator('[data-prev]')).toBeDisabled();
+  await expect(phd(page).locator('[data-prev]')).toHaveAttribute('aria-disabled', 'true');
+  await expect(phd(page).locator('[data-next]')).not.toHaveAttribute('aria-disabled', 'true');
   await phd(page).locator('[data-go="8"]').dispatchEvent('click');
   await page.waitForTimeout(800);
-  await expect(phd(page).locator('[data-next]')).toBeDisabled();
+  await expect(phd(page).locator('[data-next]')).toHaveAttribute('aria-disabled', 'true');
+  await expect(phd(page).locator('[data-prev]')).not.toHaveAttribute('aria-disabled', 'true');
+  // A click on a button at its end does nothing.
+  await phd(page).locator('[data-next]').dispatchEvent('click');
+  await page.waitForTimeout(300);
+  await expect(phd(page).locator('[data-go="8"]')).toHaveAttribute('aria-current', 'true');
+});
+
+test('keyboard focus stays on Next at the last card; Space then leaves the page still', async ({ page }) => {
+  await page.goto('/');
+  const next = phd(page).locator('[data-next]');
+  await next.focus();
+  for (let i = 0; i < 8; i++) await page.keyboard.press('Enter');
+  await expect(phd(page).locator('[data-go="8"]')).toHaveAttribute('aria-current', 'true');
+  await page.waitForTimeout(800);
+  expect(await page.evaluate(() => !!document.activeElement?.closest('[data-deck]'))).toBe(true);
+  const y = await page.evaluate(() => scrollY);
+  await page.keyboard.press('Space');
+  await page.waitForTimeout(500);
+  expect(await page.evaluate(() => scrollY)).toBe(y);
+  await expect(phd(page).locator('[data-go="8"]')).toHaveAttribute('aria-current', 'true');
+});
+
+test('keyboard focus stays on Prev at the first card; Space then leaves the page still', async ({ page }) => {
+  await page.goto('/');
+  await phd(page).locator('[data-next]').focus();
+  await page.keyboard.press('Enter');
+  await expect(phd(page).locator('[data-go="1"]')).toHaveAttribute('aria-current', 'true');
+  await page.waitForTimeout(800);
+  await phd(page).locator('[data-prev]').focus();
+  await page.keyboard.press('Enter');
+  await expect(phd(page).locator('[data-go="0"]')).toHaveAttribute('aria-current', 'true');
+  await page.waitForTimeout(800);
+  expect(await page.evaluate(() => document.activeElement?.hasAttribute('data-prev'))).toBe(true);
+  const y = await page.evaluate(() => scrollY);
+  await page.keyboard.press('Space');
+  await page.waitForTimeout(500);
+  expect(await page.evaluate(() => scrollY)).toBe(y);
+});
+
+test('Next then Prev in quick succession ends back on the first card', async ({ page }) => {
+  await page.goto('/');
+  await phd(page).scrollIntoViewIfNeeded();
+  await phd(page).locator('.pager').evaluate((p) => {
+    (p.querySelector('[data-next]') as HTMLElement).click();
+    (p.querySelector('[data-prev]') as HTMLElement).click();
+  });
+  await page.waitForTimeout(900);
+  await expect(phd(page).locator('[data-go="0"]')).toHaveAttribute('aria-current', 'true');
+  expect(await phd(page).locator('[data-track]').evaluate((t) => t.scrollLeft)).toBeLessThanOrEqual(2);
+});
+
+test('each pager is named after its stop', async ({ page }) => {
+  await page.goto('/');
+  const names = await page.locator('nav.pager').evaluateAll((els) => els.map((e) => e.getAttribute('aria-label')));
+  expect(names.length).toBeGreaterThan(1);
+  expect(new Set(names).size).toBe(names.length);
+  const title = (await phd(page).locator('h2').innerText()).trim();
+  await expect(phd(page).locator('nav.pager')).toHaveAttribute('aria-label', `${title}: choose a card`);
+  await expect(phd(page).locator('nav.pager')).toBeVisible();
 });
 
 test('swiping the track moves the current number', async ({ page }) => {
@@ -145,5 +205,12 @@ test.describe('without JavaScript', () => {
     }));
     expect(rows.map((r) => r[2])).toEqual([1, 2, 6, 9, 8]);
     for (const r of rows) expect([r[0], r[1]]).toEqual(['auto', 'x mandatory']);
+  });
+  test('the pager keeps its space but is not shown', async ({ page }) => {
+    await page.goto('/');
+    const pagers = await page.locator('nav.pager').evaluateAll((els) =>
+      els.map((e) => [getComputedStyle(e).visibility, e.getBoundingClientRect().height > 0]));
+    expect(pagers.length).toBeGreaterThan(0);
+    for (const p of pagers) expect(p).toEqual(['hidden', true]);
   });
 });

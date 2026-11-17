@@ -24,7 +24,7 @@ const cards = stop.items.map((item) => {
       <slot />
     </header>
     {cards.length > 0 && (
-      <CardDeck label={`${stop.title}: ${cards.length} items`} count={cards.length}>
+      <CardDeck label={`${stop.title}: ${cards.length} items`} title={stop.title} count={cards.length}>
         {cards.map((c) => (c.kind === 'project' ? <ProjectCard project={c.project} /> : <TextCard title={c.title} text={c.text} />))}
       </CardDeck>
     )}

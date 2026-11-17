@@ -28,9 +28,12 @@ export function initDecks(root: ParentNode = document): void {
     const base = () => want ?? at();
     const go = (k: number) => {
       const t = Math.max(0, Math.min(last, k));
-      if (t === at()) { want = null; return; }
+      // While a smooth scroll is in flight, always re-aim it: going back to the card the track
+      // still shows (Next then Prev) must stop the scroll, not let it run on.
+      if (want === null && t === at()) return;
       want = t;
       track.scrollTo({ left: t * track.clientWidth, behavior: reduce.matches ? 'auto' : 'smooth' });
+      sync();
     };
     const settle = () => { want = null; sync(); };
     let timer = 0;
@@ -49,8 +52,10 @@ export function initDecks(root: ParentNode = document): void {
       });
       gapLo.hidden = lo === 0;
       gapHi.hidden = hi === last;
-      prev.disabled = k === 0;
-      next.disabled = k === last;
+      // aria-disabled, not disabled: a disabled button drops keyboard focus to <body>, and the
+      // next Space would scroll the page. go() clamps, so a click at an end does nothing.
+      prev.setAttribute('aria-disabled', String(k === 0));
+      next.setAttribute('aria-disabled', String(k === last));
     };
 
     nums.forEach((b, j) => b.addEventListener('click', () => go(j)));
@@ -71,5 +76,6 @@ export function initDecks(root: ParentNode = document): void {
     });
     addEventListener('resize', () => { measure(); sync(); });
     measure(); sync();
+    pager.classList.add('ready'); // without JS the pager keeps its space but stays hidden
   });
 }
