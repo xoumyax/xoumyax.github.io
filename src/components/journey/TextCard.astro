@@ -1,0 +1,16 @@
+---
+import './panel.css';
+
+interface Props { title: string; text: string }
+const { title, text } = Astro.props;
+---
+<article class="j-card note">
+  <h3>{title}</h3>
+  <p>{text}</p>
+</article>
+
+<style>
+  .note { border-style: dashed; border-color: color-mix(in oklab, var(--ink) 20%, transparent); }
+  .note h3 { font-size: 1.05rem; }
+  .note p { line-height: 1.45; }
+</style>

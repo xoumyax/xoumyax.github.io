@@ -1,0 +1,18 @@
+---
+interface Props { resumePdf: string; cvPdf?: string }
+const { resumePdf, cvPdf } = Astro.props;
+---
+<p class="dl">
+  <a class="btn" href={resumePdf} download>Download resume (PDF)</a>
+  {cvPdf && <a href={cvPdf} download>Full CV (PDF)</a>}
+</p>
+
+<style>
+  .dl { display: flex; flex-wrap: wrap; gap: .75rem 1.25rem; align-items: center; margin: 1rem 0; }
+  .btn {
+    display: inline-block; padding: .6rem 1.1rem; border-radius: 999px; text-decoration: none;
+    background: var(--ink); color: var(--paper); font-weight: 600; box-shadow: inset 0 -2px 0 var(--amber);
+  }
+  .btn:hover { text-decoration: underline; text-decoration-color: var(--amber); }
+  @media print { .dl { display: none; } }
+</style>

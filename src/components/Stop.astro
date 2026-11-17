@@ -1,0 +1,53 @@
+---
+import CardRow from './CardRow.astro';
+import ProjectCard from './ProjectCard.astro';
+import TextCard from './journey/TextCard.astro';
+import './journey/panel.css';
+import type { JourneyStop, Project } from '../lib/schema';
+
+interface Props { stop: JourneyStop; index: number; count: number; projects: Map<string, Project> }
+const { stop, index, count, projects } = Astro.props;
+const side = 'left'; // panels stay left on desktop; the world frames each stop's landmark on the right
+const cards = stop.items.map((item) => {
+  if (typeof item !== 'string') return { kind: 'text' as const, ...item };
+  const project = projects.get(item);
+  if (!project) throw new Error(`journey.yaml: stop "${stop.id}" lists unknown project "${item}"`);
+  return { kind: 'project' as const, project };
+});
+---
+<section id={`stop-${stop.id}`} class="stop" data-stop={stop.id} data-landmark={stop.landmark} data-side={side} aria-labelledby={`stop-${stop.id}-title`}>
+  <div class="wrap inner">
+    <header class="panel head" data-panel>
+      <p class="label"><span class="n">{String(index + 1).padStart(2, '0')} / {String(count).padStart(2, '0')}</span> <span class="years">{stop.years}</span></p>
+      <h2 id={`stop-${stop.id}-title`}>{stop.title}</h2>
+      <p class="place">{stop.place}</p>
+      <p class="summary">{stop.summary}</p>
+      <slot />
+    </header>
+    {cards.length > 0 && (
+      <CardRow label={`${stop.title}: ${cards.length} items`}>
+        {cards.map((c) => (c.kind === 'project' ? <ProjectCard project={c.project} /> : <TextCard title={c.title} text={c.text} />))}
+      </CardRow>
+    )}
+  </div>
+</section>
+
+<style>
+  .stop {
+    min-height: 88svh;
+    display: flex; align-items: center;
+    padding-block: clamp(4rem, 14vh, 9rem);
+    pointer-events: none;
+  }
+  .inner { display: flex; flex-direction: column; min-width: 0; }
+  .head { width: min(100%, 38rem); }
+  .label { display: flex; gap: .9rem; align-items: baseline; margin-bottom: .6rem; opacity: 1; }
+  .n { opacity: .78; }
+  .years { font-size: .85rem; font-weight: 650; letter-spacing: .06em; }
+  h2 { font-size: clamp(1.5rem, 3.2vw, 2.25rem); margin-bottom: .3rem; }
+  .place { font-size: .95rem; opacity: .8; margin-bottom: .8rem; }
+  .summary { margin: 0; line-height: 1.5; }
+  @media (max-width: 40rem) {
+    .stop { min-height: 72svh; padding-block: 3.5rem; }
+  }
+</style>

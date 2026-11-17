@@ -1,0 +1,70 @@
+---
+import Base from '../../layouts/Base.astro';
+import ProjectCard from '../../components/ProjectCard.astro';
+import AreaFilter from '../../components/projects/AreaFilter.astro';
+import { wallOrder } from '../../components/projects/util';
+import { getProjects } from '../../lib/data';
+
+const projects = wallOrder(await getProjects());
+---
+<Base title="Projects" description="Research and engineering projects by Soumyajyoti Dutta: security, post-training and evaluation, agents, and systems." theme="paper">
+  <section class="wall-page">
+    <header class="wrap head">
+      <h1>Projects<sup class="n mono">({projects.length})</sup></h1>
+      <div class="intro">
+        <p>Research and engineering work, from undergrad to now.</p>
+        <p>Security tooling, post-training and evaluation, agents, and systems. Pick a card for the full write-up.</p>
+      </div>
+    </header>
+
+    <div class="wrap board">
+      <AreaFilter total={projects.length} />
+      <h2 class="visually-hidden">All projects</h2>
+      <ul class="wall" data-wall>
+        {projects.map((p) => (
+          <li data-areas={p.areas.join(' ')} style={`view-transition-name: card-${p.slug}`}>
+            <ProjectCard project={p} />
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .wall-page { overflow-x: clip; padding-bottom: clamp(4rem, 10vw, 8rem); }
+
+  .head {
+    display: grid; grid-template-columns: 1fr; gap: 1.5rem;
+    padding-block: clamp(2rem, 6vw, 5rem) clamp(1.5rem, 4vw, 3rem);
+  }
+  h1 {
+    margin: 0;
+    font-size: clamp(4.2rem, 15vw, 13.5rem); font-weight: 650;
+    letter-spacing: -0.065em; line-height: .82;
+    margin-left: -0.05em;
+  }
+  .n {
+    font-size: clamp(.9rem, 1.6vw, 1.25rem); font-weight: 500; letter-spacing: 0;
+    vertical-align: top; position: relative; top: .5em; margin-left: .35em;
+  }
+  .intro {
+    display: grid; gap: .9rem; max-width: 36rem;
+    font-size: 1.05rem; font-weight: 550; line-height: 1.3; letter-spacing: -0.01em;
+  }
+  .intro p { margin: 0; max-width: 24rem; }
+  @media (min-width: 64rem) {
+    .head { grid-template-columns: 1fr auto; align-items: end; }
+    .intro { padding-bottom: .9rem; }
+    .intro p:last-child { margin-left: 4rem; }
+  }
+
+  .wall {
+    list-style: none; margin: clamp(2rem, 4vw, 3.5rem) 0 0; padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 17.5rem), 1fr));
+    gap: clamp(2.25rem, 4vw, 3.75rem) clamp(1.5rem, 3vw, 2.75rem);
+  }
+  .wall > li[hidden] { display: none; }
+  @media (max-width: 40rem) { .wall { --card-tilt: .5; } }
+</style>

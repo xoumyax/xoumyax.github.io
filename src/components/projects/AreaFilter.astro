@@ -1,0 +1,87 @@
+---
+// Pill filter for the card wall. Filters `[data-wall] > li[data-areas]` client-side and keeps
+// `?area=` in sync. Without JS the bar is hidden and every card shows.
+import { AREAS } from '../../lib/schema';
+import { AREA_LABELS } from './util';
+
+interface Props {
+  total: number;
+}
+const { total } = Astro.props;
+const options = [['all', 'All'], ...AREAS.map((a) => [a, AREA_LABELS[a]])] as const;
+---
+<div class="bar" data-filters>
+  <div class="pills" role="group" aria-label="Filter projects by area">
+    {options.map(([id, label]) => (
+      <button type="button" data-area={id} aria-pressed={id === 'all' ? 'true' : 'false'}>{label}</button>
+    ))}
+  </div>
+  <p class="count mono" aria-live="polite"><span data-count>{total}</span> / {total}</p>
+</div>
+<noscript><style>[data-filters] { display: none !important; }</style></noscript>
+
+<script>
+  const bar = document.querySelector<HTMLElement>('[data-filters]');
+  const items = [...document.querySelectorAll<HTMLElement>('[data-wall] > li[data-areas]')];
+  if (bar && items.length) {
+    const buttons = [...bar.querySelectorAll<HTMLButtonElement>('button[data-area]')];
+    const valid = new Set(buttons.map((b) => b.dataset.area!));
+    const countEl = bar.querySelector<HTMLElement>('[data-count]');
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+
+    const show = (area: string) => {
+      let n = 0;
+      for (const li of items) {
+        const on = area === 'all' || li.dataset.areas!.split(' ').includes(area);
+        li.hidden = !on;
+        if (on) n++;
+      }
+      if (countEl) countEl.textContent = String(n);
+    };
+
+    const select = (area: string, animate: boolean) => {
+      if (!valid.has(area)) area = 'all';
+      for (const b of buttons) b.setAttribute('aria-pressed', String(b.dataset.area === area));
+      const url = new URL(location.href);
+      if (area === 'all') url.searchParams.delete('area');
+      else url.searchParams.set('area', area);
+      history.replaceState(history.state, '', url);
+      const doc = document as Document & { startViewTransition?: (cb: () => void) => unknown };
+      if (animate && doc.startViewTransition && !reduce.matches) doc.startViewTransition(() => show(area));
+      else show(area);
+    };
+
+    for (const b of buttons) b.addEventListener('click', () => select(b.dataset.area!, true));
+    const initial = new URLSearchParams(location.search).get('area');
+    if (initial) select(initial, false);
+  }
+</script>
+
+<style>
+  .bar {
+    position: sticky; top: calc(var(--bar-h) + .6rem); z-index: 20;
+    display: flex; align-items: center; justify-content: space-between; gap: .75rem;
+    width: fit-content; max-width: 100%;
+    padding: .3rem .3rem .3rem .3rem;
+    background: color-mix(in oklab, var(--paper) 86%, transparent);
+    backdrop-filter: blur(12px) saturate(1.2);
+    border: 1px solid color-mix(in oklab, var(--ink) 12%, transparent);
+    border-radius: 999px;
+    box-shadow: 0 10px 30px -18px color-mix(in oklab, var(--ink) 40%, transparent);
+  }
+  .pills { display: flex; gap: .2rem; overflow-x: auto; scrollbar-width: none; padding: 5px; margin: -5px; }
+  .pills::-webkit-scrollbar { display: none; }
+  button {
+    flex: none; font: inherit; font-size: .9rem; font-weight: 500;
+    padding: .5rem .95rem; border: 0; border-radius: 999px; cursor: pointer;
+    color: var(--ink); background: transparent;
+    transition: background-color .25s var(--ease), color .25s var(--ease);
+  }
+  button:hover { background: color-mix(in oklab, var(--ink) 8%, transparent); }
+  button[aria-pressed='true'] { background: var(--ink); color: var(--paper); }
+  .count { margin: 0 .8rem 0 .2rem; white-space: nowrap; font-size: .78rem; opacity: .7; }
+  @media (max-width: 40rem) {
+    .bar { width: 100%; }
+    .count { display: none; }
+  }
+</style>

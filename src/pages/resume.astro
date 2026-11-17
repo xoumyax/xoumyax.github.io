@@ -1,0 +1,113 @@
+---
+import Base from '../layouts/Base.astro';
+import Section from '../components/resume/Section.astro';
+import DownloadBar from '../components/resume/DownloadBar.astro';
+import { getProfile, getProjects, getConfig } from '../lib/data';
+
+const p = getProfile();
+const cfg = getConfig();
+const featured = (await getProjects()).filter((x) => x.featured);
+---
+<Base title="Resume" description={`Resume of ${p.name}: ${p.role}.`} theme="paper">
+  <article class="wrap resume">
+    <header class="head">
+      <h1>{p.name}</h1>
+      <p class="role">{p.role}</p>
+      <p class="open">{p.openToWork}</p>
+      <p class="contact mono">
+        <a href={`mailto:${p.email}`}>{p.email}</a> ·
+        <a href={p.github}>GitHub</a> ·
+        <a href={p.linkedin}>LinkedIn</a>
+      </p>
+      <DownloadBar resumePdf={cfg.resumePdf} cvPdf={cfg.cvPdf} />
+    </header>
+
+    <Section title="Education">
+      {p.education.map((e) => (
+        <div class="item">
+          <p class="row"><strong>{e.degree}</strong><span class="mono">{e.years}</span></p>
+          <p class="sub">{e.school}{e.note && <> · {e.note}</>}</p>
+        </div>
+      ))}
+    </Section>
+
+    <Section title="Technical expertise">
+      <dl class="skills">
+        {p.skills.map((s) => (<><dt>{s.group}</dt><dd>{s.items.join(', ')}</dd></>))}
+      </dl>
+    </Section>
+
+    <Section title="Experience">
+      {p.experience.map((e) => (
+        <div class="item">
+          <p class="row"><strong>{e.title}</strong><span class="mono">{e.years}</span></p>
+          <p class="sub">{e.org}</p>
+          <ul>{e.bullets.map((b) => <li>{b}</li>)}</ul>
+        </div>
+      ))}
+    </Section>
+
+    <Section title="Selected projects">
+      <ul class="plain">
+        {featured.map((pr) => (
+          <li>
+            <a href={`/projects/${pr.slug}/`}><strong>{pr.title}</strong></a>
+            <span class="mono tag"> {pr.venue ? `${pr.venue} · ` : ''}{pr.statusLabel}</span>
+            <br />{pr.oneLiner}
+          </li>
+        ))}
+      </ul>
+    </Section>
+
+    <Section title="Publications">
+      <ul class="plain">
+        {p.publications.map((x) => (
+          <li>{x.href ? <a href={x.href}>{x.text}</a> : x.text}</li>
+        ))}
+      </ul>
+    </Section>
+
+    <Section title="Teaching & talks">
+      <ul class="plain">
+        {p.teaching.map((t) => (
+          <li><strong>{t.course}</strong> <span class="mono tag">{t.term}</span><br />{t.what}</li>
+        ))}
+        {p.talks.map((t) => (
+          <li><strong>{t.title}</strong> <span class="mono tag">{t.venue}, {t.date}</span></li>
+        ))}
+      </ul>
+    </Section>
+
+    <div class="foot"><DownloadBar resumePdf={cfg.resumePdf} /></div>
+  </article>
+</Base>
+
+<style>
+  .resume { max-width: var(--measure); padding-block: 2rem 3rem; }
+  .head h1 { font-size: clamp(2rem, 5vw, 3rem); margin-bottom: .2em; }
+  .role { font-family: var(--font-serif); font-size: 1.25rem; margin: 0 0 .3em; }
+  .open { margin: 0 0 .5em; }
+  .open::before { content: ''; display: inline-block; width: .55em; height: .55em; margin-right: .5em; border-radius: 50%; background: var(--amber); }
+  .contact { margin: 0; overflow-wrap: anywhere; }
+  .item { margin-bottom: 1rem; }
+  .row { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin: 0; }
+  .sub { margin: 0 0 .3em; opacity: .85; }
+  ul { margin: .3em 0 0; padding-left: 1.2rem; }
+  li { margin-bottom: .35em; }
+  .plain { list-style: none; padding: 0; }
+  .plain li { margin-bottom: .75em; }
+  .tag { opacity: .75; }
+  .skills { margin: 0; display: grid; grid-template-columns: 1fr; gap: .1rem; }
+  .skills dt { font-weight: 600; margin-top: .5rem; }
+  .skills dd { margin: 0; }
+  @media (min-width: 40rem) {
+    .skills { grid-template-columns: 11rem 1fr; column-gap: 1rem; }
+    .skills dt { margin-top: 0; }
+  }
+  @media print {
+    :global(header.topbar), :global(body > footer), :global(.skip) { display: none !important; }
+    :global(body) { font-size: 10.5pt; background: #fff; }
+    .resume { padding-block: 0; max-width: none; }
+    a { text-decoration: none; }
+  }
+</style>

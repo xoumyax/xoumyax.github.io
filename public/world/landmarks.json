@@ -1,0 +1,80 @@
+{
+  "source": "/world-test?governor=off&tier=medium&t=8",
+  "version": "c32ba0d11fb7",
+  "shots": {
+    "desktop": {
+      "width": 1440,
+      "height": 900,
+      "framing": {
+        "u": 0.3,
+        "yaw": -40,
+        "pitch": 0,
+        "zoom": 0.6
+      },
+      "landmarks": {
+        "trailhead": {
+          "x": 0.1585,
+          "y": 0.3188,
+          "visible": true
+        },
+        "ranger": {
+          "x": 0.2945,
+          "y": 0.6961,
+          "visible": true
+        },
+        "school": {
+          "x": 0.5892,
+          "y": 0.4548,
+          "visible": true
+        },
+        "trailer": {
+          "x": 0.8115,
+          "y": 0.4771,
+          "visible": true
+        },
+        "dome": {
+          "x": 1.1093,
+          "y": 0.5336,
+          "visible": false
+        }
+      }
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "framing": {
+        "u": 0.06,
+        "yaw": 40,
+        "pitch": 0,
+        "zoom": 0.7
+      },
+      "landmarks": {
+        "trailhead": {
+          "x": 0.7655,
+          "y": 0.39,
+          "visible": true
+        },
+        "ranger": {
+          "x": 0.1301,
+          "y": 0.6059,
+          "visible": true
+        },
+        "school": {
+          "x": 0.7693,
+          "y": 0.8767,
+          "visible": true
+        },
+        "trailer": {
+          "x": 0.9691,
+          "y": 1.1997,
+          "visible": false
+        },
+        "dome": {
+          "x": 1.1369,
+          "y": 1.7307,
+          "visible": false
+        }
+      }
+    }
+  }
+}

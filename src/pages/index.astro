@@ -1,0 +1,83 @@
+---
+import Base from '../layouts/Base.astro';
+import Hero from '../components/Hero.astro';
+import Stop from '../components/Stop.astro';
+import Contact from '../components/journey/Contact.astro';
+import { getProfile, getJourney, getProjects, getConfig } from '../lib/data';
+import { hasPosterFile, posterUrl, posterVersion } from '../lib/poster';
+
+const profile = getProfile();
+const journey = getJourney();
+const cfg = getConfig();
+const projects = new Map((await getProjects()).map((p) => [p.slug, p]));
+const yk = projects.get('yaraikiba');
+if (!yk) throw new Error('index: the yaraikiba project is missing');
+
+// The poster appears on its own once Task 11 writes it; until then the layer's gradient shows.
+// M10: the posters and landmarks.json are one versioned pair: all three are asked for with ?v=
+const hasPoster = hasPosterFile('poster.webp');
+const hasMobilePoster = hasPosterFile('poster-mobile.webp');
+---
+<Base title="Soumyajyoti Dutta" description={`${profile.name}: ${profile.role}`} theme="world">
+  <Hero
+    name={profile.name}
+    role={profile.role}
+    openToWork={profile.openToWork}
+    yaraikiba={{ url: cfg.yaraikiba.url, steps: cfg.yaraikiba.steps, blurb: yk.oneLiner }}
+  />
+
+  <div id="world-layer" aria-hidden="true" data-poster-version={posterVersion()}>
+    {hasPoster && (
+      <picture>
+        {hasMobilePoster && <source media="(max-width: 40rem)" srcset={posterUrl('poster-mobile.webp')} type="image/webp" />}
+        <img id="world-poster" src={posterUrl('poster.webp')} alt="" decoding="async" />
+      </picture>
+    )}
+    <canvas id="world"></canvas>
+  </div>
+  <div id="landmarks"></div>
+
+  <div class="journey">
+    {journey.stops.map((stop, i) => (
+      <Stop stop={stop} index={i} count={journey.stops.length} projects={projects}>
+        {stop.id === 'river' && (
+          <Contact email={profile.email} github={profile.github} linkedin={profile.linkedin} resumePdf={cfg.resumePdf} cvPdf={cfg.cvPdf} />
+        )}
+      </Stop>
+    ))}
+  </div>
+
+  <script>
+    import { boot } from '../world/boot';
+    boot();
+  </script>
+</Base>
+
+<style>
+  /* Stacking: world (-1) < landmarks (0) < content (1). Content wrappers pass pointer
+     events through to the world; only [data-panel] and [data-card-row] take them. */
+  /* I6: the world layer and the doors' box are sized to the large viewport (lvh), so a phone's
+     URL bar showing or hiding never resizes them (no re-framing pop); 100vh is the fallback. */
+  #world-layer {
+    position: fixed; inset: 0 0 auto 0; z-index: -1;
+    height: 100vh; height: 100lvh;
+    pointer-events: none;
+    background: linear-gradient(180deg, var(--sand) 0%, color-mix(in oklab, var(--sand) 70%, var(--storm)) 55%, var(--storm) 100%);
+    overflow: hidden;
+  }
+  #world-layer :global(img), #world-layer canvas {
+    position: absolute; inset: 0; width: 100%; height: 100%; max-width: none;
+  }
+  #world-layer :global(img) { object-fit: cover; }
+  #world-layer :global([hidden]) { display: none; }
+  #landmarks { position: fixed; inset: 0 0 auto 0; height: 100vh; height: 100lvh; z-index: 0; pointer-events: none; }
+  #landmarks > :global(*) { pointer-events: auto; }
+  :global(.hero), .journey { position: relative; z-index: 1; }
+  .journey { pointer-events: none; }
+  /* The shared footer sits over the world's dark river end; give it paper to stand on here. */
+  :global(body[data-theme='world'] .footer) {
+    background: color-mix(in oklab, var(--paper) 86%, transparent);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+  }
+</style>

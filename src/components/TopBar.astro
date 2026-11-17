@@ -1,0 +1,58 @@
+---
+// Internal links end in '/' (M1): Pages serves /x/index.html, so /x would cost a 301 hop.
+const norm = (p: string) => p.replace(/\/$/, '') || '/';
+const path = norm(Astro.url.pathname);
+const items = [
+  ['Home', '/'], ['Resume', '/resume/'], ['Projects', '/projects/'],
+  ['Personal', '/personal/'], ['Teaching', '/teaching/'], ['Study', '/study/'],
+] as const;
+const isCurrent = (href: string) => (href === '/' ? path === '/' : path === norm(href) || path.startsWith(href));
+---
+<header class="topbar">
+  <nav aria-label="Main">
+    <a class="brand" href="/" aria-current={path === '/' ? 'page' : undefined}>Home</a>
+    {items.slice(1).map(([label, href]) => (
+      <a href={href} aria-current={isCurrent(href) ? 'page' : undefined}>{label}</a>
+    ))}
+    <a class="pdf" href="/Soumyajyoti_Dutta_Resume.pdf" download>⬇ Resume PDF</a>
+  </nav>
+</header>
+
+<style>
+  .topbar {
+    position: sticky; top: 0; z-index: 50;
+    height: var(--bar-h);
+    display: flex; align-items: center;
+    padding-inline: var(--gutter);
+    background: color-mix(in oklab, var(--paper) 82%, transparent);
+    backdrop-filter: blur(10px) saturate(1.2);
+    border-bottom: 1px solid color-mix(in oklab, var(--ink) 10%, transparent);
+  }
+  :global(body[data-theme='night']) .topbar {
+    background: color-mix(in oklab, var(--night) 80%, transparent);
+    border-bottom-color: color-mix(in oklab, var(--paper) 12%, transparent);
+  }
+  nav {
+    display: flex; align-items: center; gap: .25rem;
+    width: 100%; overflow-x: auto; scrollbar-width: none;
+    font-size: .92rem;
+  }
+  nav::-webkit-scrollbar { display: none; }
+  a {
+    flex: none; padding: .4rem .7rem; border-radius: 999px;
+    text-decoration: none; white-space: nowrap;
+    transition: background-color .2s var(--ease);
+  }
+  a:hover { background: color-mix(in oklab, currentColor 8%, transparent); }
+  a[aria-current='page'] { background: color-mix(in oklab, currentColor 12%, transparent); }
+  .brand { font-weight: 650; margin-right: auto; }
+  .pdf {
+    position: sticky; right: 0; margin-left: .5rem;
+    background: var(--ink); color: var(--paper); font-weight: 550;
+    box-shadow: -1.25rem 0 1rem -.25rem color-mix(in oklab, var(--paper) 90%, transparent);
+  }
+  :global(body[data-theme='night']) .pdf { box-shadow: -1.25rem 0 1rem -.25rem color-mix(in oklab, var(--night) 90%, transparent); }
+  :global(body[data-theme='night']) .pdf { background: var(--amber); color: var(--night); }
+  .pdf:hover { background: var(--amber); color: var(--ink); }
+  @media (max-width: 40rem) { .brand { margin-right: 0; } }
+</style>

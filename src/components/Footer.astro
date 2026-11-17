@@ -1,0 +1,25 @@
+---
+// Contact details come from profile.yaml and the CV path from config.yaml (the single sources, M17).
+import { getConfig, getProfile } from '../lib/data';
+
+const { name, email, github, linkedin } = getProfile();
+const { cvPdf } = getConfig();
+const year = new Date().getFullYear();
+---
+<footer class="footer">
+  <div class="wrap row">
+    <span>© {year} {name}</span>
+    <span class="links">
+      <a href={`mailto:${email}`}>Email</a>
+      <a href={github} rel="noopener">GitHub</a>
+      <a href={linkedin} rel="noopener">LinkedIn</a>
+      {cvPdf && <a href={cvPdf}>Full CV (PDF)</a>}
+    </span>
+  </div>
+</footer>
+
+<style>
+  .footer { padding: 2.5rem 0; font-size: .9rem; border-top: 1px solid color-mix(in oklab, currentColor 12%, transparent); }
+  .row { display: flex; flex-wrap: wrap; gap: 1rem 2rem; justify-content: space-between; }
+  .links { display: flex; flex-wrap: wrap; gap: 1.25rem; }
+</style>

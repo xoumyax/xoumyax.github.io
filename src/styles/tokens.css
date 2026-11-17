@@ -1,0 +1,20 @@
+:root {
+  --paper: #F5F2EC;
+  --ink: #1D1B18;
+  --sand: #E9DCC4;
+  --sage: #8A9A6B;
+  --rust: #A4502E;
+  --storm: #4F6272;
+  --amber: #F0A43A;
+  --night: #0B0B0C;
+
+  --ease: cubic-bezier(.22, 1, .36, 1);
+
+  --font-ui: 'Inter Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, 'SF Mono', Menlo, monospace;
+  --font-serif: 'Fraunces Variable', Georgia, 'Times New Roman', serif;
+
+  --bar-h: 3.5rem;
+  --gutter: clamp(1rem, 4vw, 3rem);
+  --measure: 68ch;
+}

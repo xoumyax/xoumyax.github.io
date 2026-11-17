@@ -1,0 +1,93 @@
+\documentclass[letterpaper,10pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[utf8]{inputenc}
+\usepackage{microtype}
+\usepackage[margin=0.5in,top=0.4in,bottom=0.32in]{geometry}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage[hidelinks]{hyperref}
+\input{glyphtounicode}
+\pdfgentounicode=1
+\definecolor{accent}{RGB}{22,54,110}
+\definecolor{muted}{RGB}{85,85,85}
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+\raggedright
+\titleformat{\section}{\color{accent}\scshape\large\bfseries}{}{0em}{}[\vspace{-6pt}{\color{accent}\rule{\textwidth}{0.6pt}}\vspace{-3pt}]
+\titlespacing*{\section}{0pt}{4pt}{2pt}
+\setlist[itemize]{leftmargin=0.17in, itemsep=0.8pt, parsep=0pt, topsep=1pt, label=\textbullet}
+\newcommand{\heading}[2]{\textbf{#1}\hfill #2\\}
+\newcommand{\note}[1]{{\color{muted}\textit{#1}}\\[-1pt]}
+\newcommand{\proj}[3]{\vspace{3pt}{\color{accent}\textbf{#1}}\ {\color{muted}--- #2}\hfill\textit{\textbf{#3}}\\[-1pt]}
+\newcommand{\sproj}[3]{\vspace{3pt}{\color{accent}\textbf{#1}}\ {\color{muted}--- #2}\hfill #3\\[-1pt]}
+\begin{document}
+\begin{center}
+  {\LARGE\bfseries Soumyajyoti Dutta}\\[3pt]
+  (979) 326-2896 $|$
+  \href{mailto:soumyajyotidutta23@gmail.com}{soumyajyotidutta23@gmail.com} $|$
+  \href{https://xoumyax.github.io/}{xoumyax.github.io} $|$
+  \href{https://www.linkedin.com/in/soumyajyotidutta/}{linkedin.com/in/soumyajyotidutta}\\[3pt]
+  \textit{LLM post-training and evaluation researcher building compact, verifiable models and tool-calling agents.}
+\end{center}
+\vspace{-8pt}
+
+\section{Education}
+\heading{Ph.D. in Computer Science, Texas A\&M University}{Spring 2024 -- Expected Spring 2028}
+\heading{M.S. in Computer Engineering, Texas A\&M University}{Fall 2022 -- Fall 2023}
+\heading{B.Tech. in Electronics \& Communication Eng., SRM Institute of Science and Technology}{2017 -- 2021}
+
+\section{Technical Expertise}
+\begin{itemize}
+  \item \textbf{Post-training \& evaluation:} curriculum SFT, full fine-tuning, LoRA/QLoRA, tokenizer design, benchmark construction, automated graders (compile checks, Z3 SMT), LLM-as-judge, simulated-user evaluation
+  \item \textbf{Agents \& data:} tool-calling agents (layered routing, ReAct, MCP), RAG; crawling, template synthesis, grammar fuzzing
+  \item \textbf{Stack:} Python, C++, SQL; PyTorch, HuggingFace Transformers, TRL, DeepSpeed, FSDP, SLURM, vLLM, CUDA
+\end{itemize}
+
+\section{Experience}
+\heading{Graduate Research Assistant, Botacin's Lab -- Texas A\&M University}{Spring 2024 -- Present}
+\note{LLM post-training and evaluation research sponsored by \textbf{LPS (UMD)} and \textbf{Booz Allen Hamilton}}
+\proj{YaraGen}{compact LLMs that write YARA malware-detection rules}{Submission in preparation}
+\begin{itemize}
+  \item Post-trained a \textbf{139M-parameter} generator to \textbf{91.8\% semantic correctness} on 22.7K held-out real-world rules, matching a fully fine-tuned 8B model (93.8\%) with \textbf{57$\times$ fewer parameters} and 17--20$\times$ the generation throughput.
+  \item Led few-shot GPT-5.4 (84.0\%) by $\sim$\textbf{10~pp} and zero-shot Sonnet 5 (75.0\%) further with the 139M pipeline; frontier parse rates of 97--99.8\% show their gap is semantic, not syntactic.
+  \item Outperformed AST-T5's structure-aware pretraining by $\sim$\textbf{30~pp} on average across rule generation and patching on the same BART backbone; combining the two strategies added a further $\sim$2~pp.
+  \item Designed a grammar-derived hybrid tokenizer (\textbf{+4~pp}, 11\% shorter context) and a 55M indicator-masking tagger (99.4\% precision, up to \textbf{+10~pp}), trained through a staged structure-first curriculum.
+  \item Built a three-tier grader (text overlap, compile validity, Z3 semantic comparison) that scored \textbf{150+ post-training runs}; it alone tracked test accuracy on every run (Spearman $\geq$ +0.65) while BLEU fell to $-$0.70.
+  \item Assembled \textbf{30M+ training pairs} from 305K rules crawled across 59 repos, 459 template families, and a grammar fuzzer; accuracy jumps between 100K and 250K examples and saturates past $\sim$1M.
+\end{itemize}
+\proj{IOCScooper++}{indicator and technique extraction from threat reports}{USENIX Security '27, in prep.}
+\begin{itemize}
+  \item Trained a 50.6M extractor for 36 indicator types to \textbf{0.894 / 0.925} micro / macro span-exact F1 on 47 held-out reports, ahead of fine-tuned encoders 3--7$\times$ its size.
+  \item Chained it into YaraGen to turn reports into detections: \textbf{100\% rule validity} at 0.97 indicator coverage over 344 rules.
+\end{itemize}
+\proj{AutoPYara}{rules from $\approx$71K malware binaries; \textbf{PyPI}; \href{https://arxiv.org/abs/2611.08608}{arXiv:2611.08608}}{ACSAC 2026, main proceedings}
+\begin{itemize}
+  \item Raised rule coverage \textbf{14~pp} over the prior state of the art, with \textbf{7.1~pp} lower variance and +10\% threat-hunting accuracy.
+\end{itemize}
+\vspace{2pt}
+\heading{Junior Software Engineer, Cognizant \textnormal{--- client \textbf{TJX Companies}; \textbf{converted from intern}}}{Feb 2021 -- Aug 2022}
+\begin{itemize}
+  \item Delivered a production logistics platform; tuned REST API latency and concurrency, ran CI/CD, and led code reviews.
+\end{itemize}
+
+\section{Selected Projects}
+\sproj{YARAikiba}{tool-calling analyst agent over the YaraGen framework; hosted at \href{https://xoumyax.github.io/}{xoumyax.github.io}}{2026}
+\begin{itemize}
+  \item Built a hosted web agent on the lab's own models: a layered router maps each request onto \textbf{38 tools} and \textbf{17 fixed workflows}, and a ReAct mode chains dependent calls (threat report to extracted indicators to rule).
+  \item Covered the analyst's full loop: rules from descriptions, indicator lists, reports, or binaries; fixing, merging, and explaining rules; false-positive risk and Z3 equivalence checks, with every generated rule verified for indicator fidelity.
+\end{itemize}
+\sproj{Proactive Deep Research Agent}{co-authored manuscript; led model development and training; \href{https://github.com/xoumyax/ProPauseLM-Playground/tree/modified-prompt}{V1 code}}{2026}
+\begin{itemize}
+  \item Post-trained a tool-using research agent (Gemma-4-E4B, four-stage SFT) to ask before acting on vague requests: ambiguity-detection F1 rose from \textbf{0.168 to 0.573} and recall from 0.095 to \textbf{0.607} on 176 real queries.
+  \item Developing an \textbf{entropy-based ambiguity metric} that decides when to ask and improves final answers (ongoing); mapped label schemas of \textbf{14 public datasets} for a $\sim$\textbf{400K-query} corpus.
+\end{itemize}
+\sproj{ML Malware Detection}{\textbf{1st place}, ML-Based Cyberdefenses Challenge (TAMU)}{2023}
+\begin{itemize}
+  \item Built a Windows PE malware classifier (\textbf{96.2\% accuracy, 0.97 F1}; 2M+ samples) and the challenge's top attack suite in TAMU's Data Analytics for Cybersecurity course; \textbf{still the best model after five offerings}.
+\end{itemize}
+
+\section{Teaching \& Presentations}
+\heading{Teaching Assistant, Texas A\&M \textnormal{(CSCE 313, CSCE 439/704)}; Presenter, Texas Security Workshop}{2026}
+\end{document}

@@ -1,0 +1,31 @@
+---
+interface Props {
+  value: string;
+  label: string;
+  size?: 'lg' | 'sm';
+}
+const { value, label, size = 'lg' } = Astro.props;
+---
+<div class:list={['metric', size]}>
+  <span class="value">{value}</span>
+  <span class="what">{label}</span>
+</div>
+
+<style>
+  .metric {
+    display: grid; gap: .55rem; align-content: start;
+    padding-top: .9rem;
+    border-top: 1px solid color-mix(in oklab, var(--ink) 22%, transparent);
+  }
+  .value {
+    font-weight: 650; line-height: .9;
+    letter-spacing: -0.06em; font-variant-numeric: tabular-nums;
+    font-size: clamp(2.75rem, 4.8vw, 4.25rem);
+    overflow-wrap: anywhere;
+  }
+  .sm .value { font-size: clamp(1.8rem, 3.5vw, 2.6rem); }
+  .what {
+    font-size: .92rem; line-height: 1.35; max-width: 28ch;
+    color: color-mix(in oklab, var(--ink) 78%, transparent);
+  }
+</style>

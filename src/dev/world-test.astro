@@ -1,0 +1,88 @@
+---
+// Engine test bench for the landing-page world. Not linked from anywhere; noindex. Built only
+// with WORLD_TEST=1 (astro.config.mjs injects the route): never part of the deployed site (M8).
+// URL: ?u=0..1 ?t=<sec> ?debug=1 ?tier=high|medium|low ?governor=off (?perf=1 with debug, ?labels=1)
+//   ?abort=<performance mark> aborts the mount once that mark is set (world:start = during the
+//   bake, world:built = during shader compile), for the I8 test; the outcome goes to <html data-world>.
+import Base from '../layouts/Base.astro';
+import { getJourney } from '../lib/data';
+
+// journey.yaml's stop → landmark map, the one source the engine frames each stop from (M7)
+const stopLandmarks = Object.fromEntries(getJourney().stops.filter((s) => s.landmark).map((s) => [s.id, s.landmark]));
+---
+<Base title="World test" description="Engine test bench for the Big Bend world." theme="world" noindex>
+  <div class="wt-root" data-stop-landmarks={JSON.stringify(stopLandmarks)}>
+    <canvas id="world"></canvas>
+    <div id="wt-marks" aria-hidden="true"></div>
+  </div>
+</Base>
+
+<style is:global>
+  body:has(.wt-root) .topbar, body:has(.wt-root) .footer, body:has(.wt-root) .skip { display: none; }
+  body:has(.wt-root) { overflow: hidden; background: #1d1b18; }
+  .wt-root canvas { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; }
+  #wt-marks { position: fixed; inset: 0; pointer-events: none; }
+  #wt-marks span {
+    position: absolute; left: 0; top: 0; padding: 2px 6px; font: 600 11px/1.3 var(--font-mono);
+    background: rgb(29 27 24 / .82); color: #f5f2ec; border: 1px solid #f0a43a; white-space: nowrap;
+  }
+</style>
+
+<script>
+  import { mountWorld, type StopLandmarks, type WorldController } from '../world/index';
+  import { pickInitialTier, type QualityTier } from '../world/quality';
+
+  const P = new URLSearchParams(location.search);
+  const root = document.documentElement;
+  const canvas = document.getElementById('world') as HTMLCanvasElement;
+  const forced = P.get('tier');
+  const tier: QualityTier = forced === 'high' || forced === 'medium' || forced === 'low'
+    ? forced
+    : pickInitialTier({
+        isMobile: matchMedia('(pointer: coarse)').matches && innerWidth < 900,
+        dpr: devicePixelRatio || 1,
+        deviceMemory: (navigator as Navigator & { deviceMemory?: number }).deviceMemory,
+        hardwareConcurrency: navigator.hardwareConcurrency,
+      });
+  root.dataset.world = 'loading';
+  const stopLandmarks = JSON.parse(document.querySelector<HTMLElement>('.wt-root')!.dataset.stopLandmarks ?? '{}') as StopLandmarks;
+  const ac = new AbortController();
+  const abortAt = P.get('abort');
+  if (abortAt) {
+    new PerformanceObserver((list, obs) => {
+      if (list.getEntries().some((e) => e.name === abortAt)) { obs.disconnect(); ac.abort(); }
+    }).observe({ entryTypes: ['mark'] });
+  }
+  mountWorld(canvas, {
+    stopLandmarks,
+    signal: ac.signal,
+    tier,
+    debug: P.get('debug') === '1',
+    governor: P.get('governor') !== 'off',
+    freezeAt: P.has('t') ? Number(P.get('t')) : null,
+    perf: P.get('perf') === '1',
+    onLost: (reason) => { root.dataset.world = `lost:${reason}`; },
+  }).then((ctl: WorldController) => {
+    (window as unknown as { __worldCtl: WorldController }).__worldCtl = ctl;
+    if (P.has('u')) ctl.jumpJourney(Number(P.get('u')));
+    if (P.get('labels') === '1') {
+      const box = document.getElementById('wt-marks')!;
+      const tags = new Map<string, HTMLSpanElement>();
+      const tick = () => {
+        for (const [id, p] of Object.entries(ctl.landmarkScreenPositions())) {
+          let s = tags.get(id);
+          if (!s) { s = document.createElement('span'); s.textContent = id; box.append(s); tags.set(id, s); }
+          s.style.transform = `translate(${p.x}px, ${p.y}px) translate(-50%, -50%)`;
+          s.style.visibility = p.visible ? 'visible' : 'hidden';
+        }
+        requestAnimationFrame(tick);
+      };
+      tick();
+    }
+    root.dataset.world = 'ready';
+  }).catch((e: unknown) => {
+    if (ac.signal.aborted) { root.dataset.world = `aborted:${(e as Error)?.name ?? 'Error'}`; return; }
+    console.error(e);
+    root.dataset.world = `error:${String(e)}`;
+  });
+</script>

@@ -1,0 +1,9 @@
+yaraikiba:
+  url: https://wifi-deflate-boneless.ngrok-free.dev
+  steps:
+    - Sign in with your Google account.
+    - "*Are you an admin?* Choose **No**."
+    - "*Are you a study participant?* Choose **No**."
+    - Create an account to use the agent, and you're good to go.
+resumePdf: /Soumyajyoti_Dutta_Resume.pdf
+cvPdf: /Soumyajyoti_Dutta_CV.pdf

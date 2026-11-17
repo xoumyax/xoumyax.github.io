@@ -1,0 +1,26 @@
+---
+interface Props { email: string; github: string; linkedin: string; resumePdf: string; cvPdf: string }
+const { email, github, linkedin, resumePdf, cvPdf } = Astro.props;
+---
+<ul class="contact" aria-label="Contact and documents">
+  <li><a class="pill primary" href={resumePdf} download>⬇ Resume (PDF)</a></li>
+  <li><a class="pill" href={cvPdf}>Full CV (PDF)</a></li>
+  <li><a class="pill" href={`mailto:${email}`}>{email}</a></li>
+  <li><a class="pill" href={github} rel="noopener">GitHub</a></li>
+  <li><a class="pill" href={linkedin} rel="noopener">LinkedIn</a></li>
+</ul>
+
+<style>
+  .contact { list-style: none; margin: 1.25rem 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: .5rem; }
+  .contact li { min-width: 0; max-width: 100%; }
+  .pill {
+    display: inline-block; max-width: 100%; overflow-wrap: anywhere;
+    padding: .5rem .95rem; border-radius: 999px; text-decoration: none; font-size: .95rem;
+    border: 1px solid color-mix(in oklab, var(--ink) 22%, transparent);
+    background: color-mix(in oklab, var(--paper) 70%, transparent);
+    transition: background-color .25s var(--ease), color .25s var(--ease);
+  }
+  .pill:hover { background: color-mix(in oklab, var(--amber) 30%, var(--paper)); }
+  .primary { background: var(--ink); color: var(--paper); border-color: var(--ink); font-weight: 550; }
+  .primary:hover { background: var(--amber); color: var(--ink); border-color: var(--amber); }
+</style>

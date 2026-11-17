@@ -1,0 +1,3 @@
+# Python tools for the personal-space phase (photo prep + gallery encryption). Install via ./setup.sh into .venv.
+Pillow==13.0.0
+cryptography==50.0.2

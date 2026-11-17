@@ -1,0 +1,54 @@
+---
+import Base from '../layouts/Base.astro';
+import { getProfile } from '../lib/data';
+
+const p = getProfile();
+const materials = [
+  { href: '/CSCE-313/', label: 'CSCE 313 course index' },
+  { href: '/CSCE-313/Lab1/lab1.pdf', label: 'Lab 1 handout (PDF)' },
+  { href: '/CSCE-313/Lab1/CSCE313_Linux_Cheatsheet.pdf', label: 'Linux cheatsheet (PDF)' },
+  { href: '/CSCE-313/Lab2/lab2_slides.pdf', label: 'Lab 2 slides (PDF)' },
+  { href: '/CSCE-313/Lab3/lab3_slides.pdf', label: 'Lab 3 slides (PDF)' },
+  { href: '/CSCE-313/Lab4/lab4_walkthrough.pdf', label: 'Lab 4 walkthrough (PDF)' },
+  { href: '/CSCE-313/pipes-cheatsheet.html', label: 'Pipes cheatsheet' },
+  { href: '/CSCE-313/ssh_setup_guide.html', label: 'SSH setup guide' },
+];
+---
+<Base title="Teaching" description="Courses taught and assisted, course material, talks and outreach." theme="paper">
+  <div class="wrap page">
+    <h1>Teaching</h1>
+    <section>
+      <h2 class="label">Courses</h2>
+      <ul class="plain">
+        {p.teaching.map((t) => (
+          <li><strong>{t.course}</strong> <span class="mono tag">{t.term}</span><br />{t.what}</li>
+        ))}
+      </ul>
+    </section>
+    <section>
+      <h2 class="label">CSCE 313 material</h2>
+      <ul class="mat">
+        {materials.map((m) => <li><a href={m.href}>{m.label}</a></li>)}
+      </ul>
+    </section>
+    <section>
+      <h2 class="label">Talks and outreach</h2>
+      <ul class="plain">
+        {p.talks.map((t) => (
+          <li><strong>{t.title}</strong> <span class="mono tag">{t.venue}, {t.date}</span></li>
+        ))}
+      </ul>
+    </section>
+  </div>
+</Base>
+
+<style>
+  .page { max-width: var(--measure); padding-block: 2rem 3rem; }
+  h1 { font-size: clamp(2rem, 5vw, 3rem); margin-bottom: .6em; }
+  section { margin-bottom: 2rem; }
+  .plain, .mat { list-style: none; padding: 0; margin: .5em 0 0; }
+  .plain li { margin-bottom: .85em; }
+  .mat li { margin-bottom: .4em; }
+  .tag { opacity: .75; }
+  a { text-decoration-color: var(--amber); text-underline-offset: .2em; }
+</style>

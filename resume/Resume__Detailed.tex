@@ -1,0 +1,199 @@
+
+\documentclass[letterpaper,11pt]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{latexsym}
+\usepackage[empty]{fullpage}
+\usepackage{titlesec}
+\usepackage{marvosym}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{fancyhdr}
+\usepackage[english]{babel}
+\usepackage{tabularx}
+\usepackage{multicol}
+\input{glyphtounicode}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\addtolength{\oddsidemargin}{-0.5in}
+\addtolength{\evensidemargin}{-0.5in}
+\addtolength{\textwidth}{1in}
+\addtolength{\topmargin}{-.5in}
+\addtolength{\textheight}{1.3in}
+
+\urlstyle{same}
+\raggedbottom
+\raggedright
+\setlength{\tabcolsep}{0in}
+
+\titleformat{\section}{
+  \vspace{-6pt}\scshape\raggedright\large
+}{}{0em}{}[\color{black}\titlerule \vspace{-4pt}]
+
+\pdfgentounicode=1
+
+\newcommand{\resumeItem}[1]{
+  \item\small{#1 \vspace{-3pt}}
+}
+
+\newcommand{\resumeSubheading}[4]{
+  \vspace{-2pt}\item
+    \begin{tabular*}{0.97\textwidth}[t]{l@{\extracolsep{\fill}}r}
+      \textbf{#1} & #2 \\
+      \textit{\small#3} & \textbf{\small #4} \\
+    \end{tabular*}\vspace{-5pt}
+}
+
+\newcommand{\resumeProjectHeading}[2]{
+    \item
+    \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
+      \small#1 & #2 \\
+    \end{tabular*}\vspace{-5pt}
+}
+
+\newcommand{\resumeSubItem}[1]{\resumeItem{#1}\vspace{-4pt}}
+\renewcommand\labelitemii{$\vcenter{\hbox{\tiny$\bullet$}}$}
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0.15in, label={}]}
+\newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
+\newcommand{\resumeItemListStart}{\begin{itemize}}
+\newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-6pt}}
+
+\begin{document}
+
+\begin{center}
+    {\Huge \scshape Soumyajyoti Dutta} \\ \vspace{2pt}
+    \small (979) 326-2896 $|$
+    \href{mailto:soumyajyotidutta23@gmail.com}{\underline{soumyajyotidutta23@gmail.com}} $|$
+    \href{https://xoumyax.github.io/}{\underline{https://xoumyax.github.io/}} $|$
+    \href{https://www.linkedin.com/in/soumyajyotidutta/}{\underline{linkedin.com/in/soumyajyotidutta}}
+    \\ \vspace{2pt}
+    \small \textit{Empirical LLM Research $|$ Post-Training \& Evaluation $|$ AI for Cyberdefense \& Adversarial ML}
+\end{center}
+
+\section{Expertise}
+
+\textbf{Core Competencies:}
+\begin{itemize}[leftmargin=0.15in, itemsep=-3pt, topsep=1pt]
+  \small
+  \item \textbf{LLM post-training:} supervised fine-tuning and curriculum-staged training to align foundation models (135M--$\sim$9B, incl.\ sparse MoE) to intended behavior --- e.g.\ teaching an agent to clarify rather than hallucinate on ambiguous intent.
+  \item \textbf{Evaluation \& Diagnosis:} task-specific metrics (lexical + syntactic + SMT-based semantic comparison), LLM-as-judge and user-simulation harnesses used as training-time evaluation signals; frontier-API baselines and stage-wise ablations that trace \textit{where} a method's gains stop and \textit{why}.
+  \item \textbf{AI $\times$ security:} LLM systems for automated cyberdefense (threat-intel rule generation, IOC/TTP extraction), adversarial ML (built a competition's top-ranked adversarial attack suite), and ML malware detection on 2M+ samples.
+  \item \textbf{Efficient training \& inference:} single-GPU \& multi-node SLURM training with FFT and PEFT (LoRA/QLoRA), MoE, grammar-derived hybrid tokenization, and vLLM inference with multi-turn KV reuse.
+  \item \textbf{Research $\rightarrow$ public output:} ACSAC 2026 main-proceedings paper with an open-source PyPI release, two manuscripts in preparation (one for USENIX Security '27), a hosted analyst agent, Texas Security Workshop 2026 talk, Springer chapter (2022), and a deployed full-stack applied-LLM platform.
+\end{itemize}
+
+\vspace{2pt}
+\textbf{Technical Stack:}\\
+\small Python (PyTorch, HuggingFace Transformers, TRL, TensorFlow, NumPy, Pandas, scikit-learn, Matplotlib), SQL/SQLite, DeepSpeed, FSDP, DDP/NCCL, CUDA, SLURM, vLLM, Z3/SMT, MCP, Ollama, Playwright, Docker, AWS, Git, CI/CD, FastAPI/Flask/Django, React, C++, Rust
+
+\section{Professional Experience}
+  \resumeSubHeadingListStart
+
+    \resumeSubheading
+      {Texas A\&M University --- Botacin's Lab}{College Station, TX}
+      {Research Assistant / Machine Learning Engineer (Applied AI)}{Spring 2024 -- Present}
+      \resumeItemListStart
+        \resumeItem{Built end-to-end LLM post-training pipelines: data curation, SFT / curriculum training, strategic evaluation, and deployment across $\sim$a dozen model families (135M--$\sim$9B) on multi-node SLURM/GPU clusters.}
+        \resumeItem{\textbf{YaraGen}, sponsored by \textbf{Laboratory for Physical Sciences, UMD \& Booz Allen Hamilton} --- grammar-oriented minimal LLMs for YARA rule generation (\textbf{submission in preparation}):}
+        \begin{itemize}
+          \item \small Lifted a \textbf{139M-parameter BART} generator to \textbf{91.8\% semantic correctness} (93.7\% in-window) on 22.7K held-out real-world rules --- matching a fully fine-tuned 8B model (93.8\%) with \textbf{57$\times$ fewer parameters} and 17--20$\times$ the generation throughput.
+          \item \small Benchmarked frontier APIs on structured generation: fully fine-tuned Llama and Ministral 8B models beat few-shot GPT-5.4 (84.0\%) by \textbf{4--8 pp} and led zero-shot GPT-5.4 (73.5\%) and Sonnet 5 (75.0\%) further; the 139M pipeline leads few-shot GPT-5.4 by $\sim$10 pp, and frontier parse rates of 97--99.8\% show the gap is semantic, not syntactic.
+          \item \small Outperformed AST-T5's structure-aware pretraining by $\sim$\textbf{30 pp} on average across rule generation and patching on the same BART backbone; combining the two strategies added a further $\sim$2 pp.
+          \item \small Ran \textbf{150+ post-training runs} across BART, CodeT5p, T5Gemma, SmolLM2, LFM2.5 (230M--1.2B), Gemma 3 (270M--1B), Llama 3.1 8B / 3.2 1B, and Ministral 3 8B, spanning FFT, LoRA/QLoRA, and seq2seq vs.\ causal ablations.
+          \item \small Designed the \textbf{YaraAST hybrid tokenizer} --- grammar-derived atomic tokens for rule structure over base subwords for IOC content --- yielding +4 pp accuracy, 11\% per-rule context reduction, and 5\% faster training (3.8\% fewer FLOPs on 16 GPUs).
+          \item \small Co-designed a \textbf{55M BiLSTM NER Scooper} that masks IOCs behind placeholders (99.4\% precision / 99.6\% recall), adding up to +10 pp correctness and decoupling IOC size from the context window.
+          \item \small Trained \textbf{LLMScooper}, a LoRA adapter (r=32, $\sim$85M params) that turns the 8B generator's own backbone into an IOC tagger at \textbf{0.999 span F1}, swapped on GPU-resident weights.
+          \item \small Assembled three corpora (\textbf{305K crawled} in-the-wild rules from 59 repos; \textbf{15M synthetic} from 459 curated templates; \textbf{15M grammar-fuzzed}) and built \textit{Brownie \& Puff} composite evaluators (BLEU + parse/compile + \textbf{Z3 SMT semantic comparison}) as training-time signals; only the composite correlated positively with test accuracy (BLEU Spearman down to $-$0.70).
+          \item \small Downstream on EMBER malware clusters, generated rules reach \textbf{96$\pm$4\% TP at 0.8\% FP} (99.7\% generation success) vs.\ AutoYara's 93$\pm$6\% at 0.5\% FP; released the framework, evaluators, and models as open-source artifacts.
+          \item \small \textit{In progress:} extending YaraGen with tool use, verification and repair, designing verified multi-task SFT and an RLVR pilot with executable, formally checked rewards.
+        \end{itemize}
+        \resumeItem{\textbf{IOCScooper++} --- IOC/TTP extraction from threat reports (\textbf{targeting USENIX Security '27, Cycle 2}):}
+        \begin{itemize}
+          \item \small Trained \textbf{ScooperNER}, a 50.6M-parameter extractor (MLM pretraining $\rightarrow$ fine-tuning, 36 IOC types): \textbf{0.894 micro / 0.925 macro} span-exact F1 on held-out vendor and government reports, beating fine-tuned encoder baselines at 3--7$\times$ its size, with 0.950 F1 on explicit MITRE ATT\&CK IDs.
+          \item \small End to end on 47 held-out reports, extraction feeds frozen YaraGen at 0.86/0.88 precision/recall with \textbf{100\% rule validity} at \textbf{0.97 IOC coverage} across 344 generated rules.
+          \item \small Extending to grounded (entity, action, IOC) tuples mapped open-set onto all 637 ATT\&CK techniques via procedure-example retrieval, with a co-annotated benchmark of real malware reports.
+        \end{itemize}
+        \resumeItem{\textbf{AutoPYara} --- shipped an open-source rule-generation package (\textbf{PyPI}; \textbf{ACSAC 2026, main proceedings}; \href{https://arxiv.org/abs/2611.08608}{\underline{arXiv:2611.08608}}) for $\approx$71K Windows PE samples: \textbf{+14~pp} coverage, 7.1~pp lower variance, and +10\% threat-hunting accuracy over AutoYara (prior state of the art).}
+      \resumeItemListEnd
+
+    \resumeSubheading
+      {Cognizant Technology Solutions}{Kolkata, India}
+      {Junior Software Engineer --- Client-Embedded Consulting (Client: \textbf{TJX Companies})}{Aug 2021 -- Aug 2022}
+      \resumeItemListStart
+        \resumeItem{Client-embedded consultant for \textbf{TJX Companies (Fortune 500)}: shipped a logistics-automation platform; optimized Python/REST services (latency, concurrency, CI/CD) and led cross-functional code reviews.}
+      \resumeItemListEnd
+    \vspace{-6pt}\resumeSubheading
+      {}{}
+      {Software Engineering Intern --- \textbf{converted to full-time offer}}{Feb 2021 -- Jun 2021}
+      \resumeItemListStart
+        \resumeItem{Built web features for a client logistics platform; resolved support tickets via ServiceNow triage and Splunk tracing.}
+      \resumeItemListEnd
+
+  \resumeSubHeadingListEnd
+
+\section{Selected Projects}
+  \resumeSubHeadingListStart
+
+    \resumeProjectHeading
+      {\textbf{YARAikiba --- Analyst Agent over YaraGen} $|$ \textit{tool-calling web agent; hosted at \href{https://xoumyax.github.io/}{\underline{xoumyax.github.io}}}}{2026}
+      \resumeItemListStart
+        \resumeItem{Built a hosted web agent on the lab's own models: a layered router maps each request onto \textbf{38 tools} and \textbf{17 fixed workflows}, and a ReAct mode chains dependent calls (threat report $\rightarrow$ extracted IOCs $\rightarrow$ rule).}
+        \resumeItem{Covered the analyst's full loop: rules from descriptions, IOC lists, reports, or binaries; fixing, merging, and explaining rules; false-positive risk and Z3 equivalence checks, with every generated rule verified for IOC fidelity.}
+      \resumeItemListEnd
+
+    \resumeProjectHeading
+      {\textbf{Proactive Deep Research Agent} $|$ \textit{Co-authored, in prep.\ --- led model development \& training; \href{https://github.com/xoumyax/ProPauseLM-Playground/tree/modified-prompt}{\underline{V1 code}}}}{2026}
+      \resumeItemListStart
+        \resumeItem{Post-trained a deep-research agent (Gemma-4-E4B sparse MoE, four-stage SFT, one 80GB GPU, vLLM) to ask a clarifying question on underspecified intent: ambiguity-detection F1 rose from \textbf{0.168 to 0.573} and recall from 0.095 to \textbf{0.607} on 176 real queries.}
+        \resumeItem{\textit{Ongoing:} developing an \textbf{entropy-based ambiguity metric} that decides when to ask and improves final answers; mapped the label schemas of \textbf{14 public datasets} onto three targets for a $\sim$\textbf{400K-query} corpus.}
+      \resumeItemListEnd
+
+    \resumeProjectHeading
+      {\textbf{Sturdy Fishstick --- Full-Stack Applied-LLM Platform} $|$ \textit{FastAPI, React, SQLite, local LLMs via Ollama}}{2026}
+      \resumeItemListStart
+        \resumeItem{Deployed a full-stack platform that has scored \textbf{$\sim$750 listings} from 10+ sources (6 ATS APIs, Playwright fallback), using categorical scoring that makes 1--2B local models reliable judges and FTS5-grounded RAG that rules out hallucinated counts.}
+      \resumeItemListEnd
+
+    \resumeProjectHeading
+      {\textbf{ML Malware Detection \& Adversarial Attack Suite} $|$ \textit{\textbf{1st place}, ML-Based Cyberdefenses Challenge}}{2023}
+      \resumeItemListStart
+        \resumeItem{Built an end-to-end Windows PE malware classifier (EMBER/BODMAS/Benign-NET, 2M+ samples; LightGBM/XGBoost) --- \textbf{96.2\% accuracy, 0.97 F1} --- served from a Docker HTTP endpoint.}
+        \resumeItem{Designed the competition's best-performing adversarial attack suite; the entry is \textbf{still the best model after five offerings} of TAMU's Data Analytics for Cybersecurity course.}
+      \resumeItemListEnd
+
+  \resumeSubHeadingListEnd
+
+\section{Education}
+  \resumeSubHeadingListStart
+    \resumeProjectHeading{\textbf{Ph.D. in Computer Science} --- Texas A\&M University}{Spring 2024 -- Expected Spring 2028}
+    \resumeProjectHeading{\textbf{M.S. in Computer Engineering} --- Texas A\&M University}{Fall 2022 -- Fall 2023}
+      \resumeItemListStart
+        \resumeItem{\textit{Coursework:} NLP, Deep Learning, Computer Vision, ML Cyberdefenses, ML Theory, Data Mining.}
+      \resumeItemListEnd
+    \resumeProjectHeading{\textbf{B.Tech. in Electronics \& Communication Engineering} --- SRM Institute of Science and Technology}{2017 -- 2021}
+  \resumeSubHeadingListEnd
+
+\section{Publications \& Manuscripts}
+  \resumeSubHeadingListStart
+    \resumeProjectHeading{\textbf{YaraGen} --- minimal grammar-oriented LLMs for YARA rule generation}{Submission in preparation}
+    \resumeProjectHeading{\textbf{IOCScooper++} --- grounded IOC/TTP extraction from threat reports}{USENIX Security '27, in prep.\ (Cycle 2)}
+    \resumeProjectHeading{\textbf{AutoPYara} --- automated rule generation; open-sourced on PyPI}{ACSAC 2026, main proceedings; arXiv:2611.08608}
+    \resumeProjectHeading{\textbf{Proactive Deep Research Agents} --- ambiguity-aware clarification (co-authored)}{2026, in preparation}
+    \resumeProjectHeading{\textbf{Carotid-Artery Ultrasound Classification} --- CNN-based medical imaging}{Springer book chapter, 2022}
+  \resumeSubHeadingListEnd
+
+\section{Teaching, Talks \& Outreach}
+  \resumeSubHeadingListStart
+    \resumeProjectHeading{\textbf{Teaching Assistant, TAMU} --- CSCE 313 Computer Systems; CSCE 439/704 Data Analytics for Cybersecurity}{2026}
+    \resumeProjectHeading{\textbf{Presenter} --- Texas Security Workshop 2026 (IOCScooper++); TAMU CS Day demos}{2024 -- 2026}
+  \resumeSubHeadingListEnd
+
+\end{document}

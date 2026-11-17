@@ -1,0 +1,14 @@
+---
+interface Props { title: string }
+const { title } = Astro.props;
+---
+<section class="rs">
+  <h2>{title}</h2>
+  <slot />
+</section>
+
+<style>
+  .rs { padding-block: 1.25rem; border-top: 1px solid color-mix(in oklab, var(--ink) 14%, transparent); }
+  .rs :global(h2) { font-size: 1.2rem; margin-bottom: .75rem; }
+  @media print { .rs { break-inside: avoid-page; padding-block: .6rem; } }
+</style>

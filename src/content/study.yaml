@@ -1,0 +1,7 @@
+links:
+  - title: First-Principles Foundry flashcards
+    href: https://claude.ai/artifact/1gKVHr8ij1e5L5hF1y6zZT
+    blurb: A flashcard deck of formulas and roofline problems for research-engineer, forward-deployed-engineer and ML-systems interviews.
+  - title: TensorTonic study plans
+    href: https://www.tensortonic.com/study-plans
+    blurb: Roadmaps of machine learning practice problems, from NumPy and PyTorch foundations to GPU programming and ML math.

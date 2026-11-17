@@ -1,0 +1,65 @@
+---
+// Typographic + ASCII-glyph cover. No raster images: a tone field, a glyph texture and the
+// project's glyph mark set large. Content passed in the default slot sits on top (the card uses it).
+import type { Project } from '../lib/schema';
+import { AREA_LABELS, glyphField, onTone } from './projects/util';
+
+interface Props {
+  project: Project;
+  size: 'card' | 'hero';
+}
+const { project, size } = Astro.props;
+const { tone, glyphs } = project.cover;
+const field = size === 'hero' ? glyphField(project, 150, 40) : glyphField(project, 44, 30);
+const style = `--tone:var(--${tone});--on-tone:${onTone(tone)}`;
+---
+<div class:list={['cover', size, `tone-${tone}`]} style={style} data-cover>
+  <pre class="field" aria-hidden="true">{field}</pre>
+  <span class="mark" aria-hidden="true">{glyphs}</span>
+  {size === 'hero' && (
+    <div class="hero-meta mono" aria-hidden="true">
+      <span>{project.years}</span>
+      <span>{project.areas.map((a) => AREA_LABELS[a]).join(' / ')}</span>
+    </div>
+  )}
+  <slot />
+</div>
+
+<style>
+  .cover {
+    position: relative; isolation: isolate; overflow: hidden;
+    width: 100%;
+    color: var(--on-tone);
+    background:
+      radial-gradient(120% 90% at 100% 100%, color-mix(in oklab, var(--ink) 16%, transparent), transparent 60%),
+      var(--tone);
+    border-radius: 14px;
+  }
+  .card { aspect-ratio: 4 / 5; }
+  .hero { aspect-ratio: 21 / 8; border-radius: 22px; }
+  @media (max-width: 40rem) { .hero { aspect-ratio: 4 / 3; } }
+
+  .field {
+    position: absolute; inset: 0; z-index: -1; margin: 0;
+    font-family: var(--font-mono); line-height: 1.12; letter-spacing: .02em;
+    white-space: pre; overflow: hidden;
+    opacity: .38;
+    padding: .6rem .7rem;
+  }
+  .card .field { font-size: .66rem; }
+  .hero .field { font-size: clamp(.6rem, 1vw, .8rem); padding: 1rem 1.2rem; }
+  .tone-sand .field, .tone-amber .field { opacity: .3; }
+
+  .mark {
+    position: absolute; z-index: -1;
+    font-family: var(--font-mono); font-weight: 800;
+    white-space: pre; line-height: .85; letter-spacing: -0.06em;
+  }
+  .card .mark { top: 3.5rem; right: 1rem; font-size: clamp(3.2rem, 5.5vw, 4.4rem); }
+  .hero .mark { right: clamp(1rem, 4vw, 3rem); bottom: clamp(.75rem, 3vw, 2.25rem); font-size: clamp(4.5rem, 14vw, 12rem); }
+
+  .hero-meta {
+    position: absolute; left: clamp(1rem, 3vw, 2rem); top: clamp(1rem, 3vw, 1.75rem);
+    display: grid; gap: .2rem; font-size: .78rem; letter-spacing: .04em;
+  }
+</style>

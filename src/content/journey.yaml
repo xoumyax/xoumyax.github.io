@@ -1,0 +1,65 @@
+stops:
+  - id: srm
+    years: 2017–21
+    title: B.Tech. in Electronics & Communication
+    place: SRM Institute of Science and Technology, Chennai
+    summary: Where it started — signals, circuits, and the first neural networks, including a CNN for carotid-artery ultrasound that became a Springer book chapter.
+    landmark: trailhead
+    items: [carotid-ultrasound]
+  - id: cognizant
+    years: 2021–22
+    title: Software engineer, client-embedded
+    place: Cognizant Technology Solutions, Kolkata
+    summary: Joined as an intern in February 2021 and converted to full-time — a year embedded with TJX Companies, shipping a logistics-automation platform.
+    landmark: ranger
+    items:
+      - title: Intern → full-time
+        text: Feb–Jun 2021 internship on a client logistics platform, converted to a full-time offer.
+      - title: Client-embedded consulting
+        text: Aug 2021 – Aug 2022 with TJX Companies — REST API latency and concurrency work, CI/CD, code review.
+  - id: ms
+    years: 2022–23
+    title: M.S. in Computer Engineering
+    place: Texas A&M University
+    summary: Machine learning for security, data-science competitions, and a first taste of teaching.
+    landmark: school
+    items:
+      - ml-malware-detection
+      - wildfire
+      - fashion-mnist
+      - title: TA, ECEN 325 — Electronics
+        text: Spring 2023 — lectures, labs and grading.
+      - title: Student Research Week
+        text: Summer 2023 — technical coordinator for the automated judging and submission infrastructure.
+      - title: Genomic-pathway modelling
+        text: Summer 2023 — modelled prostate-cancer pathways and simulated multi-drug interactions.
+  - id: phd
+    years: 2024–
+    title: Ph.D. in Computer Science, Botacin's Lab
+    place: Texas A&M University
+    summary: LLMs that write, check and explain detection rules — from malware clustering to a hosted analyst agent.
+    landmark: trailer
+    items: [autopyara, yaragen, yaraikiba, iocscooper-plus-plus, hellopentagon, vlm-evaluation, hawkeye, breast-cancer-classification, yara-sentencepiece]
+  - id: now
+    years: "2026"
+    title: Now
+    place: College Station, Texas
+    summary: Research agents that ask before they search, a vision-security benchmark, and teaching systems programming.
+    landmark: dome
+    items:
+      - proactive-research-agent
+      - depixelation
+      - sturdy-fishstick
+      - yaragen-plus-plus
+      - attendance-wizard
+      - title: Teaching CSCE 313 and CSCE 439/704
+        text: Fall 2026 systems-programming labs; Spring 2026 data analytics for cybersecurity.
+      - title: Texas Security Workshop 2026
+        text: Talk on IOCScooper++ — IOC and TTP extraction from threat reports.
+      - title: TAMU CS Day
+        text: Interactive AI and cybersecurity demos for high-school students, 2024 and 2025.
+  - id: river
+    years: Next
+    title: Open to work
+    place: The Rio Grande
+    summary: Looking for Summer 2027 research internships in post-training, evaluation, agents and security ML.

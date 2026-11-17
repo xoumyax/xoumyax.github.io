@@ -1,0 +1,90 @@
+name: Soumyajyoti Dutta
+role: PhD student in Computer Science at Texas A&M (Botacin's Lab) — LLM post-training and evaluation, applied to security.
+openToWork: Open to Summer 2027 research internships — post-training, evaluation, agents and security ML.
+email: soumyajyotidutta23@gmail.com
+github: https://github.com/xoumyax
+linkedin: https://www.linkedin.com/in/soumyajyotidutta/
+
+education:
+  - degree: Ph.D. Computer Science
+    school: Texas A&M University
+    years: Spring 2024 – present (expected Spring 2028)
+    note: Advisor Dr. Marcus Botacin, Botacin's Lab. Research — LLMs for automated rule generation and model interpretability in cyberdefense.
+  - degree: M.S. Computer Engineering
+    school: Texas A&M University
+    years: Fall 2022 – Fall 2023
+    note: ML Theory, Deep Learning, Data Mining, Randomized Algorithms, ML-Based Cyberdefenses.
+  - degree: B.Tech. Electronics & Communication Engineering
+    school: SRM Institute of Science and Technology, Chennai
+    years: Fall 2017 – Spring 2021
+
+experience:
+  - title: Research Assistant
+    org: Texas A&M University — Botacin's Lab
+    years: Spring 2024 – present
+    bullets:
+      - Curriculum-based post-training across about a dozen model families from 135M to ~9B parameters (BART, CodeT5p, T5Gemma, SmolLM2, LFM2.5, Gemma 3, Llama 3.1/3.2, Ministral 3) on multi-node SLURM clusters.
+      - Leads YaraGen and its analyst-facing agent YARAikiba; works on IOCScooper++ and AutoPYara.
+      - Checkpoint pipelines and reproducible experiment tracking for every run.
+  - title: Graduate Student Researcher
+    org: Texas A&M University
+    years: Summer 2023
+    bullets:
+      - Mathematical modelling of prostate-cancer genomic pathways; simulated multi-drug interactions to support biologists' model validation.
+  - title: Junior Software Engineer (Consulting)
+    org: Cognizant Technology Solutions, Kolkata
+    years: Aug 2021 – Aug 2022
+    bullets:
+      - Client-embedded technical consultant with TJX Companies — scoped, built and delivered a logistics-automation platform with the client's engineering and product stakeholders.
+      - Optimized REST API endpoints for latency and concurrency; maintained CI/CD and led code review across cross-functional teams.
+  - title: Software Engineering Intern
+    org: Cognizant Technology Solutions, Kolkata
+    years: Feb 2021 – Jun 2021 · converted to full-time
+    bullets:
+      - Front-end views and back-end services on a client logistics platform; triaged client-facing incidents in ServiceNow and traced them through Splunk.
+
+skills:
+  - group: ML
+    items: [PyTorch, TensorFlow, HuggingFace Transformers, TRL, scikit-learn, LightGBM / XGBoost, NumPy, Pandas]
+  - group: Distributed & infra
+    items: [DeepSpeed, FSDP, DDP / NCCL, CUDA, SLURM, vLLM, AWS]
+  - group: Formal & evaluation
+    items: [Z3 SMT, yaramod / yara-python, LLM-as-judge, Halstead & cyclomatic complexity tooling]
+  - group: Agents & serving
+    items: [Ollama, MCP servers, RAG (FTS5 retrieval), tool-calling agents]
+  - group: Languages
+    items: [Python, C++, Rust]
+  - group: Web & tooling
+    items: [FastAPI, React / Vite / Tailwind, Django / Flask, SQLite, Git, CI/CD, Playwright]
+  - group: Security domain
+    items: [YARA, IOC / TTP extraction, CTI reports, malware analysis (PE features), MITRE ATT&CK]
+
+publications:
+  - text: "AutoPYara: Next-Gen YARA Rule Generator for Malware Family Clustering — M. Ninan, N. Nguyen, S. Dutta, S. Anil, M. Botacin. IEEE ACSAC 2026 (LASER 2026 talk)."
+    href: https://arxiv.org/abs/2611.08608
+  - text: "Carotid-artery ultrasound classification with CNNs — Springer book chapter, 2022."
+  - text: "YaraGen — submission in preparation."
+  - text: "IOCScooper++ — in preparation, targeting USENIX Security '27."
+  - text: "Proactive Deep Research Agents — manuscript in preparation, 2026 (co-authored)."
+
+teaching:
+  - course: CSCE 313 — Introduction to Computer Systems
+    term: Fall 2026
+    what: Teaching assistant for the lab sections — processes, IPC, memory and file systems, threads and synchronization, sockets.
+  - course: CSCE 439/704 — Data Analytics for Cybersecurity
+    term: Spring 2026
+    what: Teaching assistant — clustering, supervised ML and anomaly detection for 37 students; designed assignments and mentored 9 team projects.
+  - course: ECEN 325 — Electronics
+    term: Spring 2023
+    what: Teaching assistant — lectures, labs and grading.
+
+talks:
+  - title: IOCScooper++ — IOC and TTP extraction from threat reports
+    venue: Texas Security Workshop 2026
+    date: 26 Sep 2026
+  - title: Interactive AI and cybersecurity demos for high-school students (partner and presenter)
+    venue: TAMU CS Day
+    date: 2024, 2025
+  - title: Technical coordinator — automated judging and submission infrastructure
+    venue: TAMU Student Research Week
+    date: Summer 2023
