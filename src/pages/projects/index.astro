@@ -11,10 +11,7 @@ const projects = wallOrder(await getProjects());
   <section class="wall-page">
     <header class="wrap head">
       <h1>Projects<sup class="n mono">({projects.length})</sup></h1>
-      <div class="intro">
-        <p>Research and engineering work, from undergrad to now.</p>
-        <p>Security tooling, post-training and evaluation, agents, and systems. Pick a card for the full write-up.</p>
-      </div>
+      <p class="intro">Research and engineering work, from undergrad to now: security tooling, post-training and evaluation, agents, and systems. Pick a card for the full write-up.</p>
     </header>
 
     <div class="wrap board">
@@ -48,15 +45,15 @@ const projects = wallOrder(await getProjects());
     font-size: clamp(.9rem, 1.6vw, 1.25rem); font-weight: 500; letter-spacing: 0;
     vertical-align: top; position: relative; top: .5em; margin-left: .35em;
   }
+  /* A squared block: justified, with the last line stretched too, at a width that keeps it compact. */
   .intro {
-    display: grid; gap: .9rem; max-width: 36rem;
-    font-size: 1.05rem; font-weight: 550; line-height: 1.3; letter-spacing: -0.01em;
+    margin: 0; width: min(100%, 21rem); /* 4 even lines, no hyphenation; re-measure if the text changes */
+    font-size: 1.05rem; font-weight: 550; line-height: 1.35; letter-spacing: -0.01em;
+    text-align: justify; text-align-last: justify; hyphens: manual; -webkit-hyphens: manual;
   }
-  .intro p { margin: 0; max-width: 24rem; }
   @media (min-width: 64rem) {
     .head { grid-template-columns: 1fr auto; align-items: end; }
     .intro { padding-bottom: .9rem; }
-    .intro p:last-child { margin-left: 4rem; }
   }
 
   .wall {

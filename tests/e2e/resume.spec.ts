@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { checkText } from '../../src/lib/claims';
 
-const H2 = ['Education', 'Technical expertise', 'Experience', 'Selected projects', 'Publications', 'Teaching & talks'];
+const H2 = ['Education', 'Technical expertise', 'Experience', 'Selected projects', 'Other projects', 'Publications', 'Teaching & talks'];
 
 async function check(page: import('@playwright/test').Page) {
   await page.goto('/resume/');

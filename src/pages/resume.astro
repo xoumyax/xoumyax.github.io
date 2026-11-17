@@ -6,7 +6,11 @@ import { getProfile, getProjects, getConfig } from '../lib/data';
 
 const p = getProfile();
 const cfg = getConfig();
-const featured = (await getProjects()).filter((x) => x.featured);
+const allProjects = await getProjects();
+const featured = allProjects.filter((x) => x.featured);
+// Newest first, by the last year a project ran (stable sort keeps journey order within a year).
+const lastYear = (y: string) => Math.max(...(y.match(/\d{4}/g) ?? ['0']).map(Number));
+const others = allProjects.filter((x) => !x.featured).sort((a, b) => lastYear(b.years) - lastYear(a.years));
 ---
 <Base title="Resume" description={`Resume of ${p.name}: ${p.role}.`} theme="paper">
   <article class="wrap resume">
@@ -59,6 +63,17 @@ const featured = (await getProjects()).filter((x) => x.featured);
       </ul>
     </Section>
 
+    <Section title="Other projects">
+      <ul class="plain others">
+        {others.map((pr) => (
+          <li>
+            <a href={`/projects/${pr.slug}/`}><strong>{pr.title}</strong></a>
+            <span class="mono tag"> {pr.years}</span>
+            <br />{pr.oneLiner}
+          </li>
+        ))}
+      </ul>
+    </Section>
     <Section title="Publications">
       <ul class="plain">
         {p.publications.map((x) => (
