@@ -52,6 +52,7 @@ export function initScenes(): void {
 
   // Use the set that fits the viewport as soon as it is loaded.
   function adopt(): void {
+    fit(); // keep the current canvas covering the viewport while a new set loads (or fails)
     const want = pickSet(innerWidth, innerHeight);
     const next = loaded.get(want);
     if (!next) { void load(want); return; }
@@ -111,18 +112,8 @@ export function initScenes(): void {
     requestAnimationFrame(() => { pending = false; draw(false); });
   };
 
-  // A stop's own scene is pure only while its centre is at mid-viewport, so a link to a stop
-  // (#stop-<id>) centres it instead of aligning its top edge. Reloads keep their scroll position.
-  function centreOnHash(): void {
-    const target = location.hash.length > 1 ? document.getElementById(decodeURIComponent(location.hash.slice(1))) : null;
-    if (!target || !sections.includes(target)) return;
-    const r = target.getBoundingClientRect();
-    scrollBy({ top: r.top + r.height / 2 - innerHeight / 2, behavior: 'instant' });
-  }
-  const navType = (performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined)?.type;
-  const onLoad = () => requestAnimationFrame(() => { if (navType === 'navigate') centreOnHash(); schedule(); });
+  const onLoad = () => requestAnimationFrame(schedule);
   if (document.readyState === 'complete') onLoad(); else addEventListener('load', onLoad, { once: true });
-  addEventListener('hashchange', () => requestAnimationFrame(centreOnHash));
 
   addEventListener('scroll', schedule, { passive: true });
   addEventListener('resize', () => { adopt(); });

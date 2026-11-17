@@ -71,7 +71,55 @@ test('halfway between two stops is a mix', async ({ page }) => {
 test('deep link shows its scene at once', async ({ page }) => {
   await page.goto('/#stop-now');
   await page.waitForLoadState('load');
-  await expect.poll(() => sceneOf(page)).toBe('now');
+  await page.waitForSelector('#scene:not([hidden])');
+  // Which scene the landed position calls for, from the same section centres.
+  const expected = () => page.evaluate((ids) => {
+    const c = [...document.querySelectorAll('[data-section]')].map((s) => { const r = s.getBoundingClientRect(); return r.top + r.height / 2; });
+    const mid = innerHeight / 2;
+    let k = 0, t = 0;
+    for (let i = 0; i < c.length - 1; i++) { const f = (c[i] - mid) / (c[i] - c[i + 1]); if (f >= 0) { k = i; t = Math.min(1, f); } }
+    if (t >= 1) { k += 1; t = 0; }
+    return { k, t, id: ids[k], next: ids[k + 1] ?? ids[k] };
+  }, IDS);
+  const snap = () => page.evaluate(() => {
+    const cv = document.getElementById('scene') as HTMLCanvasElement;
+    return [...cv.getContext('2d')!.getImageData(0, 0, cv.width, cv.height).data].join(',').length + ':' +
+      Array.from(cv.getContext('2d')!.getImageData(0, 0, cv.width, cv.height).data).reduce((h, v, i) => (h * 31 + v + i) | 0, 7);
+  });
+  await expect.poll(async () => {
+    const e = await expected();
+    const got = await sceneOf(page);
+    if (got === 'hero') return 'hero';
+    return e.t === 0 ? got === e.id : got === 'mixed' || got === e.id || got === e.next;
+  }).toBe(true);
+  expect(await sceneOf(page)).not.toBe('hero');
+  const a = await snap();
+  await page.waitForTimeout(400);
+  expect(await snap()).toBe(a);
+});
+
+test('portrait to landscape keeps the canvas covering the viewport while the set loads', async ({ page }, info) => {
+  test.skip(info.project.name === 'phone', 'needs a viewport resize from portrait');
+  await page.route(/\/scenes\/[a-z]+\.png/, async (r) => { await new Promise((ok) => setTimeout(ok, 1500)); await r.continue(); });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  await page.waitForSelector('#scene:not([hidden])');
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.waitForTimeout(100);
+  const cv = page.locator('#scene');
+  expect(await cv.evaluate((c: HTMLCanvasElement) => c.width)).toBe(120);
+  expect(await cv.evaluate((c) => { const r = c.getBoundingClientRect(); return r.left <= 0 && r.top <= 0 && r.right >= innerWidth && r.bottom >= innerHeight; })).toBe(true);
+});
+
+test('portrait to landscape with the landscape set failing still covers the viewport', async ({ page }, info) => {
+  test.skip(info.project.name === 'phone', 'needs a viewport resize from portrait');
+  await page.route(/\/scenes\/[a-z]+\.png/, (r) => r.abort());
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  await page.waitForSelector('#scene:not([hidden])');
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.waitForTimeout(300);
+  expect(await page.locator('#scene').evaluate((c) => { const r = c.getBoundingClientRect(); return r.left <= 0 && r.top <= 0 && r.right >= innerWidth && r.bottom >= innerHeight; })).toBe(true);
 });
 
 test('end key lands on the river scene', async ({ page }) => {
