@@ -11,14 +11,19 @@ K = 28
 STRENGTH = 14
 PULL = 0.22
 
-# id -> (photo, landscape focal point, portrait focal point), centering for ImageOps.fit
+# id -> (photo, landscape crop, portrait crop); a crop is (cx, cy) or (cx, cy, zoom), see load().
+# Crops are judged on the built page with the section centred: the panel and deck cover most of
+# the middle, so each subject is placed in what they leave free. hero: the Chisos peak right of
+# the YARAikiba card (desktop), in the band above the intro panel (phone). phd: the horse's head
+# and body above the PhD panel (desktop), its head beside the deck (phone). now (phone): the lit
+# door left of the deck.
 SCENES = {
-    'hero':      ('DSC04135.JPG', (0.5, 0.55), (0.5, 0.55)),
+    'hero':      ('DSC04135.JPG', (0.42, 1, 1.3), (0.85, 1, 1.9)),
     'srm':       ('DSC04305.JPG', (0.5, 0.55), (0.5, 0.55)),
     'cognizant': ('DSC04343.JPG', (0.5, 0.55), (0.5, 0.55)),
     'ms':        ('IMG_1444.JPG', (0.5, 0.55), (0.5, 0.55)),
-    'phd':       ('DSC04340.JPG', (0.5, 0.55), (0.5, 0.55)),
-    'now':       ('IMG_7089.JPG', (0.5, 0.55), (0.5, 0.55)),
+    'phd':       ('DSC04340.JPG', (0.82, 1, 1.8), (0.43, 0.55)),
+    'now':       ('IMG_7089.JPG', (0.5, 0.55), (1, 0.5, 1.27)),
     'river':     ('IMG_7241.JPG', (0.5, 0.55), (0.5, 0.55)),
 }
 # The shared palette, fixed so a crop change never recolours the other scenes. It was made by
@@ -33,6 +38,7 @@ PALETTE = [
     (54, 69, 35), (66, 50, 44), (20, 93, 152), (52, 76, 99),
     (24, 39, 54), (40, 47, 29), (31, 31, 17), (14, 15, 8),
 ]
+COOL_GUARD = {'now'}
 TOKENS = [(0xF5,0xF2,0xEC),(0x1D,0x1B,0x18),(0xE9,0xDC,0xC4),(0x8A,0x9A,0x6B),
           (0xA4,0x50,0x2E),(0x4F,0x62,0x72),(0xF0,0xA4,0x3A)]
 LIGHT_TOKENS = TOKENS[:3]   # paper, ink, sand: the only pull targets for pale, low-chroma colours
@@ -42,9 +48,19 @@ def d2(a, b): return sum((x - y) ** 2 for x, y in zip(a, b))
 def lum(c): return 0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2]
 def chroma(c): return max(c) - min(c)
 
-def load(path, size, focal):
+def load(path, size, crop):
+    # crop = (cx, cy) or (cx, cy, zoom): the largest window of the scene's shape, shrunk by zoom,
+    # placed at (cx, cy) of the slack as in ImageOps.fit (zoom 1 is exactly ImageOps.fit).
     im = ImageOps.exif_transpose(Image.open(path)).convert('RGB')
-    im = ImageOps.fit(im, size, Image.LANCZOS, centering=focal)
+    cx, cy, zoom = (*crop, 1)[:3]
+    if zoom == 1:
+        im = ImageOps.fit(im, size, Image.LANCZOS, centering=(cx, cy))
+    else:
+        W, H = im.size
+        cw, ch = (W, W * size[1] / size[0]) if W * size[1] <= H * size[0] else (H * size[0] / size[1], H)
+        cw, ch = cw / zoom, ch / zoom
+        x0, y0 = (W - cw) * cx, (H - ch) * cy
+        im = im.resize(size, Image.LANCZOS, box=(x0, y0, x0 + cw, y0 + ch))
     im = ImageEnhance.Contrast(im).enhance(1.18)
     return ImageEnhance.Color(im).enhance(1.12)
 
@@ -81,12 +97,17 @@ def tame(c):
         return tuple(l + (v - l) * k for v in c)
     return c
 
-def render(im, pal):
+def render(im, pal, cool=False):
     w, h = im.size
     px = im.load()
     idx = []
     vivid = [i for i, c in enumerate(pal) if chroma(c) > 150]
     calm = [i for i in range(len(pal)) if i not in vivid]
+    # now's blue-grey storm cloud sits nearer the warm dark greys than any cool entry and comes
+    # out as a reddish smudge in a blue sky: with `cool`, clearly cool pixels never land on a warm
+    # dark entry. Only the scenes in COOL_GUARD use it, so the other scenes stay as they are.
+    warm_dark = {i for i, c in enumerate(pal) if c[0] > c[2] and lum(c) < 150}
+    cool_pool = [i for i in range(len(pal)) if i not in warm_dark]
     for y in range(h):
         for x in range(w):
             o = (BAYER[y % 4][x % 4] / 16 - 0.5) * STRENGTH
@@ -95,6 +116,7 @@ def render(im, pal):
             # Warm cream shadows (horse, dome) sit nearer a vivid orange entry than any tan one;
             # only genuinely saturated source pixels may land on a vivid palette entry.
             pool = range(len(pal)) if chroma(c) > 110 or not vivid else calm
+            if cool and c[2] - c[0] >= 12: pool = [i for i in pool if i in cool_pool]
             idx.append(min(pool, key=lambda i: d2(p, pal[i])))
     out = Image.new('P', im.size)
     flat = [v for c in pal for v in c]
@@ -118,7 +140,7 @@ def main():
     done = {}
     for k in SCENES:
         for name, im in ((k, lands[k]), (k + '-m', ports[k])):
-            done[name] = render(im, pal)
+            done[name] = render(im, pal, k in COOL_GUARD)
             done[name].save(os.path.join(out_dir, name + '.png'), compress_level=9)
     og = done['hero'].resize((LAND[0] * 6, LAND[1] * 6), Image.NEAREST)
     og.save(os.path.join(ROOT, 'public', 'og.png'), compress_level=9)
