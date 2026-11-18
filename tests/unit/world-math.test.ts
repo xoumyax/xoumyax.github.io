@@ -1,6 +1,6 @@
 import { test, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { PAN_VH, PAN_MAX, CAM_X, CAM_Y, SEAM_MAX, panLength, worldAt, bandShift, seamJitter, camera, eventPhase } from '../../src/lib/world-math';
+import { PAN_VH, PAN_MAX, CAM_X, CAM_Y, SEAM_MAX, panLength, worldAt, bandShift, seamJitter, camera, eventPhase, EventSchedule } from '../../src/lib/world-math';
 import { PALETTE, PAL32 } from '../../src/lib/palette';
 
 test('constants', () => {
@@ -135,4 +135,20 @@ test("PALETTE matches the flat scenes' PLTE", () => {
   expect([...plte]).toEqual(PALETTE.flat());
   expect(PAL32).toHaveLength(28);
   expect(PAL32[0]).toBe(0xffecf1f4);
+});
+
+test('EventSchedule: the same phase as eventPhase going forward, back and jumping; index counts events', () => {
+  for (const [seed, gap, dur] of [[7, [3, 8], 2], [1001, [0.4, 3], 0.9], [503, [14, 26], 11]] as [number, [number, number], number][]) {
+    const s = new EventSchedule(seed, gap, dur);
+    expect(s.phase(0)).toBe(-1);
+    let seen = -1;
+    for (let k = 0; k <= 6000; k++) {
+      const t = k / 10;
+      expect(s.phase(t), `${seed} t=${t}`).toBe(eventPhase(t, seed, gap, dur));
+      if (s.index >= 0) { expect(s.index).toBeGreaterThanOrEqual(seen); expect(s.index).toBeLessThanOrEqual(seen + 1); seen = s.index; }
+    }
+    expect(seen).toBeGreaterThan(5);
+    for (const t of [12.3, 1.1, 599.9, 0, 333.3, 333.3, 40]) expect(s.phase(t), `${seed} t=${t}`).toBe(eventPhase(t, seed, gap, dur));
+    for (const t of [NaN, -1, Infinity]) { expect(s.phase(t)).toBe(-1); expect(s.index).toBe(-1); }
+  }
 });

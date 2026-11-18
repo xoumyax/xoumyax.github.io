@@ -8,6 +8,8 @@
 // layer (and its after-hook) by +dx, +dy: the screen then samples that layer at world − shift, and
 // `plot`/`sprite` positions are moved by the same amount.
 import type { SceneId } from '../../lib/scenes';
+import { now } from './acts/now';
+import { phd } from './acts/phd';
 
 export interface DrawCtx {           // one (scene, layer) pass: world coords, already offset and clipped like that layer
   plot(x: number, y: number, c: number): void;                      // c from PAL32
@@ -22,4 +24,4 @@ export interface Act {               // p: progress through the stop; t: ambient
   shift?: Partial<Record<string, (p: number, t: number) => [number, number]>>;
 }
 
-export const ACTS: Partial<Record<SceneId, Act>> = {};
+export const ACTS: Partial<Record<SceneId, Act>> = { now, phd };

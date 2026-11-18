@@ -43,6 +43,78 @@
  ],
  "sprites": [
   {
+   "name": "leaf1",
+   "w": 32,
+   "h": 24,
+   "frames": 3,
+   "at": [
+    7,
+    102
+   ],
+   "layer": "trees",
+   "rest": 0
+  },
+  {
+   "name": "leaf2",
+   "w": 35,
+   "h": 20,
+   "frames": 3,
+   "at": [
+    42,
+    91
+   ],
+   "layer": "trees",
+   "rest": 0
+  },
+  {
+   "name": "leaf3",
+   "w": 32,
+   "h": 15,
+   "frames": 3,
+   "at": [
+    84,
+    118
+   ],
+   "layer": "trees",
+   "rest": 0
+  },
+  {
+   "name": "leaf4",
+   "w": 35,
+   "h": 28,
+   "frames": 3,
+   "at": [
+    22,
+    20
+   ],
+   "layer": "trees",
+   "rest": 0
+  },
+  {
+   "name": "leaf5",
+   "w": 34,
+   "h": 23,
+   "frames": 3,
+   "at": [
+    78,
+    45
+   ],
+   "layer": "trees",
+   "rest": 0
+  },
+  {
+   "name": "leaf6",
+   "w": 31,
+   "h": 18,
+   "frames": 3,
+   "at": [
+    14,
+    64
+   ],
+   "layer": "trees",
+   "rest": 0
+  },
+  {
    "name": "horse",
    "w": 84,
    "h": 86,

@@ -169,7 +169,9 @@ def build(world, render, to_world):
         C.Layer('fore', 1, 1.4, fore),
     ]
     grass_sp = grass_sprite(random.Random(77))
-    return C.Art(layers, [horse_sp, tail_sp, grass_sp], {'alt': {'horse': len(POSES) * 2 - 2, 'tail': 2, 'grass': 1}})
+    leaves = leaf_sprites(trees, W, H, random.Random(5150))
+    return C.Art(layers, leaves + [horse_sp, tail_sp, grass_sp],
+                 {'alt': dict({'horse': len(POSES) * 2 - 2, 'tail': 2, 'grass': 1}, **{s.name: 1 for s in leaves})})
 
 
 # ---------------------------------------------------------------- the horse rig (world px)
@@ -366,3 +368,44 @@ def grass_sprite(rng):
                 if 0 <= X - gx < gw and 0 <= Y - gy < gh: g[(Y - gy) * gw + X - gx] = col
         frames.append(g)
     return C.Sprite('grass', gw, gh, frames, (gx, gy), 'ground', 0)
+
+
+# ---------------------------------------------------------------- swaying leaf clusters (world px)
+# Centre and radii of each cluster in the canopy. The first three sit in rows both views show
+# (the land view starts at row 89); the last three are higher, for the phone's taller view.
+LEAVES = [(22, 112, 14, 11), (60, 100, 15, 10), (101, 124, 13, 7),
+          (40, 34, 16, 11), (95, 55, 15, 10), (28, 72, 13, 9)]
+
+
+def leaf_sprites(trees, W, H, rng):
+    """Leaf clusters cut from the trees layer, for leaf sway (the act draws them over the layer).
+    Each is a ragged blob of interior foliage: pixels whose left and right neighbours are foliage
+    too, so a pixel moved 1 px sideways always lands on foliage, never on the water. Frames: 0 rest
+    (exactly the layer's pixels, so the rest composite is unchanged), 1 the cluster 1 px right,
+    2 the cluster 1 px left. The box has a 1 px margin each side for the moved frames."""
+    out = []
+    for n, (cx, cy, rx, ry) in enumerate(LEAVES, 1):
+        ph = [rng.random() * 6.3 for _ in range(3)]
+        def inside(x, y):
+            a = math.atan2((y - cy) / ry, (x - cx) / rx)
+            r = 1 + 0.18 * math.sin(3 * a + ph[0]) + 0.12 * math.sin(5 * a + ph[1]) + 0.08 * math.sin(7 * a + ph[2])
+            return ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 < r * r - rng.random() * 0.25
+        pts = []
+        for y in range(cy - 2 * ry, cy + 2 * ry + 1):
+            for x in range(cx - 2 * rx, cx + 2 * rx + 1):
+                if not (1 <= x < W - 1 and 0 <= y < H): continue
+                i = y * W + x
+                if trees[i] != KEY and trees[i - 1] != KEY and trees[i + 1] != KEY and inside(x, y):
+                    pts.append((x, y))
+        assert len(pts) > 60, f'leaf{n}: only {len(pts)} px of interior foliage'
+        x0 = min(x for x, _ in pts) - 1
+        y0 = min(y for _, y in pts)
+        w = max(x for x, _ in pts) + 2 - x0
+        h = max(y for _, y in pts) + 1 - y0
+        frames = []
+        for d in (0, 1, -1):
+            g = [KEY] * (w * h)
+            for x, y in pts: g[(y - y0) * w + x + d - x0] = trees[y * W + x]
+            frames.append(g)
+        out.append(C.Sprite(f'leaf{n}', w, h, frames, (x0, y0), 'trees', 0))
+    return out

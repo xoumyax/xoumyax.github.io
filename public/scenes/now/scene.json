@@ -38,6 +38,18 @@
  ],
  "sprites": [
   {
+   "name": "cloud",
+   "w": 43,
+   "h": 21,
+   "frames": 4,
+   "at": [
+    176,
+    54
+   ],
+   "layer": "sky",
+   "rest": 0
+  },
+  {
    "name": "door",
    "w": 27,
    "h": 63,

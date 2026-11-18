@@ -150,7 +150,40 @@ def build(world, render, to_world):
         C.Layer('gravel', 1, 1.3, gravel_px),
     ]
     door_sp = C.Sprite('door', dw, dh, frames, (dx0, dy0), 'dome', 0)
-    return C.Art(layers, [door_sp], {'alt': {'door': len(frames) - 1}})
+    cloud_sp = cloud_sprite(Qsky, W, H, random.Random(4096))   # cuts the piece out of Qsky
+    return C.Art(layers, [cloud_sp, door_sp], {'alt': {'door': len(frames) - 1, 'cloud': len(cloud_sp.frames) - 1}})
+
+
+# ---------------------------------------------------------------- the drifting cloud piece (world px)
+# The tip of the blue cloud tongue above the dome's right shoulder (the land view shows it):
+# rows CLOUD_Y, from a ragged cut near CLOUD_X0 to CLOUD_X1. SKY is the plain sky colour.
+CLOUD_Y = (54, 75)
+CLOUD_X0, CLOUD_X1 = 177, 216
+CLOUD_DRIFT = 3                       # px it may drift right
+SKY = 4
+
+
+def cloud_sprite(sky, W, H, rng):
+    """Cuts the cloud piece out of the sky layer (in place) and returns it as a sprite on `sky`.
+    Frame d (0..CLOUD_DRIFT) is the piece moved d px right; frame 0 is exactly the pixels it was cut
+    from, so the rest composite is unchanged. Under the piece the sky layer is plain sky, except
+    the first CLOUD_DRIFT columns after the cut, which keep the cloud: when the piece drifts right
+    the tongue stretches there instead of breaking off."""
+    y0, y1 = CLOUD_Y
+    cut = {y: CLOUD_X0 + rng.choice((0, 0, 1, 1, 2, -1)) for y in range(y0, y1)}
+    pts = [(x, y) for y in range(y0, y1) for x in range(cut[y], CLOUD_X1) if sky[y * W + x] != SKY]
+    assert len(pts) > 80, f'cloud: only {len(pts)} px'
+    x0 = min(x for x, _ in pts)
+    w = CLOUD_X1 + CLOUD_DRIFT - x0
+    h = y1 - y0
+    frames = []
+    for d in range(CLOUD_DRIFT + 1):
+        g = [KEY] * (w * h)
+        for x, y in pts: g[(y - y0) * w + x + d - x0] = sky[y * W + x]
+        frames.append(g)
+    for x, y in pts:
+        if x >= cut[y] + CLOUD_DRIFT: sky[y * W + x] = SKY
+    return C.Sprite('cloud', w, h, frames, (x0, y0), 'sky', 0)
 
 
 def drop_specks(m, W, H, n):

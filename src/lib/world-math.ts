@@ -73,3 +73,41 @@ export function eventPhase(t: number, seed: number, gap: [number, number], dur: 
     cursor = start + dur;
   }
 }
+
+/**
+ * eventPhase(t, seed, gap, dur) as a resumable schedule, for a clock that runs forward: `phase(t)`
+ * returns exactly what eventPhase returns, but resumes from the event the previous call reached
+ * (it replays from 0 only when t goes back), so its cost does not grow with t. `index` is the
+ * number of the event under way after a call (0, 1, …), or −1 between events.
+ */
+export class EventSchedule {
+  index = -1;
+  private readonly s0: number;
+  private s = 0;
+  private cursor = 0;
+  private start = 0;
+  private n = 0;
+  constructor(seed: number, private readonly gap: [number, number], private readonly dur: number) {
+    this.s0 = (Math.floor(Math.abs(seed)) % 2147483646) + 1;
+    this.reset();
+  }
+  private reset(): void {
+    this.s = this.s0; this.cursor = 0; this.n = 0; this.next();
+  }
+  private next(): void {
+    this.s = (this.s * 48271) % 2147483647;
+    this.start = this.cursor + this.gap[0] + (this.s / 2147483647) * (this.gap[1] - this.gap[0]);
+  }
+  phase(t: number): number {
+    this.index = -1;
+    if (!(t >= 0) || !Number.isFinite(t)) return -1;
+    if (t < this.cursor) this.reset();
+    for (;;) {
+      if (t < this.start) return -1;
+      if (t < this.start + this.dur) { this.index = this.n; return (t - this.start) / this.dur; }
+      this.cursor = this.start + this.dur;
+      this.n++;
+      this.next();
+    }
+  }
+}
