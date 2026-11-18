@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { readFileSync } from 'node:fs';
 import AxeBuilder from '@axe-core/playwright';
 
 const bg = (page: Page) => page.evaluate(() => getComputedStyle(document.body).backgroundColor);
@@ -55,6 +56,19 @@ test('no JS follows the device setting', async ({ browser }) => {
   await ctx.close();
 });
 
+// The 28-colour palette shared by every public/scenes PNG: the colours the fixed backdrop can show.
+function scenePalette(): number[][] {
+  const d = readFileSync('public/scenes/hero.png');
+  for (let i = 8; i < d.length; ) {
+    const n = d.readUInt32BE(i);
+    if (d.toString('latin1', i + 4, i + 8) === 'PLTE') {
+      return Array.from({ length: n / 3 }, (_, k) => [...d.subarray(i + 8 + k * 3, i + 11 + k * 3)]);
+    }
+    i += 12 + n;
+  }
+  throw new Error('no PLTE in hero.png');
+}
+
 const PAGES = ['/', '/projects/', '/projects/autopyara/', '/resume/', '/teaching/', '/study/', '/404'];
 for (const mode of ['light', 'dark'] as const) {
   for (const path of PAGES) {
@@ -62,28 +76,20 @@ for (const mode of ['light', 'dark'] as const) {
       await page.emulateMedia({ colorScheme: mode });
       await page.goto(path);
       await page.waitForLoadState('networkidle');
-      const res = await new AxeBuilder({ page })
-        .withRules(['color-contrast'])
-        .exclude('.scenes')
-        .exclude('[data-cover]')
-        .analyze();
-      const entries = [...res.violations.map((r) => ['violation', r] as const), ...res.incomplete.map((r) => ['incomplete', r] as const)]
-        .filter(([, r]) => r.id === 'color-contrast');
       const bad: string[] = [];
-      const undecided: string[] = [];
-      for (const [kind, r] of entries) {
-        for (const n of r.nodes) {
-          const msg = n.any[0]?.message ?? '';
-          const label = `${kind}: ${n.target.join(' ')} :: ${msg}`;
-          if (kind === 'violation') bad.push(label);
-          else if (/only non-text characters/.test(msg)) continue; // aria-hidden arrows and glyphs
-          else undecided.push(String(n.target[0]));
-        }
-      }
-      // Axe cannot resolve translucent panels over the backdrop or cards that overlap in the
-      // scroller. Resolve those ourselves: composite the ancestors' backgrounds, translucent
-      // paper included, over the page colour.
-      const ratios = await page.evaluate((targets) => {
+
+      // 1. axe: any definite violation fails.
+      const res = await new AxeBuilder({ page }).withRules(['color-contrast']).exclude('.scenes').exclude('[data-cover]').analyze();
+      for (const r of res.violations) for (const n of r.nodes) bad.push(`axe ${n.target.join(' ')} :: ${n.any[0]?.message ?? ''}`);
+
+      // 2. Axe cannot resolve translucent panels, blurred surfaces or overlapping cards, so
+      // measure EVERY visible text element ourselves. Surfaces are composited with their
+      // opacity; a background-image counts as unknown. On the home page the fixed backdrop sits
+      // under the panels, so each element is measured over every scene palette colour (with the
+      // mode's backdrop filter) and the worst one must still reach 4.5.
+      const dim = mode === 'dark' ? 0.6 : 1;
+      const backdrops = path === '/' ? scenePalette().map((c) => c.map((v) => v * dim)) : [];
+      const found = await page.evaluate((backdrops) => {
         const cv = document.createElement('canvas');
         cv.width = cv.height = 1;
         const cx = cv.getContext('2d', { willReadFrequently: true })!;
@@ -92,33 +98,51 @@ for (const mode of ['light', 'dark'] as const) {
           const d = cx.getImageData(0, 0, 1, 1).data;
           return [d[0], d[1], d[2], d[3] / 255];
         };
-        const over = (top: number[], base: number[]) => {
-          const a = top[3];
-          return [0, 1, 2].map((i) => top[i] * a + base[i] * (1 - a)).concat(1);
-        };
+        const over = (top: number[], base: number[]) => [0, 1, 2].map((i) => top[i] * top[3] + base[i] * (1 - top[3])).concat(1);
         const lum = (c: number[]) => {
           const [r, g, b] = c.slice(0, 3).map((v) => { const x = v / 255; return x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4; });
           return 0.2126 * r + 0.7152 * g + 0.0722 * b;
         };
-        return targets.map((sel) => {
-          const el = document.querySelector(sel);
-          if (!el) return [sel, 0] as const;
+        const ratio = (a: number[], b: number[]) => { const [hi, lo] = [lum(a), lum(b)].sort((x, y) => y - x); return (hi + 0.05) / (lo + 0.05); };
+        const label = (e: Element) => `${e.tagName.toLowerCase()}${e.className && typeof e.className === 'string' ? '.' + e.className.trim().split(/\s+/).join('.') : ''} "${(e.textContent ?? '').trim().slice(0, 30)}"`;
+
+        const out: [string, number][] = [];
+        const all = [...document.querySelectorAll('body *')].filter((e) => {
+          if (e.closest('.scenes, [data-cover], [aria-hidden="true"], [hidden], script, style, noscript, [aria-disabled="true"]')) return false;
+          if (![...e.childNodes].some((n) => n.nodeType === 3 && /\w/.test(n.textContent ?? ''))) return false;
+          const st = getComputedStyle(e);
+          const r = e.getBoundingClientRect();
+          return st.display !== 'none' && st.visibility === 'visible' && r.width > 0 && r.height > 0;
+        });
+        for (const el of all) {
           const chain: Element[] = [];
           for (let e: Element | null = el; e; e = e.parentElement) chain.unshift(e);
-          let bg = [255, 255, 255, 1];
-          let opacity = 1;
-          for (const e of chain) {
-            const st = getComputedStyle(e);
-            bg = over(parse(st.backgroundColor), bg);
-            opacity *= Number(st.opacity);
+          const styles = chain.map((e) => getComputedStyle(e));
+          const fg0 = parse(styles[styles.length - 1].color);
+          const seeds = backdrops.length ? backdrops.map((c) => [...c, 1]) : [[255, 255, 255, 1]];
+          let worst = Infinity;
+          for (const seed of seeds) {
+            let base = seed;
+            let opacity = 1;
+            chain.forEach((_, i) => {
+              const st = styles[i];
+              const o = Number(st.opacity);
+              const before = base;
+              // an ancestor image is unknown: assume it shows the worst-case backdrop
+              if (st.backgroundImage !== 'none' && backdrops.length) base = seed;
+              base = over(parse(st.backgroundColor), base);
+              if (o < 1) base = [0, 1, 2].map((k) => before[k] * (1 - o) + base[k] * o).concat(1);
+              opacity *= o;
+            });
+            const fg = over([fg0[0], fg0[1], fg0[2], fg0[3] * opacity], base);
+            worst = Math.min(worst, ratio(fg, base));
           }
-          const fg0 = parse(getComputedStyle(el).color);
-          const fg = over([fg0[0], fg0[1], fg0[2], fg0[3] * opacity], bg);
-          const [hi, lo] = [lum(fg), lum(bg)].sort((x, y) => y - x);
-          return [sel, (hi + 0.05) / (lo + 0.05)] as const;
-        });
-      }, undecided);
-      for (const [sel, ratio] of ratios) if (ratio < 4.5) bad.push(`resolved ${sel} contrast ${ratio.toFixed(2)}`);
+          if (worst < 4.5) out.push([label(el), worst]);
+        }
+        return { out, count: all.length };
+      }, backdrops);
+      expect(found.count).toBeGreaterThan(5);
+      for (const [l, r] of found.out) bad.push(`measured ${l} contrast ${r.toFixed(2)}`);
       expect(bad).toEqual([]);
     });
   }
