@@ -31,9 +31,9 @@ export function worldAt(anchors: number[], mid: number, vh: number, remaining: n
     return { k: i, p: total === 0 ? 0 : d / total, t: 0 };
   }
   const G = anchors[i + 1] - anchors[i];
+  if (G <= 0) return { k: i + 1, p: 0, t: 0 };
   const P = panLength(G, vh);
   const I = G - P;
-  if (G <= 0) return { k: i + 1, p: 0, t: 0 };
   if (d < I) return { k: i, p: d / I, t: 0 };
   const t = P > 0 ? (d - I) / P : 1;
   return t >= 1 ? { k: i + 1, p: 0, t: 0 } : { k: i, p: 1, t };
@@ -62,6 +62,7 @@ export const camera = (p: number): { x: number; y: number } => ({ x: p * CAM_X, 
  * schedule is replayed from 0 on every call.
  */
 export function eventPhase(t: number, seed: number, gap: [number, number], dur: number): number {
+  if (!(t >= 0) || !Number.isFinite(t)) return -1;
   let s = (Math.floor(Math.abs(seed)) % 2147483646) + 1; // Park–Miller state in [1, 2^31 − 2]
   let cursor = 0;
   for (;;) {

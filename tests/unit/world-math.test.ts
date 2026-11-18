@@ -109,6 +109,15 @@ test('eventPhase: −1 at t=0; deterministic; events never closer than gap[0]', 
   expect(eventPhase(300, 7, gap, dur)).toBe(eventPhase(300, 7, gap, dur));
 });
 
+test('eventPhase: non-finite or negative t returns -1 without looping', () => {
+  for (const t of [NaN, Infinity, -Infinity, -1]) expect(eventPhase(t, 7, [3, 8], 2)).toBe(-1);
+});
+
+test('worldAt: unsorted anchors follow the last reached stop', () => {
+  // 500 and 300 are both reached at mid 600; the last (300) wins: G = 600, P = 300, I = 300, d = 300.
+  expect(worldAt([500, 300, 900], 600, 900, 5000)).toEqual({ k: 1, p: 1, t: 0 });
+});
+
 function chunks(file: string) {
   const b = readFileSync(file);
   const out: { type: string; data: Buffer }[] = [];
@@ -125,6 +134,5 @@ test("PALETTE matches the flat scenes' PLTE", () => {
   const plte = chunks('public/scenes/hero.png').find((c) => c.type === 'PLTE')!.data;
   expect([...plte]).toEqual(PALETTE.flat());
   expect(PAL32).toHaveLength(28);
-  const [r, g, b] = PALETTE[3];
-  expect(PAL32[3]).toBe(((255 << 24) | (b << 16) | (g << 8) | r) >>> 0);
+  expect(PAL32[0]).toBe(0xffecf1f4);
 });
