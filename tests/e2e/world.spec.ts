@@ -112,15 +112,34 @@ test.describe('still', () => {
 });
 
 test('the ambient clock runs and stops with the tab', async ({ page }) => {
+  // Count requestAnimationFrame calls (this page's only caller is the backdrop).
+  await page.addInitScript(() => {
+    const w = window as unknown as { __raf: number };
+    w.__raf = 0;
+    const raf = window.requestAnimationFrame.bind(window);
+    window.requestAnimationFrame = (cb) => { w.__raf++; return raf(cb); };
+  });
   await page.goto('/');
+  await page.waitForLoadState('load');
   await page.waitForSelector('#scene:not([hidden])');
+  await page.evaluate(() => document.fonts.ready);
   await expect(cv(page)).toHaveAttribute('data-ambient', 'on');
+  const rafs = () => page.evaluate(() => (window as unknown as { __raf: number }).__raf);
+  const quiet = async (what: string) => {
+    await page.waitForTimeout(200);
+    const a = await rafs();
+    await page.waitForTimeout(500);
+    expect(await rafs(), what).toBe(a);
+  };
+  // No scene on screen has an act yet, so the enabled clock schedules no frames.
+  await quiet('visible, no act on screen');
   const setHidden = (hidden: boolean) => page.evaluate((hidden) => {
     Object.defineProperty(document, 'hidden', { value: hidden, configurable: true });
     document.dispatchEvent(new Event('visibilitychange'));
   }, hidden);
   await setHidden(true);
   await expect(cv(page)).toHaveAttribute('data-ambient', 'off');
+  await quiet('hidden');
   await setHidden(false);
   await expect(cv(page)).toHaveAttribute('data-ambient', 'on');
 });

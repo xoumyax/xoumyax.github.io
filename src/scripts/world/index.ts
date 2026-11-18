@@ -34,7 +34,15 @@ export function initWorld(): void {
   let last = '';
   let pending = false;
   let shownK = 0;
-  let animating = false; // the frame on screen depends on the ambient clock
+  let animating = false; // a scene on screen (k, or k + 1 mid-pan) has an act
+
+  // Ambient clock in whole tenths of a second of rAF time. It is enabled (data-ambient="on")
+  // while the tab shows, motion is allowed and still mode is off; disabled, it holds its value
+  // and resumes from there. Frames are scheduled only while it is enabled and animating.
+  let running = false; // clock enabled
+  let base = 0;        // performance.now() at clock 0, while running
+  let tick = 0;        // clock in tenths of a second
+  let raf = 0;         // the clock loop's pending frame, 0 if none
 
   const worlds = new Map<SceneId, World>();
   const wanted = new Set((layer.dataset.worlds ?? '').split(/\s+/).filter((id): id is SceneId => (SCENE_IDS as readonly string[]).includes(id)));
@@ -134,6 +142,7 @@ export function initWorld(): void {
       const actA = ACTS[SCENE_IDS[k]];
       const actB = t > 0 ? ACTS[SCENE_IDS[k + 1]] : undefined;
       animating = !!(actA || actB);
+      if (animating && running) { tick = Math.max(tick, Math.floor((performance.now() - base) / 100)); loop(); }
       key = `${curSet}:${k}:${w.p}:${t}:${animating ? tick : 0}`;
       if (!force && key === last) return;
       compose(out32, cur.w, cur.h, curSet!, sceneWorld(k), actA, t > 0 ? sceneWorld(k + 1) : null, actB, w.p, t, tick / 10);
@@ -149,25 +158,26 @@ export function initWorld(): void {
     requestAnimationFrame(() => { pending = false; draw(false); });
   };
 
-  // Ambient clock: whole tenths of a second of rAF time, only while the tab shows, motion is
-  // allowed and still mode is off. Paused, it schedules nothing and resumes where it stopped.
-  let tick = 0;
-  let running = false;
-  let base = -1;
-  let raf = 0;
   const onTick = (now: number): void => {
-    if (!running) return;
-    if (base < 0) base = now - tick * 100;
+    raf = 0;
+    if (!running || !animating) return;
     const n = Math.floor((now - base) / 100);
-    if (n !== tick) { tick = n; if (animating) schedule(); }
+    if (n > tick) { tick = n; schedule(); } // never backwards: draw() may have read a later performance.now()
     raf = requestAnimationFrame(onTick);
   };
+  function loop(): void {
+    if (running && animating && !raf) raf = requestAnimationFrame(onTick);
+  }
   function ambient(): void {
     const on = !document.hidden && !reduced.matches && !still;
     cv!.dataset.ambient = on ? 'on' : 'off';
     if (on === running) return;
-    running = on;
-    if (on) { base = -1; raf = requestAnimationFrame(onTick); } else cancelAnimationFrame(raf);
+    if (on) { base = performance.now() - tick * 100; running = true; loop(); }
+    else {
+      tick = Math.max(tick, Math.floor((performance.now() - base) / 100));
+      running = false;
+      if (raf) { cancelAnimationFrame(raf); raf = 0; }
+    }
   }
 
   // Worlds load after first paint, one at a time, nearest to the scene on screen first (the
@@ -183,15 +193,23 @@ export function initWorld(): void {
     }
   }
   const idle = (fn: () => void) => ('requestIdleCallback' in window ? requestIdleCallback(fn, { timeout: 2000 }) : setTimeout(fn, 200));
+  // Reduced motion never draws worlds, so they are fetched only once motion is allowed.
+  let painted = false;
+  let fetching = false;
+  function startWorlds(): void {
+    if (!painted || fetching || !wanted.size || reduced.matches) return;
+    fetching = true;
+    idle(() => void loadWorlds());
+  }
 
-  const onLoad = () => requestAnimationFrame(() => { schedule(); if (wanted.size) idle(() => void loadWorlds()); });
+  const onLoad = () => requestAnimationFrame(() => { schedule(); painted = true; startWorlds(); });
   if (document.readyState === 'complete') onLoad(); else addEventListener('load', onLoad, { once: true });
 
   addEventListener('scroll', schedule, { passive: true });
   addEventListener('resize', () => { adopt(); });
   // Layout can move the stops without a scroll (a details panel opening, fonts settling).
   new ResizeObserver(schedule).observe(document.body);
-  reduced.addEventListener('change', () => { ambient(); draw(true); });
+  reduced.addEventListener('change', () => { ambient(); draw(true); startWorlds(); });
   document.addEventListener('visibilitychange', ambient);
   ambient();
   adopt();

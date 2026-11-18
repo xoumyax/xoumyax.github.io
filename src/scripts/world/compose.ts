@@ -62,7 +62,7 @@ function blit(b: Bitmap, sy0: number, sh: number, x: number, y: number): void {
 
 const ctx: DrawCtx = {
   plot(x, y, c) {
-    x |= 0; y |= 0;
+    x = Math.round(x); y = Math.round(y);
     const W = cur!.meta.world;
     if (x < 0 || y < 0 || x >= W[0] || y >= W[1]) return;
     const tx = x - ox;
@@ -114,7 +114,7 @@ export function compose(
     ox = v[0] + Math.round(cam.x * L.rate) + pan - Math.round(sh[0]);
     oy = v[1] + Math.round(cam.y * L.rate) - Math.round(sh[1]);
     blit(w.layers[i], 0, w.layers[i].h, 0, 0);
-    ctx.world = w.meta.world;
+    ctx.world = [w.meta.world[0], w.meta.world[1]]; // a copy: an act cannot change the meta
     const hook = act?.after?.[L.name];
     if (hook) hook(ctx, pp, clock);
     else for (const m of w.meta.sprites) if (m.layer === L.name) ctx.sprite(m.name, m.rest);

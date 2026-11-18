@@ -157,3 +157,18 @@ test('no blank pixel mid-pan, whatever depth each scene declares for its base la
     expect([...out].filter((v) => v === 0).length, `${a.meta.id}->${b.meta.id} t=${t}`).toBe(0);
   }
 });
+
+test('acts get a copy of the world size, not the live meta tuple', () => {
+  const w = world();
+  const act: Act = { after: { back: (d) => { d.world[0] = 0; d.world[1] = 0; } } };
+  const first = frame(w, act, null, 0, 0);
+  expect(w.meta.world).toEqual([12, 6]);
+  expect(frame(w, act, null, 0, 0)).toEqual(first);
+});
+
+test('plot and sprite round positions the same way', () => {
+  const act: Act = { after: { front: (d) => { d.plot(5.6, 2.4, C); d.sprite('bird', 0, 6.6, 3.4); } } };
+  const out = frame(world(), act, null, 0, 0);
+  expect(out[(2 - 1) * VW + (6 - 2)]).toBe(C);   // plot (5.6, 2.4) → (6, 2)
+  expect(out[(3 - 1) * VW + (7 - 2)]).toBe(S0);  // sprite (6.6, 3.4) → (7, 3)
+});
