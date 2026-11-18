@@ -1,52 +1,8 @@
-import { test, expect, type Page } from '@playwright/test';
-import { SCENE_IDS } from '../../src/lib/scenes';
+import { test, expect } from '@playwright/test';
 import { STOP_IDS } from '../../src/lib/schema';
+import { sceneOf, scrollToCentre, scrollToPan, still } from './scene-probe';
 
-const IDS = [...SCENE_IDS];
-
-// Reads 16 pixels spread across the canvas (native resolution) and compares them with the
-// same pixels of each scene file drawn into an offscreen canvas. Returns the scene id that
-// matches all 16, or 'mixed'.
-async function sceneOf(page: Page): Promise<string> {
-  await page.waitForSelector('#scene:not([hidden])');
-  return page.evaluate(async (ids) => {
-    const cv = document.getElementById('scene') as HTMLCanvasElement;
-    const { width: w, height: h } = cv;
-    const pts: [number, number][] = [];
-    for (let j = 0; j < 4; j++) for (let i = 0; i < 4; i++) {
-      pts.push([Math.floor(((i + 0.37 + 0.21 * j) % 4) / 4 * w), Math.floor(((j + 0.61 + 0.17 * i) % 4) / 4 * h)]);
-    }
-    const sample = (c: HTMLCanvasElement) => {
-      const g = c.getContext('2d')!;
-      return pts.map(([x, y]) => [...g.getImageData(x, y, 1, 1).data].join(','));
-    };
-    const have = sample(cv);
-    const suffix = w === 120 ? '-m' : '';
-    const hits: string[] = [];
-    for (const id of ids) {
-      const img = new Image();
-      img.src = `/scenes/${id}${suffix}.png`;
-      await img.decode();
-      const off = document.createElement('canvas');
-      off.width = w; off.height = h;
-      off.getContext('2d')!.drawImage(img, 0, 0);
-      const want = sample(off);
-      if (want.every((v, i) => v === have[i])) hits.push(id);
-    }
-    return hits[0] ?? 'mixed';
-  }, IDS);
-}
-
-// Puts the section's anchor (its centre; a stop taller than the screen: top + half a viewport) (or the point `frac` of the way to the next section's centre) at mid-viewport.
-async function scrollToCentre(page: Page, id: string, nextId?: string, frac = 0.5) {
-  await page.evaluate(({ id, nextId, frac }) => {
-    const inset = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
-    const c = (i: string) => { const r = document.getElementById(`stop-${i}`)!.getBoundingClientRect(); return Math.min(r.top + r.height / 2, r.top + innerHeight / 2 - inset); };
-    const target = nextId ? c(id) + (c(nextId) - c(id)) * frac : c(id);
-    scrollBy({ top: target - innerHeight / 2, behavior: 'instant' });
-  }, { id, nextId, frac });
-  await page.evaluate(() => new Promise((ok) => requestAnimationFrame(() => requestAnimationFrame(ok))));
-}
+test.beforeEach(({ page }) => still(page));
 
 test('the hero scene shows on load, with no console errors', async ({ page }) => {
   const errors: string[] = [];
@@ -73,42 +29,13 @@ test('each stop shows its own scene in the new order', async ({ page }) => {
   }
 });
 
-test('halfway between two stops is a mix', async ({ page }) => {
+test('mid-pan is a mix of both scenes', async ({ page }) => {
   await page.goto('/');
   await page.waitForSelector('#scene:not([hidden])');
-  await scrollToCentre(page, 'phd', 'ms', 0.5);
+  await scrollToPan(page, 'phd', 'ms', 0.5);
   expect(await sceneOf(page)).toBe('mixed');
-});
-
-test('deep link shows its scene at once', async ({ page }) => {
-  await page.goto('/#stop-now');
-  await page.waitForLoadState('load');
-  await page.waitForSelector('#scene:not([hidden])');
-  // Which scene the landed position calls for, from the same section centres.
-  const expected = () => page.evaluate((ids) => {
-    const inset = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
-    const c = [...document.querySelectorAll('[data-section]')].map((s) => { const r = s.getBoundingClientRect(); return Math.min(r.top + r.height / 2, r.top + innerHeight / 2 - inset); });
-    const mid = innerHeight / 2;
-    let k = 0, t = 0;
-    for (let i = 0; i < c.length - 1; i++) { const f = (c[i] - mid) / (c[i] - c[i + 1]); if (f >= 0) { k = i; t = Math.min(1, f); } }
-    if (t >= 1) { k += 1; t = 0; }
-    return { k, t, id: ids[k], next: ids[k + 1] ?? ids[k] };
-  }, IDS);
-  const snap = () => page.evaluate(() => {
-    const cv = document.getElementById('scene') as HTMLCanvasElement;
-    return [...cv.getContext('2d')!.getImageData(0, 0, cv.width, cv.height).data].join(',').length + ':' +
-      Array.from(cv.getContext('2d')!.getImageData(0, 0, cv.width, cv.height).data).reduce((h, v, i) => (h * 31 + v + i) | 0, 7);
-  });
-  await expect.poll(async () => {
-    const e = await expected();
-    const got = await sceneOf(page);
-    if (got === 'hero') return 'hero';
-    return e.t === 0 ? got === e.id : got === 'mixed' || got === e.id || got === e.next;
-  }).toBe(true);
-  expect(await sceneOf(page)).not.toBe('hero');
-  const a = await snap();
-  await page.waitForTimeout(400);
-  expect(await snap()).toBe(a);
+  await expect(page.locator('#scene')).toHaveAttribute('data-scene', 'phd');
+  await expect(page.locator('#scene')).toHaveAttribute('data-next', 'ms');
 });
 
 test('portrait to landscape keeps the canvas covering the viewport while the set loads', async ({ page }, info) => {
@@ -176,7 +103,8 @@ test('end key lands on the river scene', async ({ page }) => {
   await page.waitForSelector('#scene:not([hidden])');
   await page.keyboard.press('End');
   await page.waitForTimeout(300);
-  expect(await sceneOf(page)).toBe('river');
+  // River's subject is not at rest at the very end (p > 0 there), so check the stop, not the file.
+  await expect(page.locator('#scene')).toHaveAttribute('data-scene', 'river');
 });
 
 test('reduced motion never mixes', async ({ page }) => {

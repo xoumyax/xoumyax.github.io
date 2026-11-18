@@ -34,6 +34,8 @@ The e2e suite builds the site and serves it on `$PORT` (default 4321).
 
 The pixel scenes in `public/scenes/` are regenerated with `.venv/bin/python scripts/pixel-scenes.py <path-to-album-dir>`.
 
+The home backdrop is a living world (`src/scripts/world/`): a scene with `public/scenes/<id>/scene.json` is drawn from its layers and sprites (and animated by its act in `src/scripts/world/acts/<id>.ts`), scenes pan sideways into each other between stops, and a scene without a world falls back to its flat PNG.
+
 ## Edit content
 
 All text lives in `src/content/` and is validated by `src/lib/schema.ts`:

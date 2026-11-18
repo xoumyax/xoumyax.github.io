@@ -1,4 +1,4 @@
-// Pure maths for the scene backdrop: which scene shows, how much of the next one has dissolved in.
+// Pure maths for the scene backdrop: section anchors, the snapped scene for reduced motion, the scale and set.
 
 export type SceneSet = 'land' | 'port';
 
@@ -34,14 +34,3 @@ export const integerScale = (vw: number, vh: number, w: number, h: number): numb
   Math.ceil(Math.max(vw / w, vh / h));
 
 export const pickSet = (vw: number, vh: number): SceneSet => (vh > vw ? 'port' : 'land');
-
-/** Deterministic per-pixel thresholds in [0,1) (Park–Miller), the order pixels dissolve in. */
-export function dissolveOrder(n: number, seed: number): Float32Array {
-  const out = new Float32Array(n);
-  let s = seed % 2147483647 || 1;
-  for (let i = 0; i < n; i++) {
-    s = (s * 16807) % 2147483647;
-    out[i] = Math.min(s / 2147483647, 1 - 2 ** -24);
-  }
-  return out;
-}

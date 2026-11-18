@@ -1,7 +1,11 @@
 ---
-import { sceneUrl } from '../lib/scenes';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
+import { SCENE_IDS, sceneUrl } from '../lib/scenes';
+// Scenes with a layered world on disk; the client fetches only these, so a scene without one never 404s.
+const worlds = SCENE_IDS.filter((id) => existsSync(join(process.cwd(), 'public', 'scenes', id, 'scene.json'))).join(' ');
 ---
-<div class="scenes" aria-hidden="true">
+<div class="scenes" aria-hidden="true" data-worlds={worlds}>
   <picture>
     <source media="(orientation: portrait)" srcset={sceneUrl('hero', 'port')} />
     <img src={sceneUrl('hero', 'land')} alt="" width="240" height="135" decoding="async" fetchpriority="high" />
