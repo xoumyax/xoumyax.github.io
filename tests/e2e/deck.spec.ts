@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
 
 const ms = (page: import('@playwright/test').Page) => page.locator('#stop-ms');
 
@@ -192,6 +193,40 @@ test('phone pager fits', async ({ page }, info) => {
     expect(r.right).toBeLessThanOrEqual(r.innerWidth);
     expect(r.overflow).toBe(false);
   }
+});
+
+test('panels line up with the top of their cards', async ({ page }, info) => {
+  test.skip(info.project.name === 'phone');
+  await page.goto('/');
+  const res = await page.locator('[data-stop]').evaluateAll((stops) => stops.flatMap((s) => {
+    const first = s.querySelector('[data-block] h3, .grid > [data-deck]') as HTMLElement | null;
+    const panel = s.querySelector('[data-panel]') as HTMLElement;
+    return first ? [{ id: s.id, d: Math.abs(panel.getBoundingClientRect().top - first.getBoundingClientRect().top) }] : [];
+  }));
+  expect(res.length).toBeGreaterThan(3);
+  for (const r of res) expect(r.d, r.id).toBeLessThanOrEqual(2);
+});
+
+test('the pager is easy to see', async ({ page }, info) => {
+  const phone = info.project.name === 'phone';
+  await page.goto('/');
+  const res = await page.locator('nav.pager').evaluateAll((els) => els.map((p) => ({
+    bg: getComputedStyle(p).backgroundColor,
+    btns: [...p.querySelectorAll<HTMLElement>('button')].filter((b) => b.offsetParent !== null)
+      .map((b) => ({ h: b.getBoundingClientRect().height, w: Number(getComputedStyle(b).fontWeight) })),
+  })));
+  expect(res.length).toBeGreaterThan(0);
+  for (const r of res) {
+    expect(r.bg).not.toMatch(/rgba\(0, 0, 0, 0\)|transparent/);
+    expect(r.btns.length).toBeGreaterThan(0);
+    for (const b of r.btns) {
+      expect(b.h).toBeGreaterThanOrEqual(phone ? 28 : 36);
+      if (!phone) expect(b.w).toBeGreaterThanOrEqual(700);
+    }
+  }
+  await page.evaluate(() => document.querySelectorAll('.pager').forEach((p) => p.classList.add('ready')));
+  const axe = await new AxeBuilder({ page }).include('.pager').withRules(['color-contrast']).analyze();
+  expect(axe.violations).toEqual([]);
 });
 
 test.describe('without JavaScript', () => {

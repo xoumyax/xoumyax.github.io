@@ -34,22 +34,28 @@ const { label, title, count } = Astro.props;
   .card-row::-webkit-scrollbar { display: none; }
   .card-row > :global(*) { flex: 0 0 100%; width: 100%; min-width: 0; scroll-snap-align: start; }
   .card-row:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
-  .pager { display: flex; justify-content: center; align-items: center; gap: .3rem; margin-top: .7rem; min-width: 0; visibility: hidden; }
+  .pager {
+    display: flex; justify-content: center; align-items: center; gap: .3rem; margin: .7rem auto 0; min-width: 0;
+    width: fit-content; max-width: 100%; padding: .3rem; border-radius: 999px;
+    background: color-mix(in oklab, var(--paper) 88%, transparent);
+    -webkit-backdrop-filter: blur(14px) saturate(1.15); backdrop-filter: blur(14px) saturate(1.15);
+    visibility: hidden;
+  }
   .pager.ready { visibility: visible; }
   .pager button {
     flex: none;
-    font: 600 .85rem/1 var(--font-mono); min-width: 2rem; height: 2rem; padding: 0 .3rem;
+    font: 700 .95rem/1 var(--font-mono); min-width: 2.25rem; height: 2.25rem; padding: 0 .4rem;
     border-radius: 999px; cursor: pointer;
-    border: 1px solid color-mix(in oklab, var(--ink) 14%, transparent);
-    background: color-mix(in oklab, var(--paper) 86%, transparent); color: var(--ink);
+    border: 1px solid color-mix(in oklab, var(--ink) 28%, transparent);
+    background: transparent; color: var(--ink);
   }
   .pager button[hidden], .gap[hidden] { display: none; }
   .pager button[aria-current='true'] { background: var(--ink); color: var(--paper); }
   .pager button[aria-disabled='true'] { opacity: .4; cursor: default; }
   .pager button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
-  .gap { flex: none; font: 600 .85rem/1 var(--font-mono); opacity: .7; }
+  .gap { flex: none; font: 700 .95rem/1 var(--font-mono); opacity: .8; }
   @media (max-width: 40rem) {
-    .pager { gap: .15rem; }
-    .pager button { min-width: 1.55rem; height: 1.7rem; font-size: .75rem; padding: 0; }
+    .pager { gap: .15rem; padding: .25rem; }
+    .pager button { min-width: 1.8rem; height: 1.8rem; font-size: .8rem; padding: 0; }
   }
 </style>
