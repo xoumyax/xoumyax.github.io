@@ -36,15 +36,18 @@ async function checkContent(page: Page) {
   for (const stop of journey.stops) {
     const sec = main.locator(`#stop-${stop.id}`);
     await expect(sec.locator('h2')).toContainText(stop.title);
-    for (const item of stop.items) {
+    const walk = async (item: (typeof stop.items)[number]) => {
       if (typeof item === 'string') {
         await expect(sec.locator(`.card-row a[href="/projects/${item}/"]`)).toHaveCount(1);
       } else {
         await expect(sec.locator('.card-row').getByText(item.title, { exact: true })).toHaveCount(1);
         await expect(sec.locator('.card-row').getByText(item.text, { exact: true })).toHaveCount(1);
       }
-    }
-    await expect(sec.locator('.card-row')).toHaveCount(stop.items.length ? 1 : 0);
+    };
+    for (const item of stop.items) await walk(item);
+    for (const g of stop.groups ?? []) for (const item of g.items) await walk(item);
+    for (const slug of stop.more?.items ?? []) await expect(sec.locator(`[data-more] a[href="/projects/${slug}/"]`)).toHaveCount(1);
+    await expect(sec.locator('.card-row')).toHaveCount(stop.groups?.length ?? (stop.items.length ? 1 : 0));
   }
 
   // The river: contact links, scoped away from the footer.
@@ -60,7 +63,7 @@ async function checkContent(page: Page) {
     const s = getComputedStyle(e);
     return [e.classList.contains('card-row'), s.overflowX, s.scrollSnapType];
   }));
-  expect(rows.length).toBe(journey.stops.filter((s) => s.items.length).length);
+  expect(rows.length).toBe(journey.stops.reduce((n, s) => n + (s.groups?.length ?? (s.items.length ? 1 : 0)), 0));
   for (const r of rows) expect(r).toEqual([true, 'auto', 'x mandatory']);
 
   // Claims guard.
@@ -70,6 +73,26 @@ async function checkContent(page: Page) {
 
 test('landing content and stops', async ({ page }) => {
   await checkContent(page);
+});
+
+test('the Ph.D. stop shows three blocks', async ({ page }) => {
+  await page.goto('/');
+  const blocks = page.locator('#stop-phd [data-block]');
+  await expect(page.locator('#stop-phd [data-block] > h3')).toHaveText(['Published', 'Finished · awaiting submission', 'In progress']);
+  await expect(blocks.nth(0).locator('.pager')).toHaveCount(0);
+  await expect(blocks.nth(2).locator('.pager [data-go]')).toHaveCount(4);
+});
+
+test('small projects open with the keyboard and every link resolves', async ({ page }) => {
+  await page.goto('/');
+  const more = page.locator('#stop-phd [data-more]');
+  await expect(more).not.toHaveAttribute('open', '');
+  await more.locator('summary').focus();
+  await page.keyboard.press('Enter');
+  await expect(more).toHaveAttribute('open', '');
+  const hrefs = await more.locator('a').evaluateAll((els) => els.map((e) => e.getAttribute('href')!));
+  expect(hrefs).toHaveLength(7);
+  for (const h of hrefs) expect((await page.request.get(h)).status(), h).toBe(200);
 });
 
 test.describe('without JavaScript', () => {

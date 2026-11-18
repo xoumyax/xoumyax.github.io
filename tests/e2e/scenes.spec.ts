@@ -1,6 +1,8 @@
 import { test, expect, type Page } from '@playwright/test';
+import { SCENE_IDS } from '../../src/lib/scenes';
+import { STOP_IDS } from '../../src/lib/schema';
 
-const IDS = ['hero', 'srm', 'cognizant', 'ms', 'phd', 'now', 'river'];
+const IDS = [...SCENE_IDS];
 
 // Reads 16 pixels spread across the canvas (native resolution) and compares them with the
 // same pixels of each scene file drawn into an offscreen canvas. Returns the scene id that
@@ -61,10 +63,19 @@ test('scrolling to a stop shows its scene', async ({ page }) => {
   expect(await sceneOf(page)).toBe('phd');
 });
 
+test('each stop shows its own scene in the new order', async ({ page }) => {
+  await page.goto('/');
+  await page.waitForSelector('#scene:not([hidden])');
+  for (const id of STOP_IDS) {
+    await scrollToCentre(page, id);
+    expect(await sceneOf(page), id).toBe(id);
+  }
+});
+
 test('halfway between two stops is a mix', async ({ page }) => {
   await page.goto('/');
   await page.waitForSelector('#scene:not([hidden])');
-  await scrollToCentre(page, 'ms', 'phd', 0.5);
+  await scrollToCentre(page, 'phd', 'ms', 0.5);
   expect(await sceneOf(page)).toBe('mixed');
 });
 
@@ -171,8 +182,8 @@ test('reduced motion never mixes', async ({ page }) => {
   await page.goto('/');
   await page.waitForSelector('#scene:not([hidden])');
   for (const frac of [0.3, 0.45, 0.55, 0.7]) {
-    await scrollToCentre(page, 'ms', 'phd', frac);
-    expect(['ms', 'phd']).toContain(await sceneOf(page));
+    await scrollToCentre(page, 'phd', 'ms', frac);
+    expect(['phd', 'ms']).toContain(await sceneOf(page));
     await page.evaluate(() => scrollTo({ top: 0, behavior: 'instant' }));
   }
 });

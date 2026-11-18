@@ -1,20 +1,31 @@
 stops:
-  - id: srm
-    years: 2017–21
-    title: B.Tech. in Electronics & Communication
-    place: SRM Institute of Science and Technology, Chennai
-    summary: Where it started — signals, circuits, and the first neural networks, including a CNN for carotid-artery ultrasound that became a Springer book chapter.
-    items: [carotid-ultrasound]
-  - id: cognizant
-    years: 2021–22
-    title: Software engineer, client-embedded
-    place: Cognizant Technology Solutions, Kolkata
-    summary: Joined as an intern in February 2021 and converted to full-time — a year embedded with TJX Companies, shipping a logistics-automation platform.
+  - id: now
+    years: "2026"
+    title: Now
+    place: College Station, Texas
+    summary: Research agents that ask before they search, a vision-security benchmark, and teaching systems programming.
     items:
-      - title: Intern → full-time
-        text: Feb–Jun 2021 internship on a client logistics platform, converted to a full-time offer.
-      - title: Client-embedded consulting
-        text: Aug 2021 – Aug 2022 with TJX Companies — REST API latency and concurrency work, CI/CD, code review.
+      - title: Teaching CSCE 313 and CSCE 439/704
+        text: Fall 2026 systems-programming labs; Spring 2026 data analytics for cybersecurity.
+      - title: Texas Security Workshop 2026
+        text: Talk on IOCScooper++ — IOC and TTP extraction from threat reports.
+      - title: TAMU CS Day
+        text: Interactive AI and cybersecurity demos for high-school students, 2024 and 2025.
+  - id: phd
+    years: 2024–
+    title: Ph.D. in Computer Science, Botacin's Lab
+    place: Texas A&M University
+    summary: LLMs that write, check and explain detection rules — from malware clustering to a hosted analyst agent.
+    groups:
+      - title: Published
+        items: [autopyara]
+      - title: Finished · awaiting submission
+        items: [yaragen, iocscooper-plus-plus]
+      - title: In progress
+        items: [proactive-research-agent, yaraikiba, yaragen-plus-plus, depixelation]
+    more:
+      title: Small projects
+      items: [hellopentagon, hawkeye, breast-cancer-classification, sturdy-fishstick, attendance-wizard, vlm-evaluation, yara-sentencepiece]
   - id: ms
     years: 2022–23
     title: M.S. in Computer Engineering
@@ -30,29 +41,22 @@ stops:
         text: Summer 2023 — technical coordinator for the automated judging and submission infrastructure.
       - title: Genomic-pathway modelling
         text: Summer 2023 — modelled prostate-cancer pathways and simulated multi-drug interactions.
-  - id: phd
-    years: 2024–
-    title: Ph.D. in Computer Science, Botacin's Lab
-    place: Texas A&M University
-    summary: LLMs that write, check and explain detection rules — from malware clustering to a hosted analyst agent.
-    items: [autopyara, yaragen, yaraikiba, iocscooper-plus-plus, hellopentagon, vlm-evaluation, hawkeye, breast-cancer-classification, yara-sentencepiece]
-  - id: now
-    years: "2026"
-    title: Now
-    place: College Station, Texas
-    summary: Research agents that ask before they search, a vision-security benchmark, and teaching systems programming.
+  - id: cognizant
+    years: 2021–22
+    title: Software engineer, client-embedded
+    place: Cognizant Technology Solutions, Kolkata
+    summary: Joined as an intern in February 2021 and converted to full-time — a year embedded with TJX Companies, shipping a logistics-automation platform.
     items:
-      - proactive-research-agent
-      - depixelation
-      - sturdy-fishstick
-      - yaragen-plus-plus
-      - attendance-wizard
-      - title: Teaching CSCE 313 and CSCE 439/704
-        text: Fall 2026 systems-programming labs; Spring 2026 data analytics for cybersecurity.
-      - title: Texas Security Workshop 2026
-        text: Talk on IOCScooper++ — IOC and TTP extraction from threat reports.
-      - title: TAMU CS Day
-        text: Interactive AI and cybersecurity demos for high-school students, 2024 and 2025.
+      - title: Intern → full-time
+        text: Feb–Jun 2021 internship on a client logistics platform, converted to a full-time offer.
+      - title: Client-embedded consulting
+        text: Aug 2021 – Aug 2022 with TJX Companies — REST API latency and concurrency work, CI/CD, code review.
+  - id: srm
+    years: 2017–21
+    title: B.Tech. in Electronics & Communication
+    place: SRM Institute of Science and Technology, Chennai
+    summary: Where it started — signals, circuits, and the first neural networks, including a CNN for carotid-artery ultrasound that became a Springer book chapter.
+    items: [carotid-ultrasound]
   - id: river
     years: Next
     title: Open to work

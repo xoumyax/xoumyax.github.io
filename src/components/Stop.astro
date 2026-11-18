@@ -1,4 +1,5 @@
 ---
+import StopBlocks from './StopBlocks.astro';
 import CardDeck from './CardDeck.astro';
 import ProjectCard from './ProjectCard.astro';
 import TextCard from './journey/TextCard.astro';
@@ -23,7 +24,9 @@ const cards = stop.items.map((item) => {
       <p class="summary">{stop.summary}</p>
       <slot />
     </header>
-    {cards.length > 0 && (
+    {stop.groups ? (
+      <StopBlocks stop={stop} projects={projects} />
+    ) : cards.length > 0 && (
       <CardDeck label={`${stop.title}: ${cards.length} items`} title={stop.title} count={cards.length}>
         {cards.map((c) => (c.kind === 'project' ? <ProjectCard project={c.project} /> : <TextCard title={c.title} text={c.text} />))}
       </CardDeck>
@@ -46,6 +49,7 @@ const cards = stop.items.map((item) => {
   @media (max-width: 56rem) {
     .grid { grid-template-columns: minmax(0, 1fr); }
     .grid > :global(.deck) { width: min(100%, 17rem); justify-self: center; }
+    .grid :global(.block .deck) { width: min(100%, 17rem); margin-inline: auto; }
   }
   .head { min-width: 0; }
   .label { display: flex; gap: .9rem; align-items: baseline; margin-bottom: .6rem; opacity: 1; }

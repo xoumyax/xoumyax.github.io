@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
-export const STOP_IDS = ['srm', 'cognizant', 'ms', 'phd', 'now', 'river'] as const;
+import { STOP_IDS } from './stops';
+export { STOP_IDS };
 export const PROJECT_STOPS = ['srm', 'cognizant', 'ms', 'phd', 'now'] as const;
 export const AREAS = ['post-training-eval', 'agents', 'security', 'systems', 'other'] as const;
 export const TONES = ['amber', 'rust', 'sage', 'storm', 'sand'] as const;
@@ -46,16 +47,26 @@ export const ProfileSchema = z.object({
 export type Profile = z.infer<typeof ProfileSchema>;
 
 const journeyItem = z.union([z.string().regex(/^[a-z0-9-]+$/), z.object({ title: z.string(), text: z.string() })]);
+const slug = z.string().regex(/^[a-z0-9-]+$/);
+const stopShape = z.object({
+  id: z.enum(STOP_IDS),
+  years: z.string(),
+  title: z.string(),
+  place: z.string(),
+  summary: z.string(),
+  items: z.array(journeyItem).default([]),
+  groups: z.array(z.object({ title: z.string().min(1), items: z.array(journeyItem).min(1) })).min(1).optional(),
+  more: z.object({ title: z.string().min(1), items: z.array(slug).min(1) }).optional(),
+});
 export const JourneySchema = z.object({
   stops: z
-    .array(z.object({
-      id: z.enum(STOP_IDS),
-      years: z.string(),
-      title: z.string(),
-      place: z.string(),
-      summary: z.string(),
-      items: z.array(journeyItem).default([]),
-    }))
+    .array(
+      stopShape.superRefine((s, ctx) => {
+        if (s.groups && s.items.length > 0) {
+          ctx.addIssue({ code: 'custom', path: ['items'], message: `stop "${s.id}" has groups, so its own items must be empty` });
+        }
+      }),
+    )
     .refine((s) => s.map((x) => x.id).join() === STOP_IDS.join(), { message: `stop ids must be exactly ${STOP_IDS.join(', ')} in order` }),
 });
 export type Journey = z.infer<typeof JourneySchema>;

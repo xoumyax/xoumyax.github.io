@@ -1,0 +1,59 @@
+---
+// A stop whose cards are split into titled blocks (one deck each), plus a closed list of small projects.
+import CardDeck from './CardDeck.astro';
+import ProjectCard from './ProjectCard.astro';
+import TextCard from './journey/TextCard.astro';
+import './journey/panel.css';
+import type { JourneyStop, Project } from '../lib/schema';
+
+interface Props { stop: JourneyStop; projects: Map<string, Project> }
+const { stop, projects } = Astro.props;
+const project = (slug: string): Project => {
+  const p = projects.get(slug);
+  if (!p) throw new Error(`journey.yaml: stop "${stop.id}" lists unknown project "${slug}"`);
+  return p;
+};
+const blocks = (stop.groups ?? []).map((g) => ({
+  title: g.title,
+  cards: g.items.map((item) => (typeof item === 'string' ? { kind: 'project' as const, project: project(item) } : { kind: 'text' as const, ...item })),
+}));
+const more = stop.more ? { title: stop.more.title, projects: stop.more.items.map(project) } : undefined;
+---
+<div class="blocks">
+  {blocks.map((b) => (
+    <section class="block" data-block>
+      <h3 class="label">{b.title}</h3>
+      <CardDeck label={`${stop.title} — ${b.title}: ${b.cards.length} ${b.cards.length === 1 ? 'item' : 'items'}`} title={`${stop.title} — ${b.title}`} count={b.cards.length}>
+        {b.cards.map((c) => (c.kind === 'project' ? <ProjectCard project={c.project} /> : <TextCard title={c.title} text={c.text} />))}
+      </CardDeck>
+    </section>
+  ))}
+  {more && (
+    <details class="more panel" data-more>
+      <summary>{more.title} ({more.projects.length})</summary>
+      <ul>
+        {more.projects.map((p) => (
+          <li><a href={`/projects/${p.slug}/`}>{p.title}</a> <span class="yrs">{p.years}</span></li>
+        ))}
+      </ul>
+    </details>
+  )}
+</div>
+
+<style>
+  .blocks { display: grid; gap: 1.25rem; min-width: 0; }
+  .block { min-width: 0; }
+  .block h3 {
+    margin: 0 0 .45rem; font-weight: 700; opacity: 1; width: fit-content; max-width: 100%;
+    padding: .3rem .7rem; border-radius: 999px; pointer-events: auto;
+    background: color-mix(in oklab, var(--paper) 88%, transparent);
+    -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  }
+  .more { padding: .8rem 1.1rem; }
+  .more summary { cursor: pointer; font: 600 .85rem/1.4 var(--font-mono); text-transform: uppercase; letter-spacing: .08em; }
+  .more summary:focus-visible, .more a:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .more ul { list-style: none; margin: .7rem 0 0; padding: 0; display: grid; gap: .45rem; }
+  .more li { display: flex; flex-wrap: wrap; gap: .2rem .7rem; align-items: baseline; }
+  .more a { font-weight: 600; }
+  .yrs { font: .8rem/1.3 var(--font-mono); opacity: .8; }
+</style>
