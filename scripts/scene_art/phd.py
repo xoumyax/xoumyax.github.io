@@ -23,8 +23,9 @@ HORSE = [(992, 1051), (994, 1024), (1005, 1005), (1021, 991), (1042, 980), (1069
          (1138, 1137), (1106, 1134), (1093, 1131), (1091, 1179), (1089, 1232), (1088, 1285), (1089, 1341),
          (1072, 1347), (1064, 1320), (1056, 1345), (1032, 1347), (1017, 1344), (1016, 1296), (1014, 1243),
          (1010, 1189), (1002, 1136), (994, 1093)]
-# The river's near shore (water above belongs to `far`), left to right.
-SHORE = [(1544, 1012), (1800, 1016), (2050, 1022), (2304, 1028)]
+# The river's near shore (water above belongs to `far`), left to right. It runs on behind the
+# trees, so the sand line is max(foliage bottom, shore) in every column: no column switch.
+SHORE = [(781, 1022), (1300, 1016), (1544, 1012), (1800, 1016), (2050, 1022), (2304, 1028)]
 # Top of the bright sand bar under the hooves (bank above, ground below).
 BAR = [(781, 1330), (1010, 1336), (1240, 1342), (1350, 1320), (1500, 1300), (1700, 1305),
        (1950, 1314), (2130, 1302), (2304, 1308)]
@@ -58,6 +59,26 @@ def wobble(w, rng, amp, scales=(5.0, 2.3)):
             for x in range(w)]
 
 
+def fray(tree, W, H, b, rng):
+    """Breaks straight vertical foliage edges: where a left or right edge keeps the same column
+    for 4+ rows, each row is eaten back 0-3 px by smooth noise (what shows is far's underpaint)."""
+    ph = rng.random() * 6.3
+    for side in (1, -1):                        # 1: right edges, -1: left edges
+        edge = {}
+        for y in range(H):
+            for x in range(1, W - 1):
+                i = y * W + x
+                if tree[i] and y < b[x] and not tree[i + side]:
+                    edge[(x, y)] = 1
+        for (x, y) in edge:
+            run = sum(1 for d in (-2, -1, 1, 2) if (x, y + d) in edge)
+            if run < 3: continue
+            k = round(1.5 + 1.5 * math.sin(y * 0.9 + ph) + rng.choice((-0.5, 0, 0.5)))
+            for j in range(max(0, k)):
+                xx = x - side * j
+                if 0 <= xx < W: tree[y * W + xx] = 0
+
+
 def build(world, render, to_world):
     W, H = world.size
     rng = random.Random(1840)
@@ -73,8 +94,8 @@ def build(world, render, to_world):
     tree = bytearray(1 if is_tree(x, y) and not horse[y * W + x] else 0 for y in range(H) for x in range(W))
     tree = C.majority(tree, W, H, 1)
 
-    # b: first sand row per column. Trees: bottom-up, the lowest tree pixel with tree above it;
-    # water columns: the shore line; behind the horse: interpolated between its sides.
+    # b: first sand row per column: the lowest tree pixel with tree above it, or the shore if
+    # that is lower; behind the horse: interpolated between its sides.
     shore = line_y(SHORE, to_world, W)
     hx = [x for x in range(W) if any(horse[y * W + x] for y in range(H))]
     hx0, hx1 = min(hx) - 1, max(hx) + 1
@@ -84,7 +105,7 @@ def build(world, render, to_world):
         for y in range(150, 90, -1):
             if all(tree[(y - j) * W + x] for j in range(3)):
                 y0 = y + 1; break
-        b.append(max(y0, round(shore[x])) if shore[x] < 160 and x >= to_world(1544, 0)[0] else y0)
+        b.append(max(y0, round(shore[x])))
     for x in range(hx0 + 1, hx1):
         t = (x - hx0) / (hx1 - hx0)
         b[x] = round(b[hx0] * (1 - t) + b[hx1] * t) + rng.choice((0, 1, 1, 2))
@@ -128,6 +149,7 @@ def build(world, render, to_world):
     Qtree = list(render(tree_img).get_flattened_data())
 
     far = Qfar
+    fray(tree, W, H, b, rng)
     trees = [Qtree[i] if (tree[i] and i // W < b[i % W]) or hem_mask[i] else KEY for i in range(W * H)]
     bank = [Qbg[i] if b[i % W] <= i // W < g[i % W] + 6 else KEY for i in range(W * H)]
     ground = [Qbg[i] if g[i % W] <= i // W < f[i % W] + 8 else KEY for i in range(W * H)]
@@ -155,9 +177,11 @@ BOX = (30, 112, 84, 86)                 # sprite frame: x, y, w, h
 WITHERS = (66.0, 125.0)                 # neck pivot (the neck and head turn about it)
 THROAT = (89.0, 150.0)                  # the neck/body cut runs WITHERS -> THROAT
 POLL = (87.0, 134.0)                    # head pivot, on the head's back edge
+JOINT_R = 8                             # radius about the poll swept through the head turn
 HEAD = [(84, 119), (110, 117), (111, 152), (106, 158), (95, 158), (89, 151), (85, 141)]
 EAR = [(102, 118), (110, 116), (110, 127), (103, 127)]   # the near (right) ear
 EAR_BASE = (104.5, 126.5)
+EAR_TIP = (107.5, 119.5)
 TAIL_GAP = (46, 49, 151, 188)           # x0, x1 (incl), y0, y1: between the hind legs
 # (neck turn about the withers, head turn about the poll on top of it), degrees: up, lowering,
 # low, grazing, grazing (chew). The neck keeps its length: from this front three-quarter view the
@@ -181,6 +205,26 @@ RAMP = [(PAPER, 228), (CREAM, 190), (TAN, 150), (DKTAN, 120), (GREY, 95), (DUSK,
 
 def side(a, b, p):
     return (b[0] - a[0]) * (p[1] - a[1]) - (b[1] - a[1]) * (p[0] - a[0])
+
+
+def draw_ear(out, bw, bh, base, tip):
+    """A clean ear: 3 px wide at the base, 1 at the tip; pale front edge, tan core, grey back
+    edge, dark tip. Returns the pixels written."""
+    dx, dy = tip[0] - base[0], tip[1] - base[1]
+    n = math.hypot(dx, dy)
+    px_, py_ = -dy / n, dx / n                    # left normal (front edge of the ear)
+    wrote = {}
+    for k in range(int(n * 4) + 1):
+        t = k / (n * 4)
+        cx, cy = base[0] + dx * t, base[1] + dy * t
+        half = 1 if t < 0.5 else 0.5 if t < 0.8 else 0
+        for o, col in ((half, CREAM), (-half, GREY), (0, TAN)):
+            x, y = int(math.floor(cx + px_ * o)), int(math.floor(cy + py_ * o))
+            if 0 <= x < bw and 0 <= y < bh and (x, y) not in wrote or col == TAN:
+                wrote[(x, y)] = DKTAN if t > 0.85 else col
+    for (x, y), col in wrote.items():
+        if 0 <= x < bw and 0 <= y < bh: out[y * bw + x] = col
+    return set(wrote)
 
 
 def horse_sprites(world, horse):
@@ -226,11 +270,23 @@ def horse_sprites(world, horse):
             return [hd[i] if hd[i] != KEY else (KEY if head_m[i] and moving[i] else rest[i]) for i in range(bw * bh)]
         out = list(body)
         a = math.radians(phi)
+        hd = [v if not ear_m[i] else KEY for i, v in enumerate(head)]   # posed ears are drawn clean below
         moved = C.rotate(neck, bw, bh, a, W_, out, bw, bh, to=W_)
         P2 = rot(P_, W_, a)
+        # Sweep only the joint (head pixels near the poll, no ear) through the head turn, so the
+        # throat has no gap; then the whole head once, at its final angle, on top. Sweeping the
+        # whole head left a tooth of ear and face edge at every step.
+        joint = [v if v != KEY and not ear_m[i] and (i % bw + .5 - P_[0]) ** 2 + (i // bw + .5 - P_[1]) ** 2 < JOINT_R ** 2
+                 else KEY for i, v in enumerate(hd)]
         steps = max(1, int(abs(psi) / 4))
-        for k in range(steps + 1):                 # sweep the head turn: no gap at the throat
-            moved |= C.rotate(hd, bw, bh, a + math.radians(psi) * k / steps, P_, out, bw, bh, to=P2)
+        for k in range(steps):
+            moved |= C.rotate(joint, bw, bh, a + math.radians(psi) * k / steps, P_, out, bw, bh, to=P2)
+        moved |= C.rotate(hd, bw, bh, a + math.radians(psi), P_, out, bw, bh, to=P2)
+        # the ear, hand-drawn per pose: a tapered wedge from its base to its (flicked) tip
+        place = lambda q: rot((q[0] - P_[0] + P2[0], q[1] - P_[1] + P2[1]), P2, a + math.radians(psi))
+        base = place(loc(EAR_BASE))
+        tip = place(rot(loc(EAR_TIP), loc(EAR_BASE), math.radians(-ear)))
+        moved |= draw_ear(out, bw, bh, base, tip)
         clean = C.despeckle(out, bw, bh)           # tidy the moved pixels only: the body never changes
         return [clean[i] if (i % bw, i // bw) in moved else out[i] for i in range(bw * bh)]
 
@@ -277,29 +333,36 @@ GRASS_BASE = (85.0, 194)                # root of the clump, just in front of th
 
 
 def grass_sprite(rng):
-    """A clump of tall bunchgrass in front of the forelegs, drawn after the horse so the grazing
-    muzzle dips into it from behind. A fountain of single-pixel blades, green with dry tips.
+    """Dry bunchgrass in front of the forelegs, drawn after the horse so the grazing muzzle dips
+    into it from behind: a low, ragged, spreading clump (blades rooted along a few px of sand,
+    leaning out) with a few thin seed stalks that rise to the muzzle. Dry tan and olive, checker-
+    dithered like the sand, a touch of dark green only at the roots.
     Frames: 0 rest, 1 tips lean right, 2 tips lean left (sway: rest -> 1 -> rest -> 2 -> rest)."""
     gx, gy, gw, gh = GRASS_BOX
     cx, base = GRASS_BASE
-    blades = []
-    for k in range(16):
-        u = (k / 15) * 2 - 1 + rng.uniform(-0.05, 0.05)            # -1 .. 1, left .. right
-        hgt = (31 - 15 * abs(u + 0.15) ** 1.4) * rng.uniform(0.8, 1.0)
-        blades.append((cx + 3.5 * u + rng.uniform(-0.6, 0.6), hgt, u, k % 3 == 0))
-    blades.sort(key=lambda b: (not b[3], -b[1]))                   # dark back blades first
+    blades = []                                   # (root x, root y, height, lean, kind)
+    for k in range(22):                           # the low clump
+        u = rng.uniform(-1, 1)
+        blades.append((cx + 7 * u, base - rng.choice((0, 0, 1, 1, 2)), rng.uniform(4, 11) * (1 - 0.35 * abs(u)),
+                       u * rng.uniform(3, 7), 'leaf'))
+    for rx, h, lean in ((cx - 0.5, 28, 1.0), (cx + 1.5, 26, 2.5), (cx - 2.5, 21, -1.5), (cx + 3.5, 17, 4.5), (cx + 0.5, 13, -3.0)):
+        blades.append((rx, base - 1, h, lean, 'stalk'))   # seed stalks: the muzzle meets their tops
+    tone = {  # (low, high) pairs dithered on a checker; by height along the blade
+        'leaf': [(0.15, (DKGREEN, OLIVE)), (0.5, (OLIVE, DKTAN)), (1.01, (DKTAN, TAN))],
+        'stalk': [(0.2, (OLIVE, DKTAN)), (0.8, (DKTAN, DKTAN)), (1.01, (DKTAN, TAN))],
+    }
     frames = []
     for sway in (0, 1, -1):
         g = [KEY] * (gw * gh)
-        for x0, hgt, u, back in blades:
-            steps = int(hgt * 3)
+        for rx, ry, hgt, lean, kind in blades:
+            steps = max(2, int(hgt * 3))
             for st in range(steps + 1):
                 t = st / steps
-                x = x0 + u * (5 * t * t + 3 * t ** 3) + sway * 1.6 * t ** 2
-                y = base - hgt * (t - 0.3 * abs(u) ** 1.5 * t ** 3)
-                if back: col = MOSS if t < 0.45 else DKGREEN if t < 0.9 else DKTAN
-                else: col = DKGREEN if t < 0.3 else OLIVE if t < 0.88 else DKTAN
-                X, Y = round(x) - gx, round(y) - gy
-                if 0 <= X < gw and 0 <= Y < gh: g[Y * gw + X] = col
+                x = rx + lean * t ** 1.6 + sway * (1.4 if kind == 'stalk' else 0.8) * t ** 2
+                y = ry - hgt * (t - (0.25 * t ** 3 if kind == 'leaf' else 0))
+                X, Y = round(x), round(y)
+                pair = next(c for lim, c in tone[kind] if t < lim)
+                col = pair[(X + Y) % 2]
+                if 0 <= X - gx < gw and 0 <= Y - gy < gh: g[(Y - gy) * gw + X - gx] = col
         frames.append(g)
     return C.Sprite('grass', gw, gh, frames, (gx, gy), 'ground', 0)
