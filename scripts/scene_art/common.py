@@ -44,7 +44,7 @@ def raster(poly, w, h, ss=4, cut=0.5):
     m = Image.new('L', (w * ss, h * ss), 0)
     ImageDraw.Draw(m).polygon([(x * ss, y * ss) for x, y in poly], fill=255)
     m = m.resize((w, h), Image.BOX)
-    return bytearray(1 if v >= 255 * cut else 0 for v in m.getdata())
+    return bytearray(1 if v >= 255 * cut else 0 for v in m.get_flattened_data())
 
 
 def dilate(m, w, h, r=1):

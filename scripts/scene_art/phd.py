@@ -223,8 +223,7 @@ def horse_sprites(world, horse):
             earpx = [v if ear_m[i] else KEY for i, v in enumerate(head)]
             C.rotate(earpx, bw, bh, math.radians(-ear), loc(EAR_BASE), hd, bw, bh, to=loc(EAR_BASE))
         if phi == 0 and psi == 0:                  # head up: the rest frame, only the ear may differ
-            return [hd[i] if head_m[i] and moving[i] and hd[i] != KEY else rest[i] if not (head_m[i] and moving[i]) else KEY
-                    for i in range(bw * bh)]
+            return [hd[i] if hd[i] != KEY else (KEY if head_m[i] and moving[i] else rest[i]) for i in range(bw * bh)]
         out = list(body)
         a = math.radians(phi)
         moved = C.rotate(neck, bw, bh, a, W_, out, bw, bh, to=W_)

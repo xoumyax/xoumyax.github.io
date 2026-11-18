@@ -20,8 +20,8 @@ PULL = 0.22
 # id -> (photo, landscape crop, portrait crop); a crop is (cx, cy) or (cx, cy, zoom), see load().
 # Crops are judged on the built page with the section centred: the panel and deck cover most of
 # the middle, so each subject is placed in what they leave free. hero: the Chisos peak right of
-# the YARAikiba card (desktop), in the band above the intro panel (phone). phd: the horse's head
-# and body above the PhD panel (desktop), its head and back below the pager (phone). now (phone):
+# the YARAikiba card (desktop), in the band above the intro panel (phone). phd's crops are unused
+# while it has a world (see its world settings). now (phone):
 # the lit door left of the deck. river (phone): the camp between the panel and the footer.
 SCENES = {
     'hero':      ('DSC04135.JPG', (0.42, 1, 1.3), (0.85, 1, 1.9)),
