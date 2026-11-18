@@ -1,0 +1,53 @@
+{
+ "id": "now",
+ "world": [
+  260,
+  224
+ ],
+ "view": {
+  "land": [
+   4,
+   51
+  ],
+  "port": [
+   90,
+   6
+  ]
+ },
+ "layers": [
+  {
+   "name": "sky",
+   "depth": 0,
+   "rate": 0.2
+  },
+  {
+   "name": "hill",
+   "depth": 0.35,
+   "rate": 0.4
+  },
+  {
+   "name": "dome",
+   "depth": 0.6,
+   "rate": 0.7
+  },
+  {
+   "name": "gravel",
+   "depth": 1,
+   "rate": 1.3
+  }
+ ],
+ "sprites": [
+  {
+   "name": "door",
+   "w": 27,
+   "h": 63,
+   "frames": 6,
+   "at": [
+    116,
+    89
+   ],
+   "layer": "dome",
+   "rest": 0
+  }
+ ]
+}

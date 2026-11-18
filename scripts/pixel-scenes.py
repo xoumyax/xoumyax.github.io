@@ -20,9 +20,9 @@ PULL = 0.22
 # id -> (photo, landscape crop, portrait crop); a crop is (cx, cy) or (cx, cy, zoom), see load().
 # Crops are judged on the built page with the section centred: the panel and deck cover most of
 # the middle, so each subject is placed in what they leave free. hero: the Chisos peak right of
-# the YARAikiba card (desktop), in the band above the intro panel (phone). phd's crops are unused
-# while it has a world (see its world settings). now (phone):
-# the lit door left of the deck. river (phone): the camp between the panel and the footer.
+# the YARAikiba card (desktop), in the band above the intro panel (phone). phd's and now's crops
+# are unused while they have worlds (see their world settings; --new-palette still reads them).
+# river (phone): the camp between the panel and the footer.
 SCENES = {
     'hero':      ('DSC04135.JPG', (0.42, 1, 1.3), (0.85, 1, 1.9)),
     'srm':       ('DSC04305.JPG', (0.5, 0.55), (0.5, 0.55)),
@@ -35,7 +35,15 @@ SCENES = {
         # Desktop keeps the old framing: the horse in the free column left of the deck.
         'density': 400, 'world': (264, 224), 'centre': (0.669, 0.5776),
         'land': (6, 89), 'port': (8, 10)}),
-    'now':       ('IMG_7089.JPG', (0.5, 0.55), (1, 0.5, 1.27)),
+    'now':       ('IMG_7089.JPG', (0.5, 0.55), (1, 0.5, 1.27), {
+        # A world at 260 px per photo width, the least the land view allows (240 + camera drift
+        # + seam, and the photo is only `density` wide): the dome is ~130 px wide, more than a
+        # phone shows, so the phone frames the door, the apex and the right shoulder (the dome's
+        # left third is off-screen), with the door top 83 rows down: late in the stop, when the
+        # light comes on, that is the gap between the deck's pager and the next panel. Desktop
+        # keeps today's framing, ~1.08x tighter: the door right of the Now panel's edge.
+        'density': 260, 'world': (260, 224), 'centre': (0.5, 0.510577),
+        'land': (4, 51), 'port': (90, 6)}),
     'river':     ('IMG_7241.JPG', (0.5, 0.55), (0.55, 0, 1.22)),
 }
 # The shared palette, fixed so a crop change never recolours the other scenes. It was made by
