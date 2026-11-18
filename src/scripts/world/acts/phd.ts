@@ -68,7 +68,8 @@ const GLINT_Y = new Int16Array(SPOTS);
 const GLINT_LEN = new Int8Array(SPOTS);
 const GLINT_C = new Uint32Array(SPOTS);
 
-// Motes: slow specks over the upper sand (world y 142–156), drifting right and up, bobbing.
+// Motes: slow specks over the darker top of the upper sand (world y 139–149), drifting right and
+// up, bobbing (paper on the bright sand lower down would vanish into its speckle).
 const MOTE_DUR = [5, 6.5, 4, 7, 5.5];
 const MOTES = MOTE_DUR.map((dur, k) => new EventSchedule(seed(2000 + k), [0.3, 2.5], dur));
 const MOTE_X = new Float32Array(SPOTS);
@@ -85,7 +86,7 @@ const MOTE_PH = new Float32Array(SPOTS);
     GLINT_LEN[i] = rnd() < 0.7 ? 2 : 3;
     GLINT_C[i] = rnd() < 0.8 ? MIST : PAPER;
     MOTE_X[i] = 12 + rnd() * 236;
-    MOTE_Y[i] = 142 + rnd() * 14;
+    MOTE_Y[i] = 139 + rnd() * 10;
     MOTE_VX[i] = 1.2 + rnd() * 1.4;
     MOTE_PH[i] = rnd() * TAU;
   }

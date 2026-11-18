@@ -25,9 +25,11 @@ export function doorFrame(p: number): number {
 }
 
 // ---------------------------------------------------------------- ambient
-// Stars: world (x, y) in clear sky that the land view shows right of and above the dome.
-const STAR_X = [214, 233, 160, 226];
-const STAR_Y = [58, 71, 54, 96];
+// Stars: world (x, y) in clear sky right of the dome. The land view shows all five; the last two
+// are in the deep-blue band just right of the dome's shoulder, which the port view shows in its
+// free band late in the stop.
+const STAR_X = [214, 233, 226, 204, 200];
+const STAR_Y = [58, 71, 96, 91, 101];
 // Seeds are hashed (non-linearly): with nearby or evenly spaced seeds the draws line up and the stars
 // twinkle together.
 const seed = (n: number): number => {
