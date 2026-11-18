@@ -63,7 +63,7 @@ test('camera drift: at p = 1 a rate-1 layer is offset by CAM_X right and CAM_Y u
 
 test('mid-pan: scene k left of the cut, scene k+1 right of it, a ragged seam, no blanks', () => {
   const t = 0.5;
-  const s = Math.round(bandShift(t, 0.5) * VW);
+  const s = Math.round(bandShift(t, 0) * VW);
   const out = frame(flatWorld('hero', solid(A)), undefined, flatWorld('now', solid(B)), 1, t);
   for (let y = 0; y < VH; y++) for (let x = 0; x < VW; x++) {
     expect(out[y * VW + x], `${x},${y}`).toBe(x < VW - s ? A : B);
@@ -75,7 +75,7 @@ test('the seam is ragged where scene k+1 has world to the left of its edge', () 
   const m: SceneMeta = { ...meta, id: 'ms', view: { land: [4, 0], port: [0, 0] }, layers: [{ name: 'back', depth: 0.5, rate: 0 }], sprites: [] };
   const b = makeWorld(m, [fill(12, 6, () => C)], []);
   const t = 0.5;
-  const s = Math.round(bandShift(t, 0.5) * VW);
+  const s = Math.round(bandShift(t, 0) * VW);
   const out = frame(flatWorld('hero', solid(A)), undefined, b, 1, t);
   let ragged = false;
   for (let y = 0; y < VH; y++) {
@@ -136,16 +136,24 @@ test('an after-hook cannot draw past the cut of scene k', () => {
   for (let x = 0; x < VW; x++) expect(out[x], String(x)).toBe(x < VW - s ? C : 0);
 });
 
-test('known gap: a near flat layer 0 before a far world layer 0 leaves a strip only k+1’s upper layers cover', () => {
-  // Brief's formulas as written: k (flat, depth 0.5) clips its only layer at VW − s(0.5), while
-  // k+1's opaque layer 0 (depth 0) starts at VW − s(0); between them only k+1's nearer layers draw.
-  const farWorld: SceneMeta = { ...meta, id: 'phd', view: { land: [0, 0], port: [0, 0] }, sprites: [], layers: [{ name: 'back', depth: 0, rate: 0 }] };
-  const b = makeWorld(farWorld, [fill(12, 6, () => B)], []);
-  const t = 0.5;
-  const s5 = Math.round(bandShift(t, 0.5) * VW);
-  const s0 = Math.round(bandShift(t, 0) * VW);
-  expect(s5).toBeGreaterThan(s0);
-  const out = frame(flatWorld('now', solid(A)), undefined, b, 1, t);
-  const blanks = [...out].filter((v) => v === 0).length;
-  expect(blanks).toBeGreaterThan(0);
+test('no blank pixel mid-pan, whatever depth each scene declares for its base layer', () => {
+  // Ruling: layers[0] always pans with bandShift(t, 0), so the two bases are complementary (the
+  // seam jitter only overlaps). Scene k: base declared at 0.7 under a clear front; scene k+1: base
+  // at 0.1 under a clear front; also a flat fallback (declared depth 0) against each.
+  const clear = fill(12, 6, () => 0);
+  const w = (id: SceneMeta['id'], d0: number, c: number) => makeWorld(
+    { ...meta, id, sprites: [], view: { land: [2, 1], port: [0, 0] },
+      layers: [{ name: 'base', depth: d0, rate: 0 }, { name: 'front', depth: 1, rate: 0 }] },
+    [fill(12, 6, () => c), clear], []);
+  expect(flatWorld('hero', solid(A)).meta.layers[0].depth).toBe(0);
+  const pairs: [World, World][] = [
+    [w('now', 0.7, A), w('phd', 0.1, B)],
+    [w('now', 0.1, A), w('phd', 0.7, B)],
+    [flatWorld('now', solid(A)), w('phd', 0.1, B)],
+    [w('now', 0.9, A), flatWorld('phd', solid(B))],
+  ];
+  for (const [a, b] of pairs) for (const t of [0.05, 0.25, 0.5, 0.75, 0.95]) {
+    const out = frame(a, undefined, b, 1, t);
+    expect([...out].filter((v) => v === 0).length, `${a.meta.id}->${b.meta.id} t=${t}`).toBe(0);
+  }
 });

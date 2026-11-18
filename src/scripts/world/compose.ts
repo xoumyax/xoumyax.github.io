@@ -16,10 +16,10 @@ export function makeWorld(meta: SceneMeta, layers: Bitmap[], sprites: Bitmap[]):
   return { meta, layers, sprites, spriteIndex: new Map(meta.sprites.map((s, i) => [s.name, i])) };
 }
 
-/** A flat frame as a one-layer world the size of the view. */
+/** A flat frame as a one-layer world the size of the view (a base layer, so depth 0). */
 export function flatWorld(id: SceneMeta['id'], frame: Bitmap): World {
   return makeWorld(
-    { id, world: [frame.w, frame.h], view: { land: [0, 0], port: [0, 0] }, layers: [{ name: 'flat', depth: 0.5, rate: 0 }], sprites: [] },
+    { id, world: [frame.w, frame.h], view: { land: [0, 0], port: [0, 0] }, layers: [{ name: 'flat', depth: 0, rate: 0 }], sprites: [] },
     [frame], [],
   );
 }
@@ -93,8 +93,11 @@ export function compose(
 ): void {
   out = dst; VW = vw; VH = vh;
   dst.fill(0);
-  const passes: Pass[] = a.meta.layers.map((l, i) => ({ scene: 0, i, depth: l.depth }));
-  if (t > 0 && b) for (let i = 0; i < b.meta.layers.length; i++) passes.push({ scene: 1, i, depth: b.meta.layers[i].depth });
+  // The opaque base layer (layers[0]) always pans as depth 0, whatever it declares, so the two
+  // scenes' bases are complementary (only the seam jitter overlaps) and no pixel is left blank.
+  const depthOf = (w: World, i: number): number => (i === 0 ? 0 : w.meta.layers[i].depth);
+  const passes: Pass[] = a.meta.layers.map((_, i) => ({ scene: 0, i, depth: depthOf(a, i) }));
+  if (t > 0 && b) for (let i = 0; i < b.meta.layers.length; i++) passes.push({ scene: 1, i, depth: depthOf(b, i) });
   passes.sort(byDepth); // stable: k before k + 1 at equal depth
 
   for (const { scene, i, depth } of passes) {

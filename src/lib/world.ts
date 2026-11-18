@@ -4,7 +4,7 @@ import type { SceneId } from './scenes';
 
 /**
  * One layer, back to front; layers[0] is opaque. `depth` 0 (farthest) … 1 (nearest) sets how early
- * it slides in a pan, `rate` its parallax against the camera. travel = [left, right, up, down]: the
+ * it slides in a pan (layers[0] always pans as depth 0, whatever it declares), `rate` its parallax against the camera. travel = [left, right, up, down]: the
  * most a `shift` hook moves this layer, in world px (default 0s). A layer PNG is world-sized.
  */
 export interface LayerMeta { name: string; depth: number; rate: number; travel?: [number, number, number, number] }
