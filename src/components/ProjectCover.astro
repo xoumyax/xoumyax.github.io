@@ -11,7 +11,7 @@ interface Props {
 const { project, size } = Astro.props;
 const { tone, glyphs } = project.cover;
 const field = size === 'hero' ? glyphField(project, 150, 40) : glyphField(project, 44, 30);
-const style = `--tone:var(--${tone});--on-tone:${onTone(tone)}`;
+const style = `--tone:var(--${tone === 'sand' ? 'sand-lit' : tone});--on-tone:${onTone(tone)}`;
 ---
 <div class:list={['cover', size, `tone-${tone}`]} style={style} data-cover>
   <pre class="field" aria-hidden="true">{field}</pre>

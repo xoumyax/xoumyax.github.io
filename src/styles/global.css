@@ -11,7 +11,7 @@ body {
   background: var(--paper);
   text-rendering: optimizeLegibility;
 }
-body[data-theme='night'] { color: var(--paper); background: var(--night); }
+body[data-theme='night'] { color: var(--cream); background: var(--night); }
 body[data-theme='world'] { background: var(--sand); }
 
 img, svg, video, canvas { display: block; max-width: 100%; }

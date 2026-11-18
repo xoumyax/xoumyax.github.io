@@ -121,6 +121,7 @@ const others = allProjects.filter((x) => !x.featured).sort((a, b) => lastYear(b.
   }
   @media print {
     :global(header.topbar), :global(body > footer), :global(.skip) { display: none !important; }
+    :global(html:root:root) { --paper: #F5F2EC; --ink: #1D1B18; --sand: #E9DCC4; }
     :global(body) { font-size: 10.5pt; background: #fff; }
     .resume { padding-block: 0; max-width: none; }
     a { text-decoration: none; }

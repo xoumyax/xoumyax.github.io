@@ -7,7 +7,33 @@
   --storm: #4F6272;
   --amber: #F0A43A;
   --night: #0B0B0C;
+  /* Never swapped by the mode: light text for the night theme and dark-on-amber text. */
+  --cream: #F5F2EC;
+  --char: #1D1B18;
+  --sand-lit: #E9DCC4;
+  --scene-filter: none;
+  color-scheme: light;
+}
 
+:root[data-mode='dark'] {
+  --paper: #171512;
+  --ink: #EDE7DC;
+  --sand: #24201A;
+  --scene-filter: brightness(.6) saturate(.9);
+  color-scheme: dark;
+}
+/* Same values as above: the device setting applies until a stored choice says otherwise. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-mode='light']) {
+    --paper: #171512;
+    --ink: #EDE7DC;
+    --sand: #24201A;
+    --scene-filter: brightness(.6) saturate(.9);
+    color-scheme: dark;
+  }
+}
+
+:root {
   --ease: cubic-bezier(.22, 1, .36, 1);
 
   --font-ui: 'Inter Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;

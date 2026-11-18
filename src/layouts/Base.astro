@@ -17,10 +17,20 @@ const fullTitle = title === 'Soumyajyoti Dutta' ? title : `${title} — Soumyajy
 const canonical = new URL(Astro.url.pathname, Astro.site);
 // The hero scene (1440×810) is every page's social preview image
 const ogImage = new URL('/og.png', Astro.site);
+// Browser-chrome colour per theme; mode.ts rewrites both metas when the visitor picks a mode.
+const bar = theme === 'night' ? { light: '#0B0B0C', dark: '#0B0B0C' }
+  : theme === 'world' ? { light: '#E9DCC4', dark: '#24201A' }
+  : { light: '#F5F2EC', dark: '#171512' };
 ---
 <!doctype html>
 <html lang="en">
   <head>
+    <script is:inline>
+      try {
+        var m = localStorage.getItem('mode');
+        if (m === 'dark' || m === 'light') document.documentElement.setAttribute('data-mode', m);
+      } catch (e) {}
+    </script>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{fullTitle}</title>
@@ -38,7 +48,8 @@ const ogImage = new URL('/og.png', Astro.site);
     <meta property="og:image:alt" content="A pixel-art painting of a Big Bend desert landscape" />
     <meta name="twitter:card" content="summary_large_image" />
     <link rel="sitemap" href="/sitemap.xml" />
-    <meta name="theme-color" content={theme === 'night' ? '#0B0B0C' : theme === 'world' ? '#E9DCC4' : '#F5F2EC'} />
+    <meta name="theme-color" content={bar.light} media="(prefers-color-scheme: light)" data-light={bar.light} data-dark={bar.dark} />
+    <meta name="theme-color" content={bar.dark} media="(prefers-color-scheme: dark)" data-light={bar.light} data-dark={bar.dark} />
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231D1B18'/%3E%3Ctext x='16' y='22' font-family='monospace' font-size='16' fill='%23F0A43A' text-anchor='middle'%3ESD%3C/text%3E%3C/svg%3E" />
     <slot name="head" />
   </head>

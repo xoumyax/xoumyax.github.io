@@ -35,9 +35,9 @@ const { url, steps, blurb } = Astro.props;
   .actions { display: flex; flex-wrap: wrap; gap: .6rem 1rem; align-items: center; margin: 0; }
   .go {
     padding: .55rem 1.05rem; border-radius: 999px; text-decoration: none; font-weight: 600;
-    background: var(--amber); color: var(--ink);
+    background: var(--amber); color: var(--char);
     transition: background-color .25s var(--ease);
   }
-  .go:hover { background: color-mix(in oklab, var(--amber) 80%, var(--ink)); }
+  .go:hover { background: color-mix(in oklab, var(--amber) 80%, var(--char)); }
   .more { font-size: .92rem; }
 </style>

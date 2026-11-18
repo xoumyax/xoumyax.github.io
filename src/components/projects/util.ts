@@ -9,9 +9,9 @@ export const AREA_LABELS: Record<Area, string> = {
   other: 'Other',
 };
 
-/** Paper text on the dark tones, ink on the light ones. */
+/** Cream text on the dark tones, charcoal on the light ones (never swapped by the mode). */
 export const onTone = (tone: Project['cover']['tone']) =>
-  tone === 'rust' || tone === 'storm' ? 'var(--paper)' : 'var(--ink)';
+  tone === 'rust' || tone === 'storm' ? 'var(--cream)' : 'var(--char)';
 
 /** FNV-1a; stable across builds so each card keeps its tilt and texture. */
 export function hash(s: string): number {
