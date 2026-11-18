@@ -97,7 +97,7 @@ def build(world, render, to_world):
 
     # ------------------------------------------------------------ sky: hill, dome and plants underpainted
     # Sky and the far ridge are filled smoothly (patches of the cloud-flecked sky read as confetti
-    # over this much area); the ground under the ridge is patch-filled from pale ground only.
+    # over this much area); the ground under the ridge is patch-filled from ground that is not near-black.
     def band(x, y):
         return 0 if y < hz[x] else 1 if y < hz[x] + th[x] else 2
     hole = C.dilate(bytearray(1 if (hill[i] or front[i] or stalks[i]) and i // W < g[i % W] else 0 for i in range(W * H)), W, H, 2)
