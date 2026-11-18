@@ -75,6 +75,17 @@ export function eventPhase(t: number, seed: number, gap: [number, number], dur: 
 }
 
 /**
+ * A seed for eventPhase / EventSchedule from a small id, in [0, 2^31 − 2). The hash is non-linear
+ * (xorshift-multiply): with nearby or evenly spaced seeds the Park–Miller draws stay linear in the
+ * seed, and the schedules' events start together.
+ */
+export function seedHash(n: number): number {
+  let h = Math.imul(n ^ 0x5bd1e995, 0x9e3779b1);
+  h ^= h >>> 15; h = Math.imul(h, 0x85ebca6b); h ^= h >>> 13;
+  return (h >>> 1) % 2147483646;
+}
+
+/**
  * eventPhase(t, seed, gap, dur) as a resumable schedule, for a clock that runs forward: `phase(t)`
  * returns exactly what eventPhase returns, but resumes from the event the previous call reached
  * (it replays from 0 only when t goes back), so its cost does not grow with t. `index` is the

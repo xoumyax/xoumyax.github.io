@@ -1,6 +1,6 @@
 import { test, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { PAN_VH, PAN_MAX, CAM_X, CAM_Y, SEAM_MAX, panLength, worldAt, bandShift, seamJitter, camera, eventPhase, EventSchedule } from '../../src/lib/world-math';
+import { PAN_VH, PAN_MAX, CAM_X, CAM_Y, SEAM_MAX, panLength, worldAt, bandShift, seamJitter, camera, eventPhase, EventSchedule, seedHash } from '../../src/lib/world-math';
 import { PALETTE, PAL32 } from '../../src/lib/palette';
 
 test('constants', () => {
@@ -150,5 +150,25 @@ test('EventSchedule: the same phase as eventPhase going forward, back and jumpin
     expect(seen).toBeGreaterThan(5);
     for (const t of [12.3, 1.1, 599.9, 0, 333.3, 333.3, 40]) expect(s.phase(t), `${seed} t=${t}`).toBe(eventPhase(t, seed, gap, dur));
     for (const t of [NaN, -1, Infinity]) { expect(s.phase(t)).toBe(-1); expect(s.index).toBe(-1); }
+  }
+});
+
+test('seedHash: deterministic, distinct, in the Park–Miller seed range; consecutive ids do not start together', () => {
+  const seeds = Array.from({ length: 200 }, (_, n) => seedHash(n));
+  expect(seeds).toEqual(Array.from({ length: 200 }, (_, n) => seedHash(n)));
+  expect(new Set(seeds).size).toBe(200);
+  for (const s of seeds) expect(Number.isInteger(s) && s >= 0 && s < 2147483646).toBe(true);
+  // When the first and second events of six consecutive ids start (gap [0.4, 3], 1 s): spread out.
+  const starts = (seed: number) => {
+    const sch = new EventSchedule(seed, [0.4, 3], 1);
+    const out: number[] = [];
+    let prev = -1;
+    for (let k = 0; k < 2000 && out.length < 2; k++) { const i = (sch.phase(k / 100), sch.index); if (i >= 0 && i !== prev) out.push(k / 100); prev = i; }
+    return out;
+  };
+  const s6 = seeds.slice(0, 6).map(starts);
+  for (const j of [0, 1]) {
+    const ts = s6.map((s) => s[j]);
+    expect(Math.max(...ts) - Math.min(...ts), `event ${j}`).toBeGreaterThan(0.5);
   }
 });

@@ -6,7 +6,7 @@
 // where it was cut; 0 rest); on `dome`, door (0 dark rest, 1 dim, 2–4 the light growing down
 // from the lamp, 5 lit).
 import type { Act, DrawCtx } from '../acts';
-import { EventSchedule } from '../../../lib/world-math';
+import { EventSchedule, seedHash as seed } from '../../../lib/world-math';
 import { PAL32 } from '../../../lib/palette';
 
 const PAPER = PAL32[0];
@@ -30,13 +30,7 @@ export function doorFrame(p: number): number {
 // free band late in the stop.
 const STAR_X = [214, 233, 226, 204, 200];
 const STAR_Y = [58, 71, 96, 91, 101];
-// Seeds are hashed (non-linearly): with nearby or evenly spaced seeds the draws line up and the stars
-// twinkle together.
-const seed = (n: number): number => {
-  let h = Math.imul(n ^ 0x5bd1e995, 0x9e3779b1);
-  h ^= h >>> 15; h = Math.imul(h, 0x85ebca6b); h ^= h >>> 13;
-  return (h >>> 1) % 2147483646;
-};
+// Seeds go through seedHash, so the stars do not twinkle together.
 const STARS = STAR_X.map((_, k) => new EventSchedule(seed(3000 + k), [3, 9], 1.6));
 
 // Cloud: 0 → 3 px → 0 over 80 s, as (1 − cos)/2, so it is at rest at t = 0.

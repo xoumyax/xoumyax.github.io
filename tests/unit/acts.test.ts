@@ -116,9 +116,15 @@ test('phd: the head pose is a pure step function of p: up, lowering, grazing, li
   for (const p of [0.7, 0.8, 0.89]) expect([1, 2], String(p)).toContain(pose(p));
   expect(pose(0.75)).toBeGreaterThanOrEqual(pose(0.85));
   for (const p of [0.9, 0.95, 1]) expect(pose(p), String(p)).toBe(0);
-  // no hysteresis: the same p gives the same frame whatever came before
-  const ps = Array.from({ length: 200 }, (_, i) => (i * 7919 % 200) / 199);
-  for (const p of ps) expect(horseFrame(p)).toBe(horseFrame(p));
+  // the whole map, as a table: [from p, frame]
+  const table: [number, number][] = [[0, 0], [0.08, 2], [0.165, 4], [0.25, 6], [0.7, 4], [0.8, 2], [0.9, 0]];
+  const want = (p: number) => table.filter(([q]) => p >= q).at(-1)![1];
+  const sorted = Array.from({ length: 1001 }, (_, i) => i / 1000);
+  for (const p of sorted) expect(horseFrame(p), String(p)).toBe(want(p));
+  // no hysteresis: scrolled in a shuffled order (big jumps both ways), each p gives the frame it gives in order
+  const inOrder = new Map(sorted.map((p) => [p, horseFrame(p)]));
+  const shuffled = sorted.map((_, i) => sorted[(i * 7919) % sorted.length]);
+  for (const p of shuffled) expect(horseFrame(p), String(p)).toBe(inOrder.get(p));
   for (let p = 0; p <= 1; p += 0.01) expect(horseFrame(p) % 2, 'no ear flick from scroll').toBe(0);
 });
 

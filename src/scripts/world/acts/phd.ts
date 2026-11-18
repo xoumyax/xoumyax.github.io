@@ -9,7 +9,7 @@
 // 3 grazing, 4 chew), tail (0 rest, 1 a little left, 2 full left, 3 a little right) and grass
 // (0 rest, 1 tips right, 2 tips left).
 import type { Act, DrawCtx } from '../acts';
-import { EventSchedule } from '../../../lib/world-math';
+import { EventSchedule, seedHash as seed } from '../../../lib/world-math';
 import { PAL32 } from '../../../lib/palette';
 
 const PAPER = PAL32[0];
@@ -34,13 +34,8 @@ export const horseFrame = (p: number): number => 2 * horsePose(p);
 
 // ---------------------------------------------------------------- ambient schedules
 // eventPhase schedules (EventSchedule: the same phases, resumed as the clock runs). Every first
-// event starts gap[0] > 0 s in, so all is at rest at t = 0. Seeds are hashed (non-linearly): with
-// nearby or evenly spaced seeds the Park–Miller draws line up, and the events start together.
-const seed = (n: number): number => {
-  let h = Math.imul(n ^ 0x5bd1e995, 0x9e3779b1);
-  h ^= h >>> 15; h = Math.imul(h, 0x85ebca6b); h ^= h >>> 13;
-  return (h >>> 1) % 2147483646;
-};
+// event starts gap[0] > 0 s in, so all is at rest at t = 0. Seeds go through seedHash, so the
+// schedules do not start together.
 const EAR = new EventSchedule(seed(101), [4, 9], 0.35);
 const CHEW = new EventSchedule(seed(211), [2.5, 6], 0.5);   // shows only while grazing
 const TAIL = new EventSchedule(seed(307), [5, 11], 0.4);
@@ -54,6 +49,7 @@ const BIRD = new EventSchedule(seed(503), [14, 26], BIRD_DUR);
 const pick = (k: number, i: number, n: number): number => (Math.imul(Math.imul(i + 1, 0x9e3779b1) ^ Math.imul(k + 1, 0x85ebca6b), 0x2c1b3c6d) >>> 8) % n;
 
 // Leaf sway: offset round(A·(sin(ωt + φ) + 0.35·sin(2πt/13))), with |A·sin φ| < 0.5, so 0 at t = 0.
+const LEAF_NAMES = ['leaf1', 'leaf2', 'leaf3', 'leaf4', 'leaf5', 'leaf6'];
 const LEAF_A = [0.85, 0.8, 0.75, 0.95, 0.9, 0.85];
 const LEAF_P = [6.3, 7.9, 5.7, 8.6, 6.9, 7.4];
 const LEAF_PH = [0.35, Math.PI - 0.3, 0.1, Math.PI + 0.4, -0.3, Math.PI - 0.05];
@@ -131,7 +127,6 @@ function trees(d: DrawCtx, _p: number, t: number): void {
     d.sprite(LEAF_NAMES[k], dx > 0 ? 1 : dx < 0 ? 2 : 0);
   }
 }
-const LEAF_NAMES = ['leaf1', 'leaf2', 'leaf3', 'leaf4', 'leaf5', 'leaf6'];
 
 function ground(d: DrawCtx, p: number, t: number): void {
   // motes first: the horse passes in front of them
