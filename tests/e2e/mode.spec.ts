@@ -56,7 +56,8 @@ test('no JS follows the device setting', async ({ browser }) => {
   await ctx.close();
 });
 
-// The 28-colour palette shared by every public/scenes PNG: the colours the fixed backdrop can show.
+// The 28-colour palette shared by every public/scenes PNG (tests/unit/scenes.test.ts asserts all
+// files carry the identical PLTE): the only colours the fixed backdrop can show.
 function scenePalette(): number[][] {
   const d = readFileSync('public/scenes/hero.png');
   for (let i = 8; i < d.length; ) {
@@ -67,6 +68,80 @@ function scenePalette(): number[][] {
     i += 12 + n;
   }
   throw new Error('no PLTE in hero.png');
+}
+// filter: brightness(b) saturate(s), as CSS applies them in order
+function filtered([r, g, b]: number[], bright: number, sat: number): number[] {
+  [r, g, b] = [r, g, b].map((v) => Math.min(255, v * bright));
+  const m = [
+    [0.213 + 0.787 * sat, 0.715 - 0.715 * sat, 0.072 - 0.072 * sat],
+    [0.213 - 0.213 * sat, 0.715 + 0.285 * sat, 0.072 - 0.072 * sat],
+    [0.213 - 0.213 * sat, 0.715 - 0.715 * sat, 0.072 + 0.928 * sat],
+  ];
+  return m.map((row) => Math.min(255, Math.max(0, row[0] * r + row[1] * g + row[2] * b)));
+}
+
+type Measured = { count: number; worst: { ratio: number; label: string; seed: number[] } | null; low: [string, number][] };
+
+// Measures every visible text element's contrast. `backdrops` (home only) are the colours the
+// fixed scene can show under the page: html/body backgrounds are skipped there because the
+// scene paints above them, and each element takes its worst case over every backdrop colour.
+async function measure(page: Page, backdrops: number[][]): Promise<Measured> {
+  return page.evaluate((backdrops) => {
+    const cv = document.createElement('canvas');
+    cv.width = cv.height = 1;
+    const cx = cv.getContext('2d', { willReadFrequently: true })!;
+    const parse = (c: string) => {
+      cx.clearRect(0, 0, 1, 1); cx.fillStyle = '#000'; cx.fillStyle = c; cx.fillRect(0, 0, 1, 1);
+      const d = cx.getImageData(0, 0, 1, 1).data;
+      return [d[0], d[1], d[2], d[3] / 255];
+    };
+    const over = (top: number[], base: number[]) => [0, 1, 2].map((i) => top[i] * top[3] + base[i] * (1 - top[3])).concat(1);
+    const mix = (below: number[], x: number[], o: number) => [0, 1, 2].map((i) => below[i] * (1 - o) + x[i] * o).concat(1);
+    const lum = (c: number[]) => {
+      const [r, g, b] = c.slice(0, 3).map((v) => { const x = v / 255; return x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4; });
+      return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    };
+    const ratio = (a: number[], b: number[]) => { const [hi, lo] = [lum(a), lum(b)].sort((x, y) => y - x); return (hi + 0.05) / (lo + 0.05); };
+    const label = (e: Element) => `${e.tagName.toLowerCase()}${e.className && typeof e.className === 'string' ? '.' + e.className.trim().split(/\s+/).join('.') : ''} "${(e.textContent ?? '').trim().slice(0, 30)}"`;
+
+    const all = [...document.querySelectorAll('body *')].filter((e) => {
+      if (e.closest('.scenes, [data-cover], [aria-hidden="true"], [hidden], script, style, noscript, [aria-disabled="true"]')) return false;
+      if (![...e.childNodes].some((n) => n.nodeType === 3 && /\w/.test(n.textContent ?? ''))) return false;
+      const st = getComputedStyle(e);
+      const r = e.getBoundingClientRect();
+      return st.display !== 'none' && st.visibility === 'visible' && r.width > 0 && r.height > 0;
+    });
+    const out: Measured = { count: all.length, worst: null, low: [] };
+    const seeds = backdrops.length ? backdrops.map((c) => [...c, 1]) : [[255, 255, 255, 1]];
+    for (const el of all) {
+      const chain: Element[] = [];
+      for (let e: Element | null = el; e; e = e.parentElement) chain.unshift(e);
+      // html/body backgrounds sit below the fixed scene on the home page: skip them there
+      const layers = chain
+        .map((e) => ({ st: getComputedStyle(e), e }))
+        .filter(({ e }) => !(backdrops.length && (e === document.documentElement || e === document.body)));
+      const fg0 = parse(layers[layers.length - 1].st.color);
+      let worst = Infinity; let worstSeed = seeds[0];
+      for (const seed of seeds) {
+        // group opacity is exact: each element's subtree is blended onto what is below it
+        const pix = (i: number, below: number[], text: boolean): number[] => {
+          const { st } = layers[i];
+          const o = Number(st.opacity);
+          let base = below;
+          // an ancestor image is unknown: assume it shows the worst-case backdrop
+          if (st.backgroundImage !== 'none' && backdrops.length) base = seed;
+          base = over(parse(st.backgroundColor), base);
+          const inner = i === layers.length - 1 ? (text ? over(fg0, base) : base) : pix(i + 1, base, text);
+          return mix(below, inner, o);
+        };
+        const r = ratio(pix(0, seed, true), pix(0, seed, false));
+        if (r < worst) { worst = r; worstSeed = seed; }
+      }
+      if (!out.worst || worst < out.worst.ratio) out.worst = { ratio: worst, label: label(el), seed: worstSeed.slice(0, 3).map(Math.round) };
+      if (worst < 4.5) out.low.push([label(el), worst]);
+    }
+    return out;
+  }, backdrops);
 }
 
 const PAGES = ['/', '/projects/', '/projects/autopyara/', '/resume/', '/teaching/', '/study/', '/404'];
@@ -83,70 +158,28 @@ for (const mode of ['light', 'dark'] as const) {
       for (const r of res.violations) for (const n of r.nodes) bad.push(`axe ${n.target.join(' ')} :: ${n.any[0]?.message ?? ''}`);
 
       // 2. Axe cannot resolve translucent panels, blurred surfaces or overlapping cards, so
-      // measure EVERY visible text element ourselves. Surfaces are composited with their
-      // opacity; a background-image counts as unknown. On the home page the fixed backdrop sits
-      // under the panels, so each element is measured over every scene palette colour (with the
-      // mode's backdrop filter) and the worst one must still reach 4.5.
-      const dim = mode === 'dark' ? 0.6 : 1;
-      const backdrops = path === '/' ? scenePalette().map((c) => c.map((v) => v * dim)) : [];
-      const found = await page.evaluate((backdrops) => {
-        const cv = document.createElement('canvas');
-        cv.width = cv.height = 1;
-        const cx = cv.getContext('2d', { willReadFrequently: true })!;
-        const parse = (c: string) => {
-          cx.clearRect(0, 0, 1, 1); cx.fillStyle = '#000'; cx.fillStyle = c; cx.fillRect(0, 0, 1, 1);
-          const d = cx.getImageData(0, 0, 1, 1).data;
-          return [d[0], d[1], d[2], d[3] / 255];
-        };
-        const over = (top: number[], base: number[]) => [0, 1, 2].map((i) => top[i] * top[3] + base[i] * (1 - top[3])).concat(1);
-        const lum = (c: number[]) => {
-          const [r, g, b] = c.slice(0, 3).map((v) => { const x = v / 255; return x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4; });
-          return 0.2126 * r + 0.7152 * g + 0.0722 * b;
-        };
-        const ratio = (a: number[], b: number[]) => { const [hi, lo] = [lum(a), lum(b)].sort((x, y) => y - x); return (hi + 0.05) / (lo + 0.05); };
-        const label = (e: Element) => `${e.tagName.toLowerCase()}${e.className && typeof e.className === 'string' ? '.' + e.className.trim().split(/\s+/).join('.') : ''} "${(e.textContent ?? '').trim().slice(0, 30)}"`;
-
-        const out: [string, number][] = [];
-        const all = [...document.querySelectorAll('body *')].filter((e) => {
-          if (e.closest('.scenes, [data-cover], [aria-hidden="true"], [hidden], script, style, noscript, [aria-disabled="true"]')) return false;
-          if (![...e.childNodes].some((n) => n.nodeType === 3 && /\w/.test(n.textContent ?? ''))) return false;
-          const st = getComputedStyle(e);
-          const r = e.getBoundingClientRect();
-          return st.display !== 'none' && st.visibility === 'visible' && r.width > 0 && r.height > 0;
-        });
-        for (const el of all) {
-          const chain: Element[] = [];
-          for (let e: Element | null = el; e; e = e.parentElement) chain.unshift(e);
-          const styles = chain.map((e) => getComputedStyle(e));
-          const fg0 = parse(styles[styles.length - 1].color);
-          const seeds = backdrops.length ? backdrops.map((c) => [...c, 1]) : [[255, 255, 255, 1]];
-          let worst = Infinity;
-          for (const seed of seeds) {
-            let base = seed;
-            let opacity = 1;
-            chain.forEach((_, i) => {
-              const st = styles[i];
-              const o = Number(st.opacity);
-              const before = base;
-              // an ancestor image is unknown: assume it shows the worst-case backdrop
-              if (st.backgroundImage !== 'none' && backdrops.length) base = seed;
-              base = over(parse(st.backgroundColor), base);
-              if (o < 1) base = [0, 1, 2].map((k) => before[k] * (1 - o) + base[k] * o).concat(1);
-              opacity *= o;
-            });
-            const fg = over([fg0[0], fg0[1], fg0[2], fg0[3] * opacity], base);
-            worst = Math.min(worst, ratio(fg, base));
-          }
-          if (worst < 4.5) out.push([label(el), worst]);
-        }
-        return { out, count: all.length };
-      }, backdrops);
-      expect(found.count).toBeGreaterThan(5);
-      for (const [l, r] of found.out) bad.push(`measured ${l} contrast ${r.toFixed(2)}`);
+      // measure every visible text element ourselves (see measure()). The home backdrop gets the
+      // mode's filter: dark = brightness(.6) saturate(.9), light = none.
+      const backdrops = path === '/' ? scenePalette().map((c) => (mode === 'dark' ? filtered(c, 0.6, 0.9) : c)) : [];
+      const m = await measure(page, backdrops);
+      expect(m.count).toBeGreaterThan(5);
+      if (path === '/') console.log(`LOWEST ${mode} /: ${m.worst!.ratio.toFixed(2)} ${m.worst!.label} over backdrop rgb(${m.worst!.seed})`);
+      for (const [l, r] of m.low) bad.push(`measured ${l} contrast ${r.toFixed(2)}`);
       expect(bad).toEqual([]);
     });
   }
 }
+
+test('the home measurement really uses the backdrop colour', async ({ page }) => {
+  await page.emulateMedia({ colorScheme: 'light' });
+  await page.goto('/');
+  await page.waitForLoadState('networkidle');
+  const onWhite = await measure(page, [[255, 255, 255]]);
+  const onBlack = await measure(page, [[0, 0, 0]]);
+  expect(onWhite.worst!.ratio).not.toBeCloseTo(onBlack.worst!.ratio, 1);
+  const ratios = new Set((await Promise.all(scenePalette().slice(0, 28).map((c) => measure(page, [c])))).map((r) => r.worst!.ratio.toFixed(3)));
+  expect(ratios.size).toBeGreaterThan(1);
+});
 
 test('the home backdrop is dimmed in dark mode', async ({ page }) => {
   const filter = () => page.evaluate(() => getComputedStyle(document.querySelector('.scenes')!).filter);
