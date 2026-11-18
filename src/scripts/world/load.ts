@@ -54,7 +54,10 @@ export async function loadWorld(id: SceneId): Promise<World | null> {
       Promise.all(meta.layers.map((l) => loadBitmap(worldUrl(id, `${l.name}.png`), W, H))),
       Promise.all(meta.sprites.map((s) => loadBitmap(worldUrl(id, `${s.name}.png`), s.w, s.h * s.frames))),
     ]);
-    if (layers.some((b) => !b) || sprites.some((b) => !b)) return null;
+    if (layers.some((b) => !b) || sprites.some((b) => !b)) {
+      console.warn(`world ${id}: a layer or sprite PNG failed to load or is not the size scene.json gives`);
+      return null;
+    }
     return makeWorld(meta, layers as Bitmap[], sprites as Bitmap[]);
   } catch {
     return null;

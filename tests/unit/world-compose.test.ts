@@ -2,7 +2,7 @@ import { test, expect } from 'vitest';
 import { compose, flatWorld, makeWorld, type Bitmap, type World } from '../../src/scripts/world/compose';
 import type { Act } from '../../src/scripts/world/acts';
 import type { SceneMeta } from '../../src/lib/world';
-import { bandShift, seamJitter } from '../../src/lib/world-math';
+import { CAM_X, CAM_Y, bandShift, seamJitter } from '../../src/lib/world-math';
 import { PAL32 } from '../../src/lib/palette';
 
 const VW = 8;
@@ -44,6 +44,21 @@ test('settled world: view window, transparent pixels skipped, rest sprite after 
     const want = wy === 2 && (wx === 3 || wx === 4) ? S1 : PAL32[wx];
     expect(out[y * VW + x], `${x},${y}`).toBe(want);
   }
+});
+
+test('camera drift: at p = 1 a rate-1 layer is offset by CAM_X right and CAM_Y up', () => {
+  // A 30×12 world viewed from (2, 6): each pixel encodes its own world (x, y).
+  const m: SceneMeta = { ...meta, world: [30, 12], view: { land: [2, 6], port: [0, 0] }, sprites: [],
+    layers: [{ name: 'back', depth: 0, rate: 1 }] };
+  const enc = (x: number, y: number) => (0xff000000 | (y << 8) | x) >>> 0;
+  const w = makeWorld(m, [fill(30, 12, enc)], []);
+  const out = frame(w, undefined, null, 1, 0);
+  for (let y = 0; y < VH; y++) for (let x = 0; x < VW; x++) {
+    expect(out[y * VW + x], `${x},${y}`).toBe(enc(x + 2 + CAM_X, y + 6 - CAM_Y));
+  }
+  // rate 0.5 moves half as far (rounded)
+  const half = makeWorld({ ...m, layers: [{ name: 'back', depth: 0, rate: 0.5 }] }, [fill(30, 12, enc)], []);
+  expect(frame(half, undefined, null, 1, 0)[0]).toBe(enc(2 + Math.round(CAM_X * 0.5), 6 - Math.round(CAM_Y * 0.5)));
 });
 
 test('mid-pan: scene k left of the cut, scene k+1 right of it, a ragged seam, no blanks', () => {
