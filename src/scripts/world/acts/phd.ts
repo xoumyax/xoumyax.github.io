@@ -59,7 +59,7 @@ const LEAF_P = [6.3, 7.9, 5.7, 8.6, 6.9, 7.4];
 const LEAF_PH = [0.35, Math.PI - 0.3, 0.1, Math.PI + 0.4, -0.3, Math.PI - 0.05];
 
 // Glints: short light streaks on the water (world x 140–248, y 106–130: clear of the trees and
-// the near shore). Each slot runs its own schedule and takes a spot per event from GLINT_SPOTS.
+// the near shore). Each slot runs its own schedule and takes one of SPOTS spots per event.
 const GLINT_DUR = [0.7, 1.1, 0.9, 1.5, 0.6, 1.2];
 const GLINTS = GLINT_DUR.map((dur, k) => new EventSchedule(seed(1000 + k), [0.4, 3], dur));
 const SPOTS = 48;
@@ -68,7 +68,7 @@ const GLINT_Y = new Int16Array(SPOTS);
 const GLINT_LEN = new Int8Array(SPOTS);
 const GLINT_C = new Uint32Array(SPOTS);
 
-// Motes: slow specks over the upper sand (world y 138–156), drifting right and up, bobbing.
+// Motes: slow specks over the upper sand (world y 142–156), drifting right and up, bobbing.
 const MOTE_DUR = [5, 6.5, 4, 7, 5.5];
 const MOTES = MOTE_DUR.map((dur, k) => new EventSchedule(seed(2000 + k), [0.3, 2.5], dur));
 const MOTE_X = new Float32Array(SPOTS);
