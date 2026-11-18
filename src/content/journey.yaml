@@ -3,7 +3,7 @@ stops:
     years: "2026"
     title: Now
     place: College Station, Texas
-    summary: Research agents that ask before they search, a vision-security benchmark, and teaching systems programming.
+    summary: Teaching systems programming and cybersecurity data analytics, a workshop talk on IOCScooper++, and outreach at TAMU CS Day.
     items:
       - title: Teaching CSCE 313 and CSCE 439/704
         text: Fall 2026 systems-programming labs; Spring 2026 data analytics for cybersecurity.

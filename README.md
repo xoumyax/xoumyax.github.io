@@ -41,10 +41,12 @@ All text lives in `src/content/` and is validated by `src/lib/schema.ts`:
 | File | What it holds |
 |---|---|
 | `profile.yaml` | name, role, open-to-work line, education, experience, skills, publications, teaching, talks |
-| `journey.yaml` | the six stops on the landing page, and which projects and items sit at each |
+| `journey.yaml` | the six stops on the landing page, and which projects and items sit at each. A stop lists `items`, or instead `groups` (titled blocks of items, each with its own deck) plus an optional `more` (a closed list of small projects); `more` needs `groups`, and a stop with `groups` has no `items`. A project page's "On the journey" link goes to the stop that lists it |
 | `projects/<slug>.md` | one file per project (copy `_template.md`); the file name must match `slug` |
 | `study.yaml` | links on `/study` |
 | `config.yaml` | the YARAikiba demo URL and its guest sign-in steps, and the resume PDF paths |
+
+**Dark / light mode.** The site follows the device setting; the toggle in the top bar overrides it and stores `'dark'` or `'light'` in `localStorage.mode` (applied before first paint by the inline script in `src/layouts/Base.astro`). The Personal page keeps its night look and hides the toggle.
 
 **Content guards.** `src/lib/claims.ts` enforces:
 

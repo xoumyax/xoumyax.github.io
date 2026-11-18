@@ -6,7 +6,7 @@
   border: 1px solid color-mix(in oklab, var(--ink) 9%, transparent);
   border-radius: 1.25rem;
   padding: clamp(1.1rem, 3vw, 2.25rem);
-  box-shadow: 0 22px 48px -30px color-mix(in oklab, var(--ink) 55%, transparent);
+  box-shadow: 0 22px 48px -30px color-mix(in oklab, var(--char) 55%, transparent);
   min-width: 0;
   pointer-events: auto;
 }
@@ -18,7 +18,7 @@
   border: 1px solid color-mix(in oklab, var(--ink) 10%, transparent);
   border-radius: 1rem;
   padding: 1.1rem 1.2rem 1.25rem;
-  box-shadow: 0 14px 30px -24px color-mix(in oklab, var(--ink) 60%, transparent);
+  box-shadow: 0 14px 30px -24px color-mix(in oklab, var(--char) 60%, transparent);
   min-width: 0;
 }
 .j-card h3 { font-size: 1.15rem; margin: 0 0 .35rem; }

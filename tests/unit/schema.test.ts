@@ -1,9 +1,8 @@
 import { test, expect } from 'vitest';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { parse } from 'yaml';
 import { JourneySchema, STOP_IDS } from '../../src/lib/schema';
 import { SCENE_IDS } from '../../src/lib/scenes';
-import { existsSync } from 'node:fs';
 import { getConfig, getJourney, getProfile, getProjects, getStudy } from '../../src/lib/data';
 
 test('singletons validate', () => {
@@ -75,4 +74,13 @@ test('a stop with both items and groups fails to parse', () => {
   const r = JourneySchema.safeParse({ stops });
   expect(r.success).toBe(false);
   expect(JSON.stringify(r.error?.issues)).toContain('phd');
+});
+
+test('a stop with more but no groups fails to parse', () => {
+  const stops = getJourney().stops.map((s) => ({ ...s }));
+  const ms = stops.find((s) => s.id === 'ms')!;
+  ms.more = { title: 'Small projects', items: ['hawkeye'] };
+  const r = JourneySchema.safeParse({ stops });
+  expect(r.success).toBe(false);
+  expect(JSON.stringify(r.error?.issues)).toContain('ms');
 });

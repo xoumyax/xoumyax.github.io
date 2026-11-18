@@ -248,3 +248,19 @@ test.describe('without JavaScript', () => {
     for (const p of pagers) expect(p).toEqual(['hidden', true]);
   });
 });
+
+test('on a phone, block headings and the Small projects panel line up with the decks', async ({ page }, info) => {
+  test.skip(info.project.name !== 'phone');
+  await page.goto('/');
+  const r = await page.locator('#stop-phd').evaluate((s) => {
+    const box = (e: Element) => { const b = e.getBoundingClientRect(); return [Math.round(b.x), Math.round(b.width)]; };
+    return {
+      decks: [...s.querySelectorAll('[data-block] .deck')].map(box),
+      blocks: [...s.querySelectorAll('[data-block]')].map(box),
+      more: box(s.querySelector('[data-more]')!),
+    };
+  });
+  expect(r.decks.length).toBe(3);
+  r.blocks.forEach((b, i) => expect(b, `block ${i}`).toEqual(r.decks[i]));
+  expect(r.more).toEqual(r.decks[0]);
+});

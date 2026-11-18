@@ -45,10 +45,10 @@ test('the stored choice wins over the device setting, across pages', async ({ pa
   await expect(page.locator('#mode-toggle')).toHaveAttribute('aria-pressed', 'true');
 });
 
-test('no JS follows the device setting', async ({ browser }) => {
-  const ctx = await browser.newContext({ javaScriptEnabled: false, colorScheme: 'dark' });
+test('no JS follows the device setting', async ({ browser }, info) => {
+  const ctx = await browser.newContext({ javaScriptEnabled: false, colorScheme: 'dark', baseURL: info.project.use.baseURL });
   const page = await ctx.newPage();
-  await page.goto('http://localhost:' + (process.env.PORT ?? 4321) + '/resume/');
+  await page.goto('/resume/');
   expect(luminance(await bg(page))).toBeLessThan(0.2);
   const color = await page.evaluate(() => getComputedStyle(document.body).color);
   expect(luminance(color)).toBeGreaterThan(0.5);
@@ -207,4 +207,64 @@ test('the Personal page keeps its night look in both modes', async ({ page }) =>
   const dark = await look('dark');
   expect(dark).toEqual(light);
   expect(luminance(light[0])).toBeLessThan(0.05);
+});
+
+test('a stored light choice wins on a dark device', async ({ page }) => {
+  await page.emulateMedia({ colorScheme: 'dark' });
+  await page.addInitScript(() => localStorage.setItem('mode', 'light'));
+  await page.goto('/');
+  await expect(page.locator('html')).toHaveAttribute('data-mode', 'light');
+  expect(luminance(await bg(page))).toBeGreaterThan(0.5);
+  await expect(page.locator('#mode-toggle')).toHaveAttribute('aria-pressed', 'false');
+});
+
+test('the toggle does not shift the nav when it appears', async ({ page, browser }, info) => {
+  const x = (p: typeof page) => p.locator('nav[aria-label="Main"] a', { hasText: 'Resume' }).first().evaluate((e) => e.getBoundingClientRect().x);
+  await page.goto('/resume/');
+  const withScripts = await x(page);
+  const ctx = await browser.newContext({ ...info.project.use, baseURL: info.project.use.baseURL });
+  const bare = await ctx.newPage();
+  // module scripts blocked: the toggle must already be laid out by the inline head script and CSS
+  // (Astro may inline module scripts, so strip them from the HTML as well as aborting fetched ones.)
+  await bare.route('**/_astro/**', (r) => (r.request().resourceType() === 'script' ? r.abort() : r.continue()));
+  await bare.route('**/resume/', async (r) => {
+    const res = await r.fetch();
+    const html = (await res.text()).replace(/<script type="module"[\s\S]*?<\/script>/g, '');
+    await r.fulfill({ response: res, body: html });
+  });
+  await bare.goto('/resume/');
+  expect(await x(bare)).toBe(withScripts);
+  await ctx.close();
+});
+
+test('the toggle is hidden on the Personal page, where it would change nothing', async ({ page }) => {
+  await page.goto('/personal/');
+  await expect(page.locator('#mode-toggle')).toBeHidden();
+  await page.goto('/resume/');
+  await expect(page.locator('#mode-toggle')).toBeVisible();
+});
+
+test('hover text on the project journey link reads in both modes', async ({ page }) => {
+  for (const mode of ['light', 'dark'] as const) {
+    await page.emulateMedia({ colorScheme: mode });
+    await page.goto('/projects/autopyara/');
+    const link = page.locator('a.journey');
+    await link.hover();
+    await page.waitForTimeout(500);
+    const ratios = await link.evaluate((a) => {
+      const cv = document.createElement('canvas'); cv.width = cv.height = 1;
+      const cx = cv.getContext('2d', { willReadFrequently: true })!;
+      const px = (c: string) => { cx.clearRect(0, 0, 1, 1); cx.fillStyle = '#000'; cx.fillStyle = c; cx.fillRect(0, 0, 1, 1); return [...cx.getImageData(0, 0, 1, 1).data]; };
+      const lum = (c: number[]) => { const [r, g, b] = c.slice(0, 3).map((v) => { const x = v / 255; return x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4; }); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+      const bgc = px(getComputedStyle(a).backgroundColor);
+      return [...a.querySelectorAll('span')].filter((s) => (s.textContent ?? '').trim()).map((s) => {
+        const st = getComputedStyle(s);
+        const f = px(st.color); const o = Number(st.opacity);
+        const fg = [0, 1, 2].map((i) => f[i] * o + bgc[i] * (1 - o));
+        const [hi, lo] = [lum(fg), lum(bgc)].sort((x, y) => y - x);
+        return (hi + 0.05) / (lo + 0.05);
+      });
+    });
+    for (const r of ratios) expect(r, mode).toBeGreaterThanOrEqual(4.5);
+  }
 });

@@ -23,7 +23,6 @@ function sync(button: HTMLElement): void {
 export function initModeToggle(): void {
   const button = document.getElementById('mode-toggle');
   if (!button) return;
-  button.hidden = false;
   sync(button);
   button.addEventListener('click', () => {
     const next: Mode = current() === 'dark' ? 'light' : 'dark';

@@ -62,6 +62,9 @@ export const JourneySchema = z.object({
   stops: z
     .array(
       stopShape.superRefine((s, ctx) => {
+        if (s.more && !s.groups) {
+          ctx.addIssue({ code: 'custom', path: ['more'], message: `stop "${s.id}" has more but no groups; more only extends a grouped stop` });
+        }
         if (s.groups && s.items.length > 0) {
           ctx.addIssue({ code: 'custom', path: ['items'], message: `stop "${s.id}" has groups, so its own items must be empty` });
         }

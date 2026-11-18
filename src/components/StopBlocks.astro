@@ -43,6 +43,9 @@ const more = stop.more ? { title: stop.more.title, projects: stop.more.items.map
 <style>
   .blocks { display: grid; gap: 1.25rem; min-width: 0; }
   .block { min-width: 0; }
+  @media (max-width: 56rem) {
+    .block, .more { width: min(100%, 17rem); margin-inline: auto; }
+  }
   .block h3 {
     margin: 0 0 .45rem; font-weight: 700; opacity: 1; width: fit-content; max-width: 100%;
     padding: .3rem .7rem; border-radius: 999px; pointer-events: auto;

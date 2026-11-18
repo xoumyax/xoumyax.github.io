@@ -26,6 +26,7 @@ const bar = theme === 'night' ? { light: '#0B0B0C', dark: '#0B0B0C' }
 <html lang="en">
   <head>
     <script is:inline>
+      document.documentElement.classList.add('js');
       try {
         var m = localStorage.getItem('mode');
         if (m === 'dark' || m === 'light') document.documentElement.setAttribute('data-mode', m);
