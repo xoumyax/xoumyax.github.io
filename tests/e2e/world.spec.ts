@@ -56,6 +56,23 @@ test.describe('still', () => {
     expect(transparent).toBe(0);
   });
 
+  test('inside the Ph.D. stop the scene moves with scroll, not on its own', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#scene:not([hidden])');
+    await scrollToCentre(page, 'phd');
+    await expect(cv(page)).toHaveAttribute('data-scene', 'phd');
+    const a = await canvasHash(page);
+    await page.evaluate(() => scrollBy({ top: 300, behavior: 'instant' }));
+    await settle(page);
+    await expect(cv(page)).toHaveAttribute('data-scene', 'phd');
+    await expect(cv(page)).not.toHaveAttribute('data-next', /.*/);
+    // The world loads after first paint; until then the flat frame shows and nothing moves.
+    await expect.poll(() => canvasHash(page)).not.toBe(a);
+    const b = await canvasHash(page);
+    await page.waitForTimeout(400);
+    expect(await canvasHash(page)).toBe(b);
+  });
+
   test('opening Small projects keeps scenes on their stops', async ({ page }) => {
     await page.goto('/');
     await page.waitForSelector('#scene:not([hidden])');

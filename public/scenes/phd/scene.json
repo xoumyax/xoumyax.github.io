@@ -1,0 +1,82 @@
+{
+ "id": "phd",
+ "world": [
+  264,
+  224
+ ],
+ "view": {
+  "land": [
+   6,
+   89
+  ],
+  "port": [
+   8,
+   10
+  ]
+ },
+ "layers": [
+  {
+   "name": "far",
+   "depth": 0,
+   "rate": 0.25
+  },
+  {
+   "name": "trees",
+   "depth": 0.35,
+   "rate": 0.4
+  },
+  {
+   "name": "bank",
+   "depth": 0.5,
+   "rate": 0.55
+  },
+  {
+   "name": "ground",
+   "depth": 0.65,
+   "rate": 0.75
+  },
+  {
+   "name": "fore",
+   "depth": 1,
+   "rate": 1.4
+  }
+ ],
+ "sprites": [
+  {
+   "name": "horse",
+   "w": 84,
+   "h": 86,
+   "frames": 10,
+   "at": [
+    30,
+    112
+   ],
+   "layer": "ground",
+   "rest": 0
+  },
+  {
+   "name": "tail",
+   "w": 26,
+   "h": 44,
+   "frames": 4,
+   "at": [
+    30,
+    146
+   ],
+   "layer": "ground",
+   "rest": 0
+  },
+  {
+   "name": "grass",
+   "w": 30,
+   "h": 38,
+   "frames": 3,
+   "at": [
+    70,
+    158
+   ],
+   "layer": "ground",
+   "rest": 0
+  }
+ ]
+}
