@@ -2,6 +2,8 @@ import { test, expect, type Page } from '@playwright/test';
 import { getProjects } from '../../src/lib/data';
 import { checkText, check57x, VENUE_ALLOWED } from '../../src/lib/claims';
 import { AREAS } from '../../src/lib/schema';
+import { getJourney } from '../../src/lib/data';
+import { stopForProject } from '../../src/lib/journey';
 
 const projects = await getProjects();
 const FILTERS = ['All', 'Post-training & eval', 'Agents', 'Security', 'Systems', 'Other'];
@@ -124,7 +126,9 @@ for (const p of projects) {
     for (const l of p.links) await expect(page.locator(`main a[href="${l.href}"]`).first()).toBeVisible();
     for (const h of ['Problem', 'Approach', 'Results']) await expect(page.locator('main h2', { hasText: h }).first()).toBeVisible();
 
-    const journey = page.locator('main a[href="/#stop-' + p.stop + '"]');
+    // the link goes to the stop that lists the project, which really shows it
+    const stopId = stopForProject(getJourney(), p.slug) ?? p.stop;
+    const journey = page.locator('main a[href="/#stop-' + stopId + '"]');
     await expect(journey).toHaveCount(1);
     await expect(journey).toContainText('On the journey');
   });

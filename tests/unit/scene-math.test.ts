@@ -1,5 +1,5 @@
 import { test, expect } from 'vitest';
-import { sceneAt, integerScale, pickSet, dissolveOrder } from '../../src/lib/scene-math';
+import { sceneAt, sectionAnchor, integerScale, pickSet, dissolveOrder } from '../../src/lib/scene-math';
 
 const C = [100, 500, 900];
 
@@ -31,4 +31,14 @@ test('dissolveOrder is deterministic and in [0,1)', () => {
   expect(a).toEqual(b);
   expect(a).toHaveLength(10);
   for (const v of a) { expect(v).toBeGreaterThanOrEqual(0); expect(v).toBeLessThan(1); }
+});
+
+test('sectionAnchor: short sections anchor at their centre, tall ones as their top arrives', () => {
+  expect(sectionAnchor(100, 400, 900)).toBe(300);
+  expect(sectionAnchor(100, 900, 900)).toBe(550);
+  expect(sectionAnchor(100, 2242, 900)).toBe(550);
+  expect(sectionAnchor(-50, 3000, 650)).toBe(275);
+  // landing under a 72px sticky bar puts the viewport middle on the anchor
+  expect(sectionAnchor(72, 2242, 900, 72)).toBe(450);
+  expect(sectionAnchor(72, 300, 900, 72)).toBe(222);
 });

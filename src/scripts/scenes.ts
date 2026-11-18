@@ -1,7 +1,7 @@
 // Backdrop: one low-res canvas, scaled by a whole number. Scene k + 1 dissolves in pixel by
 // pixel as the visitor scrolls from section k's centre to section k + 1's centre.
 import { SCENE_IDS, SCENE_SIZE, sceneUrl } from '../lib/scenes';
-import { dissolveOrder, integerScale, pickSet, sceneAt, type SceneSet } from '../lib/scene-math';
+import { dissolveOrder, integerScale, pickSet, sceneAt, sectionAnchor, type SceneSet } from '../lib/scene-math';
 
 interface Loaded { w: number; h: number; frames: (Uint32Array | null)[]; order: Float32Array }
 
@@ -104,7 +104,8 @@ export function initScenes(): void {
   function draw(force: boolean): void {
     if (!cur || !out || !out32) return;
     const mid = innerHeight / 2;
-    const centres = sections.map((s) => { const r = s.getBoundingClientRect(); return r.top + r.height / 2; });
+    const inset = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
+    const centres = sections.map((s) => { const r = s.getBoundingClientRect(); return sectionAnchor(r.top, r.height, innerHeight, inset); });
     const { k, t } = sceneAt(centres, mid, reduced.matches);
     const key = `${curSet}:${k}:${t}`;
     if (!force && key === last) return;

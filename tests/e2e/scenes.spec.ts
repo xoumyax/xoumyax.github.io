@@ -37,10 +37,11 @@ async function sceneOf(page: Page): Promise<string> {
   }, IDS);
 }
 
-// Puts the section's centre (or the point `frac` of the way to the next section's centre) at mid-viewport.
+// Puts the section's anchor (its centre; a stop taller than the screen: top + half a viewport) (or the point `frac` of the way to the next section's centre) at mid-viewport.
 async function scrollToCentre(page: Page, id: string, nextId?: string, frac = 0.5) {
   await page.evaluate(({ id, nextId, frac }) => {
-    const c = (i: string) => { const r = document.getElementById(`stop-${i}`)!.getBoundingClientRect(); return r.top + r.height / 2; };
+    const inset = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
+    const c = (i: string) => { const r = document.getElementById(`stop-${i}`)!.getBoundingClientRect(); return Math.min(r.top + r.height / 2, r.top + innerHeight / 2 - inset); };
     const target = nextId ? c(id) + (c(nextId) - c(id)) * frac : c(id);
     scrollBy({ top: target - innerHeight / 2, behavior: 'instant' });
   }, { id, nextId, frac });
@@ -85,7 +86,8 @@ test('deep link shows its scene at once', async ({ page }) => {
   await page.waitForSelector('#scene:not([hidden])');
   // Which scene the landed position calls for, from the same section centres.
   const expected = () => page.evaluate((ids) => {
-    const c = [...document.querySelectorAll('[data-section]')].map((s) => { const r = s.getBoundingClientRect(); return r.top + r.height / 2; });
+    const inset = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
+    const c = [...document.querySelectorAll('[data-section]')].map((s) => { const r = s.getBoundingClientRect(); return Math.min(r.top + r.height / 2, r.top + innerHeight / 2 - inset); });
     const mid = innerHeight / 2;
     let k = 0, t = 0;
     for (let i = 0; i < c.length - 1; i++) { const f = (c[i] - mid) / (c[i] - c[i + 1]); if (f >= 0) { k = i; t = Math.min(1, f); } }
@@ -243,3 +245,21 @@ test('scroll stays smooth', async ({ page }) => {
   console.log(`average frame ${avg.toFixed(1)}ms`);
   expect(avg).toBeLessThan(25);
 });
+
+// A deep link lands with its stop's top in view; that stop's own scene must be showing, not a mix.
+for (const [name, size, reduced] of [
+  ['1440x900', { width: 1440, height: 900 }, false],
+  ['1366x650, reduced motion', { width: 1366, height: 650 }, true],
+] as const) {
+  test(`every /#stop-<id> deep link lands on its own scene at ${name}`, async ({ page }, info) => {
+    test.skip(info.project.name === 'phone', 'desktop sizes only');
+    await page.setViewportSize(size);
+    if (reduced) await page.emulateMedia({ reducedMotion: 'reduce' });
+    for (const id of STOP_IDS) {
+      await page.goto(`/#stop-${id}`);
+      await page.waitForLoadState('load');
+      await page.waitForSelector('#scene:not([hidden])');
+      await expect.poll(() => sceneOf(page), { message: id }).toBe(id);
+    }
+  });
+}

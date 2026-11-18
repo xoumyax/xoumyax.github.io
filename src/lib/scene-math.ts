@@ -3,6 +3,15 @@
 export type SceneSet = 'land' | 'port';
 
 /**
+ * Where a section counts as "here": its centre, but never further below its top than half a
+ * viewport, so a stop taller than the screen gets its scene as its top arrives. `inset` is the
+ * scroll-padding a deep link leaves above the section (the sticky bar), so landing on the section
+ * puts the viewport middle exactly on its anchor.
+ */
+export const sectionAnchor = (top: number, height: number, vh: number, inset = 0): number =>
+  Math.min(top + height / 2, top + vh / 2 - inset);
+
+/**
  * `centres` are the section centres (rect.top + rect.height / 2) in page order, `mid` is
  * innerHeight / 2. `k` is the scene underneath and `t` the share of scene k + 1 on top.
  * With `reduced`, `t` snaps at one half so a frame is never a mix.
