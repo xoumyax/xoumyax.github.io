@@ -4,8 +4,8 @@
 // changes); a pass draws it upscaled, offset by its fractional offsets snapped to whole device px,
 // clipped to its side of the pan seam. A whole offset puts the layer on the same device grid as a
 // flat frame, so the rest frame is the flat PNG scaled by the block size, block-aligned.
-import { panDev, rowY, seamEdges, snapOffset } from '../../lib/world-math';
-import { layerCalls, paintLayer, type Pass, type World } from './compose';
+import { SEAM_MAX, panDev, rowY, seamJitter, snapOffset } from '../../lib/world-math';
+import { layerCallsShared, paintLayer, type Pass, type World } from './compose';
 
 interface Source {
   cv: HTMLCanvasElement; g: CanvasRenderingContext2D; img: ImageData; px: Uint32Array;
@@ -14,7 +14,7 @@ interface Source {
   box: [number, number, number, number]; // opaque columns [x0, x1) and rows [y0, y1); whole world for hooked layers
 }
 
-const sameCalls = (a: number[] | null, b: number[]): boolean => {
+const sameCalls = (a: number[] | null, b: readonly number[]): boolean => {
   if (!a || a.length !== b.length) return false;
   for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
   return true;
@@ -32,10 +32,16 @@ function opaqueBox(px: Uint32Array, w: number, h: number): [number, number, numb
   return x1 > x0 ? [x0, x1, y0, y1] : [0, 0, 0, 0];
 }
 
+// Scene k + 1's seam for one band, relative to its cut (x = 0): each view row starts
+// round(seamJitter(row, band) · b) device px left of the cut (the seamEdges rule, world-math.ts).
+interface Seam { path: Path2D; reach: number }   // reach: the furthest it starts left of the cut
+
 export class Screen {
   private readonly g: CanvasRenderingContext2D;
   private readonly sources = new WeakMap<World, (Source | undefined)[]>();
   private last = '';
+  private seams = new Map<number, Seam>();         // by band, for the current size and b
+  private seamKey = '';
 
   constructor(private readonly cv: HTMLCanvasElement) {
     this.g = cv.getContext('2d')!;
@@ -46,6 +52,30 @@ export class Screen {
     if (this.cv.width === w && this.cv.height === h) return;
     this.cv.width = w; this.cv.height = h;
     this.last = '';
+  }
+
+  private seam(band: number, vh: number, b: number, Wd: number, Hd: number): Seam {
+    const key = `${vh}:${b}:${Wd}x${Hd}`;
+    if (key !== this.seamKey) { this.seams.clear(); this.seamKey = key; }
+    let s = this.seams.get(band);
+    if (s) return s;
+    // A stepped outline: each view row from its seam edge to the right edge of the canvas.
+    const path = new Path2D();
+    let reach = 0;
+    path.moveTo(Wd, 0);
+    for (let j = 0; j < vh; j++) {
+      const e = Math.round(seamJitter(j, band) * b);
+      reach = Math.max(reach, e);
+      const ya = j === 0 ? 0 : rowY(j, b);
+      const yb = j === vh - 1 ? Hd : rowY(j + 1, b);
+      path.lineTo(-e, ya);
+      path.lineTo(-e, yb);
+    }
+    path.lineTo(Wd, Hd);
+    path.closePath();
+    s = { path, reach };
+    this.seams.set(band, s);
+    return s;
   }
 
   private source(ps: Pass, clock: number): Source {
@@ -63,11 +93,11 @@ export class Screen {
     }
     // A layer without a hook is painted once (with its rest sprites); a hooked one whenever its output changes.
     if (s.calls && !ps.hook) return s;
-    const calls = layerCalls(ps, clock);
+    const calls = layerCallsShared(ps, clock);
     if (sameCalls(s.calls, calls)) return s;
     paintLayer(s.px, ps.world, ps.i, calls);
     s.g.putImageData(s.img, 0, 0);
-    s.calls = calls;
+    s.calls = calls.slice();
     s.version++;
     s.box = ps.hook ? [0, W, 0, H] : opaqueBox(s.px, W, H);
     return s;
@@ -102,52 +132,51 @@ export class Screen {
     g.clearRect(0, 0, Wd, Hd);
     for (const { ps, src, sx, sy, x0, y0, cut, pan } of plan) {
       const [W, H] = ps.world.meta.world;
-      // The device span this pass may touch.
-      let left = 0;
-      let right = Wd;
-      let edges: Int32Array | null = null;
-      if (pan && !ps.next) right = Math.min(Wd, cut);
-      if (pan && ps.next) {
-        edges = seamEdges(cut, ps.band, vh, b);
-        left = Math.min(...edges);
-      }
+      // The device span this pass may touch: scene k left of its cut, scene k + 1 right of its
+      // seam (the cut less each row's jitter).
+      const seam = pan && ps.next ? this.seam(ps.band, vh, b, Wd, Hd) : null;
+      const left = seam ? Math.max(0, cut - seam.reach) : 0;
+      const right = pan && !ps.next ? Math.min(Wd, cut) : Wd;
       if (right <= left) continue;
-      // Source columns [c0, c1) and rows [r0, r1) that reach the span (cropped to the opaque box).
-      // With a fractional b only whole-layer starts keep the device grid, so crop only at the layer's own edges then.
+      // Source columns [c0, c1) and rows [r0, r1) that reach the span, and where they land. Layer
+      // column sx.n is at device x0, column c at x0 + (c − sx.n)·b. With a whole b every column
+      // starts on a device px, so crop to the span (and the opaque box). With a fractional b the
+      // image is drawn from a whole-px origin so every pass keeps the same block pattern: its
+      // columns start up to SEAM_MAX + 1 left of the view (the seam jitter shows world left of
+      // the view) and it lands at the unrounded x; that fractional left edge then lies left of
+      // the canvas or the clip, so no blended column shows.
       let c0: number, c1: number, r0: number, r1: number;
+      let dx: number, dy: number;
       if (whole) {
         c0 = Math.max(src.box[0], sx.n + Math.floor((left - x0) / b));
         c1 = Math.min(src.box[1], sx.n + Math.ceil((right - x0) / b));
         r0 = Math.max(src.box[2], sy.n + Math.floor(-y0 / b));
         r1 = Math.min(src.box[3], sy.n + Math.ceil((Hd - y0) / b));
+        dx = x0 + (c0 - sx.n) * b;
+        dy = y0 + (r0 - sy.n) * b;
       } else {
-        c0 = Math.max(0, sx.n); c1 = Math.min(W, sx.n + vw + 2);
+        c0 = Math.max(0, sx.n - SEAM_MAX - 1); c1 = Math.min(W, sx.n + vw + 2);
         r0 = Math.max(0, sy.n); r1 = Math.min(H, sy.n + vh + 2);
+        dx = x0 + (c0 - sx.n) * b;
+        dy = y0 + Math.round((r0 - sy.n) * b);
+        // The world's own left edge inside the span: put it on a device px (no blended column).
+        if (c0 === 0 && dx > left - b) dx = Math.round(dx);
       }
       if (c1 <= c0 || r1 <= r0) continue;
-      const dx = x0 + Math.round((c0 - sx.n) * b);
-      const dy = y0 + Math.round((r0 - sy.n) * b);
-      const clip = pan;
-      if (clip) {
+      if (pan) {
         g.save();
-        const path = new Path2D();
-        if (!ps.next) path.rect(0, 0, right, Hd);
-        else {
-          // A stepped outline: each view row from its seam edge to the right edge.
-          path.moveTo(Wd, 0);
-          for (let j = 0; j < vh; j++) {
-            const ya = j === 0 ? 0 : rowY(j, b);
-            const yb = j === vh - 1 ? Hd : rowY(j + 1, b);
-            path.lineTo(edges![j], ya);
-            path.lineTo(edges![j], yb);
-          }
-          path.lineTo(Wd, Hd);
-          path.closePath();
+        if (seam) {
+          g.translate(cut, 0);
+          g.clip(seam.path);
+          g.setTransform(1, 0, 0, 1, 0, 0);
+        } else {
+          g.beginPath();
+          g.rect(0, 0, right, Hd);
+          g.clip();
         }
-        g.clip(path);
       }
       g.drawImage(src.cv, c0, r0, c1 - c0, r1 - r0, dx, dy, (c1 - c0) * b, (r1 - r0) * b);
-      if (clip) g.restore();
+      if (pan) g.restore();
     }
     return true;
   }

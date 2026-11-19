@@ -137,10 +137,10 @@ function record(w: World, L: LayerMeta, hook: Hook | undefined, p: number, clock
   } else {
     for (const m of w.meta.sprites) if (m.layer === L.name) recorder.sprite(m.name, m.rest);
   }
-  return rec.slice();
+  return rec;
 }
 
-function replay(calls: number[]): void {
+function replay(calls: readonly number[]): void {
   const W = cur!.meta.world;
   for (let k = 0; k < calls.length;) {
     if (calls[k] === 0) {
@@ -161,10 +161,13 @@ function replay(calls: number[]): void {
 }
 
 /** A pass's hook output (or its layer's rest sprites when it has no hook), as a call list in world px. */
-export const layerCalls = (ps: Pass, clock: number): number[] => record(ps.world, ps.layer, ps.hook, ps.p, clock);
+export const layerCalls = (ps: Pass, clock: number): number[] => record(ps.world, ps.layer, ps.hook, ps.p, clock).slice();
+
+/** layerCalls without the copy: the list is reused by the next call (for comparing before keeping). */
+export const layerCallsShared = (ps: Pass, clock: number): readonly number[] => record(ps.world, ps.layer, ps.hook, ps.p, clock);
 
 /** Layer i of world w with `calls` drawn on it, into dst (world-sized, overwritten). */
-export function paintLayer(dst: Uint32Array, w: World, i: number, calls: number[]): void {
+export function paintLayer(dst: Uint32Array, w: World, i: number, calls: readonly number[]): void {
   const [W, H] = w.meta.world;
   dst.set(w.layers[i].px);
   out = dst; VW = W; VH = H; ox = 0; oy = 0; cut = W; next = false; band = i; cur = w;
@@ -184,7 +187,7 @@ export function compose(
   out = dst; VW = vw; VH = vh;
   dst.fill(0);
   for (const ps of passes(set, a, actA, b, actB, p, t, clock)) {
-    const calls = layerCalls(ps, clock);
+    const calls = layerCallsShared(ps, clock); // replayed before the next record
     const s = Math.round(ps.share * vw);
     out = dst; VW = vw; VH = vh;
     cur = ps.world; next = ps.next; band = ps.band; cut = vw - s;

@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
-import { existsSync } from 'node:fs';
-import { worldAt } from '../../src/lib/world-math';
+import { existsSync, readFileSync } from 'node:fs';
+import type { SceneMeta } from '../../src/lib/world';
+import { SEAM_MAX, bandShift, seamJitter, worldAt } from '../../src/lib/world-math';
 import { IDS, brokenBlocks, canvasHash, covers, geometry, sceneOf, scrollToCentre, scrollToPan, settle, still, worldsLoaded } from './scene-probe';
 
 const cv = (page: import('@playwright/test').Page) => page.locator('#scene');
@@ -191,14 +192,14 @@ test.describe('still', () => {
     }, { y0: g.h - rows - Math.round(g.b), rows, f: SHIFT });
     const moved = steps.filter((s) => s.dx || s.dy).length;
     const total = steps.reduce((a, s) => a + Math.abs(s.dx), 0);
-    console.log(`b=${g.b}: ${moved}/60 steps moved, ${total} device px in all; per step dx ${steps.map((s) => s.dx).join(' ')}`);
+    const trace = `b=${g.b}: ${moved}/60 steps moved, ${total} device px; dx ${steps.map((s) => s.dx).join(' ')}`;
     for (const s of steps) {
       expect(s.scene).toBe('phd');
       expect(s.err, JSON.stringify(s)).toBeLessThan(0.02);                       // one rigid layer
       expect(Math.max(Math.abs(s.dx), Math.abs(s.dy)), JSON.stringify(s)).toBeLessThanOrEqual(2);
     }
-    expect(total).toBeGreaterThan(0.5 * g.b);  // it moved (more than half a block)…
-    expect(moved).toBeGreaterThan(total / 2);  // …in small steps, not in a few block-sized ones
+    expect(total, trace).toBeGreaterThan(0.5 * g.b);  // it moved (more than half a block)…
+    expect(moved, trace).toBeGreaterThan(total / 2);  // …in small steps, not in a few block-sized ones
   });
 });
 
@@ -230,10 +231,10 @@ test('a 20 px scroll mid-pan glides over several frames', async ({ page }) => {
   }, { frames, w: g.w, h: rows, f: SHIFT });
   const total = shifts.reduce((a, v) => a + Math.abs(v), 0);
   const max = Math.max(...shifts.map(Math.abs));
-  console.log(`b=${g.b}: per-frame band shift ${shifts.join(' ')} (total ${total}, max ${max})`);
-  expect(total).toBeGreaterThan(2 * g.b);
-  expect(shifts.filter((v) => v !== 0).length).toBeGreaterThanOrEqual(5);
-  expect(max).toBeLessThanOrEqual(0.3 * total);
+  const trace = `b=${g.b}: per-frame band shift ${shifts.join(' ')} (total ${total}, max ${max})`;
+  expect(total, trace).toBeGreaterThan(2 * g.b);
+  expect(shifts.filter((v) => v !== 0).length, trace).toBeGreaterThanOrEqual(5);
+  expect(max, trace).toBeLessThanOrEqual(0.3 * total);
 });
 
 test('"Travel the road" lands on Now at once, without gliding through the pan', async ({ page }) => {
@@ -251,6 +252,81 @@ test('"Travel the road" lands on Now at once, without gliding through the pan', 
     return out;
   });
   expect(seen.every((s) => s === 'now'), seen.join(' ')).toBe(true);
+});
+
+test('mid-pan at a fractional DPR the seam is as ragged as at DPR 1, with no blank pixels', async ({ browser }, info) => {
+  test.skip(info.project.name === 'phone', 'desktop sizes only');
+  // The Now → Ph.D. pan, checked on Ph.D.'s nearest band (`fore`, depth 1: nothing of scene
+  // k + 1 is drawn over it), at a scroll position where that band has slid a whole number of
+  // world px, so both block sizes put its cut on the same block edge. Reads the blocks around the
+  // cut in every view row at DPR 1 (b = 7) and 1.25 (b = 8.75): the jitter blocks left of the cut
+  // show Ph.D.'s bank at both, not what lies under it.
+  const phd = JSON.parse(readFileSync('public/scenes/phd/scene.json', 'utf8')) as SceneMeta;
+  const band = phd.layers.length - 1;
+  const depth = phd.layers[band].depth;
+  const read = async (dpr: number, y?: number) => {
+    const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: dpr, baseURL: info.project.use.baseURL });
+    const page = await ctx.newPage();
+    await still(page);
+    await page.goto('/');
+    await page.waitForSelector('#scene:not([hidden])');
+    await worldsLoaded(page);
+    const L = await page.evaluate(() => {
+      const inset = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
+      return {
+        anchors: [...document.querySelectorAll('[data-section]')].map((el) => { const r = el.getBoundingClientRect(); return Math.min(r.top + r.height / 2, r.top + innerHeight / 2 - inset) + scrollY; }),
+        vh: innerHeight, end: document.documentElement.scrollHeight - innerHeight,
+      };
+    });
+    const at = (y: number) => worldAt(L.anchors.map((a) => a - y), L.vh / 2, L.vh, L.end - y);
+    if (y === undefined) {
+      let best = Infinity;
+      for (let c = 0; c <= L.end; c++) {
+        const w = at(c);
+        if (w.k !== 1 || w.t <= 0) continue;
+        const s = bandShift(w.t, depth) * 240;
+        if (s < 60 || s > 180) continue;
+        if (Math.abs(s - Math.round(s)) < best) { best = Math.abs(s - Math.round(s)); y = c; }
+      }
+      expect(best).toBeLessThan(0.04);
+    }
+    await page.evaluate((y) => scrollTo({ top: y, behavior: 'instant' }), y!);
+    await settle(page);
+    await expect(cv(page)).toHaveAttribute('data-next', 'phd');
+    const cutV = 240 - Math.round(bandShift(at(y!).t, depth) * 240);
+    const got = await page.evaluate(({ cutV, SEAM_MAX }) => {
+      const c = document.getElementById('scene') as HTMLCanvasElement;
+      const b = c.width / 240;
+      const d = c.getContext('2d')!.getImageData(0, 0, c.width, c.height).data;
+      let blank = 0;
+      for (let i = 3; i < d.length; i += 4) if (d[i] !== 255) blank++;
+      const rows: string[][] = [];
+      for (let j = 0; j < 135; j++) {
+        const row: string[] = [];
+        for (let i = cutV - SEAM_MAX - 2; i <= cutV + 1; i++) {
+          const k = (Math.floor((j + 0.5) * b) * c.width + Math.floor((i + 0.5) * b)) * 4;
+          row.push(`${d[k]},${d[k + 1]},${d[k + 2]}`);
+        }
+        rows.push(row);
+      }
+      return { blank, rows };
+    }, { cutV, SEAM_MAX });
+    await ctx.close();
+    return { y: y!, cutV, ...got };
+  };
+  const one = await read(1);
+  const frac = await read(1.25, one.y);
+  expect(frac.cutV).toBe(one.cutV);
+  expect(one.blank).toBe(0);
+  expect(frac.blank).toBe(0);
+  let jitter = 0;
+  let bad = 0;
+  for (let j = 0; j < 135; j++) for (let x = 0; x < one.rows[j].length; x++) {
+    const i = one.cutV - SEAM_MAX - 2 + x;
+    if (i < one.cutV && i >= one.cutV - seamJitter(j, band)) { jitter++; if (one.rows[j][x] !== frac.rows[j][x]) bad++; }
+  }
+  expect(jitter).toBeGreaterThan(100);
+  expect(bad, `${bad} of ${jitter} jitter blocks differ between DPR 1 and 1.25`).toBeLessThanOrEqual(jitter * 0.02);
 });
 
 test('the ambient clock runs and stops with the tab', async ({ page }) => {

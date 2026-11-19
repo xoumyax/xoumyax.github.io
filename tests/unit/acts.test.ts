@@ -145,9 +145,7 @@ test('now: the door frame is non-decreasing in p, dark at p = 0, fully lit by p 
 
 test('the clock contract: frame flips and events step on the 0.1 s grid, drifts read the continuous clock', () => {
   // Between grid points the same sprite frames show and the same plots exist; plotted positions
-  // (motes, the bird) may move on, by at most 2 world px on each axis within 0.1 s (the bird flies ~10 px/s). `cloud` is a drift
-  // whose frame is its offset, so it may step between grid points.
-  const drift = new Set(['cloud']);
+  // (motes, the bird) may move on, by at most 2 world px on each axis within 0.1 s (the bird flies ~10 px/s).
   let moved = 0;
   for (const id of ids) {
     const m = meta(id);
@@ -166,7 +164,7 @@ test('the clock contract: frame flips and events step on the 0.1 s grid, drifts 
             expect(c[0]).toBe(o[0]);
             if (c[0] === 'sprite' && o[0] === 'sprite') {
               expect(c[1]).toBe(o[1]);
-              if (!drift.has(c[1])) expect(c.slice(2), `${id} ${c[1]} ${n / 10}+${e}`).toEqual(o.slice(2));
+              expect(c.slice(2), `${id} ${c[1]} ${n / 10}+${e}`).toEqual(o.slice(2));
             } else if (c[0] === 'plot' && o[0] === 'plot') {
               expect(c[3]).toBe(o[3]);
               expect(Math.max(Math.abs(c[1] - o[1]), Math.abs(c[2] - o[2])), `${id} plot ${n / 10}+${e}`).toBeLessThanOrEqual(2);
