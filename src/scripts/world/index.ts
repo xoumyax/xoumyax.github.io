@@ -1,13 +1,19 @@
-// Backdrop: one low-res canvas, scaled by a whole number. Each stop has a scene; scrolling
-// through a stop drives its act (p), and the last stretch of the gap to the next stop is a
-// sideways pan (t) that slides the next scene in, layer by layer. A scene without a loaded world
-// is its flat frame as a single layer. Reduced motion shows flat scenes only, snapped.
+// Backdrop: one screen-resolution canvas showing a low-res world scaled by a whole number of CSS
+// px per world px (the block). Each stop has a scene; scrolling through a stop drives its act (p),
+// and the last stretch of the gap to the next stop is a sideways pan (t) that slides the next
+// scene in, layer by layer. A scene without a loaded world is its flat frame as a single layer.
+// Reduced motion shows flat scenes only, snapped.
+//
+// Smoothness: the scene follows a smoothed copy of the scroll position (Follower: ~110 ms behind,
+// snapping on big jumps, in still mode and in reduced motion), layers move by whole device px
+// rather than whole blocks (./screen.ts), and the ambient clock runs in continuous seconds.
 import { SCENE_IDS, SCENE_SIZE, sceneUrl, type SceneId } from '../../lib/scenes';
 import { integerScale, pickSet, sceneAt, sectionAnchor, type SceneSet } from '../../lib/scene-math';
-import { worldAt } from '../../lib/world-math';
-import { ACTS } from './acts';
-import { compose, flatWorld, type Bitmap, type World } from './compose';
+import { Follower, worldAt } from '../../lib/world-math';
+import { ACTS, continuous } from './acts';
+import { flatWorld, passes, type Bitmap, type World } from './compose';
 import { loadBitmap, loadWorld } from './load';
+import { Screen } from './screen';
 
 interface FlatSet { w: number; h: number; worlds: World[] }  // one flat one-layer world per scene
 
@@ -15,11 +21,11 @@ const N = SCENE_IDS.length;
 
 export function initWorld(): void {
   const cv = document.getElementById('scene') as HTMLCanvasElement | null;
-  const ctx = cv?.getContext('2d', { willReadFrequently: true });
   const layer = cv?.parentElement;
-  if (!cv || !ctx || !layer) return;
+  if (!cv || !layer || !cv.getContext('2d')) return;
   const sections = [...document.querySelectorAll<HTMLElement>('[data-section]')];
   if (sections.length === 0) return;
+  const screen = new Screen(cv);
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   let still = false;
   try { still = localStorage.getItem('world-still') === '1'; } catch { /* storage blocked */ }
@@ -29,20 +35,24 @@ export function initWorld(): void {
   const tried = new Set<SceneSet>();
   let cur: FlatSet | null = null;
   let curSet: SceneSet | null = null;
-  let out: ImageData | null = null;
-  let out32: Uint32Array | null = null;
-  let last = '';
-  let pending = false;
   let shownK = 0;
   let animating = false; // a scene on screen (k, or k + 1 mid-pan) has an act
+  let smooth = false;    // … and one of them moves continuously (a layer shift)
 
-  // Ambient clock in whole tenths of a second of rAF time. It is enabled (data-ambient="on")
-  // while the tab shows, motion is allowed and still mode is off; disabled, it holds its value
-  // and resumes from there. Frames are scheduled only while it is enabled and animating.
+  // The shown scroll position: follows scrollY while it settles, rAF-driven only until then.
+  const follow = new Follower();
+  let followed = false;  // snapped to scrollY at least once
+
+  // Ambient clock in seconds of rAF time. It is enabled (data-ambient="on") while the tab shows,
+  // motion is allowed and still mode is off; disabled, it holds its value and resumes from there.
+  // Frames are scheduled every rAF while a continuous act is on screen, otherwise on the clock's
+  // 0.1 s grid while an act is on screen, and not at all once the scene is settled.
   let running = false; // clock enabled
   let base = 0;        // performance.now() at clock 0, while running
-  let tick = 0;        // clock in tenths of a second
-  let raf = 0;         // the clock loop's pending frame, 0 if none
+  let clock = 0;       // seconds
+  let raf = 0;         // pending frame, 0 if none
+  let lastFrame = 0;   // the previous frame's time while frames run back to back, else 0
+  let timer = 0;       // pending 0.1 s grid wake-up, 0 if none
 
   const worlds = new Map<SceneId, World>();
   const wanted = new Set((layer.dataset.worlds ?? '').split(/\s+/).filter((id): id is SceneId => (SCENE_IDS as readonly string[]).includes(id)));
@@ -72,27 +82,28 @@ export function initWorld(): void {
 
   // Use the set that fits the viewport as soon as it is loaded.
   function adopt(): void {
+    follow.snap(scrollY); // a resize moves the stops under the shown position: land on the real one
     fit(); // keep the current canvas covering the viewport while a new set loads (or fails)
     const v = view();
     const want = pickSet(v.w, v.h);
     const next = loaded.get(want);
-    if (!next) { void load(want); return; }
+    if (!next) { void load(want); if (cur) render(true); return; }
     if (curSet !== want) {
       curSet = want; cur = next;
-      cv!.width = next.w; cv!.height = next.h;
-      out = ctx!.createImageData(next.w, next.h);
-      out32 = new Uint32Array(out.data.buffer);
-      last = '';
+      cv!.dataset.set = want;
     }
     fit();
-    draw(true);
+    render(true);
   }
 
   // The layer is 100lvh tall (the viewport with a phone's URL bar hidden), so the scale is taken
   // from its rect. Where lvh follows innerHeight anyway, the scale only grows while the set and
   // the width stay the same: a URL bar sliding in and out never rescales the whole backdrop.
+  // The backing store is the CSS size in device px (at most 2 per CSS px): b device px per world px.
   let fitKey = '';
   let fitScale = 0;
+  let dpr = 1;
+  let b = 1;
   function view(): { w: number; h: number } {
     const r = layer!.getBoundingClientRect();
     return { w: Math.max(innerWidth, r.width), h: Math.max(innerHeight, r.height) };
@@ -104,8 +115,11 @@ export function initWorld(): void {
     const s = integerScale(v.w, v.h, cur.w, cur.h);
     fitScale = key === fitKey ? Math.max(fitScale, s) : s;
     fitKey = key;
+    dpr = Math.min(devicePixelRatio || 1, 2);
+    b = fitScale * dpr;
     cv!.style.width = `${cur.w * fitScale}px`;
     cv!.style.height = `${cur.h * fitScale}px`;
+    screen.size(Math.round(cur.w * b), Math.round(cur.h * b));
   }
 
   const sceneWorld = (k: number): World => worlds.get(SCENE_IDS[k]) ?? cur!.worlds[k];
@@ -117,23 +131,24 @@ export function initWorld(): void {
     else if (cv!.dataset.next !== SCENE_IDS[next]) cv!.dataset.next = SCENE_IDS[next];
   }
 
-  function draw(force: boolean): void {
-    if (!cur || !out || !out32) return;
+  function render(force: boolean): void {
+    if (!cur || !curSet) return;
+    if (Math.min(devicePixelRatio || 1, 2) !== dpr) fit(); // zoom, or a move to another screen
     const vh = innerHeight;
     const mid = vh / 2;
     const inset = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
-    const anchors = sections.map((s) => { const r = s.getBoundingClientRect(); return sectionAnchor(r.top, r.height, vh, inset); });
-    let key: string;
+    // The rects are at the real scroll position; the scene is drawn at the shown one.
+    const lag = reduced.matches ? 0 : scrollY - follow.y;
+    const anchors = sections.map((s) => { const r = s.getBoundingClientRect(); return sectionAnchor(r.top + lag, r.height, vh, inset); });
+    let list;
     if (reduced.matches) {
       const k = Math.min(sceneAt(anchors, mid, true).k, N - 1);
       shownK = k;
-      animating = false;
+      animating = smooth = false;
       mark(k, -1);
-      key = `r:${curSet}:${k}`;
-      if (!force && key === last) return;
-      out32.set(cur.worlds[k].layers[0].px);
+      list = passes(curSet, cur.worlds[k], undefined, null, undefined, 0, 0, 0);
     } else {
-      const remaining = document.documentElement.scrollHeight - innerHeight - scrollY;
+      const remaining = document.documentElement.scrollHeight - innerHeight - follow.y;
       const w = worldAt(anchors, mid, vh, remaining);
       const k = Math.min(w.k, N - 1);
       const t = k + 1 < N ? w.t : 0;
@@ -142,46 +157,51 @@ export function initWorld(): void {
       const actA = ACTS[SCENE_IDS[k]];
       const actB = t > 0 ? ACTS[SCENE_IDS[k + 1]] : undefined;
       animating = !!(actA || actB);
-      if (animating && running) { tick = Math.max(tick, Math.floor((performance.now() - base) / 100)); loop(); }
-      key = `${curSet}:${k}:${w.p}:${t}:${animating ? tick : 0}`;
-      if (!force && key === last) return;
-      compose(out32, cur.w, cur.h, curSet!, sceneWorld(k), actA, t > 0 ? sceneWorld(k + 1) : null, actB, w.p, t, tick / 10);
+      smooth = continuous(actA) || continuous(actB);
+      list = passes(curSet, sceneWorld(k), actA, t > 0 ? sceneWorld(k + 1) : null, actB, w.p, t, clock);
     }
-    last = key;
-    ctx!.putImageData(out, 0, 0);
+    screen.draw(list, cur.w, cur.h, b, clock, force);
     cv!.hidden = false;
   }
 
-  const schedule = (): void => {
-    if (pending) return;
-    pending = true;
-    requestAnimationFrame(() => { pending = false; draw(false); });
-  };
-
-  const onTick = (now: number): void => {
-    raf = 0;
-    if (!running || !animating) return;
-    const n = Math.floor((now - base) / 100);
-    if (n > tick) { tick = n; schedule(); } // never backwards: draw() may have read a later performance.now()
-    raf = requestAnimationFrame(onTick);
-  };
-  function loop(): void {
-    if (running && animating && !raf) raf = requestAnimationFrame(onTick);
+  function request(): void {
+    if (!raf) raf = requestAnimationFrame(frame);
   }
+
+  function frame(now: number): void {
+    raf = 0;
+    const dt = lastFrame ? (now - lastFrame) / 1000 : 1 / 60;
+    if (running) clock = Math.max(clock, (now - base) / 1000); // never backwards
+    let moving = false;
+    if (!followed) { follow.snap(scrollY); followed = true; } // the first frame lands where the page opened
+    else moving = follow.step(scrollY, dt, innerHeight, still || reduced.matches);
+    // data-follow is present while the shown position is catching up (tests wait for it to go).
+    if (moving !== cv!.hasAttribute('data-follow')) cv!.toggleAttribute('data-follow', moving);
+    render(false);
+    if (moving || (running && smooth)) { lastFrame = now; request(); return; }
+    lastFrame = 0;
+    if (running && animating && !timer) {
+      // Wake on the clock's next 0.1 s step.
+      const ms = Math.max(1, (Math.floor(clock * 10 + 1e-7) + 1) * 100 - clock * 1000);
+      timer = window.setTimeout(() => { timer = 0; if (running) request(); }, ms);
+    }
+  }
+
   function ambient(): void {
     const on = !document.hidden && !reduced.matches && !still;
     cv!.dataset.ambient = on ? 'on' : 'off';
     if (on === running) return;
-    if (on) { base = performance.now() - tick * 100; running = true; loop(); }
+    if (on) { base = performance.now() - clock * 1000; running = true; request(); }
     else {
-      tick = Math.max(tick, Math.floor((performance.now() - base) / 100));
+      clock = Math.max(clock, (performance.now() - base) / 1000);
       running = false;
-      if (raf) { cancelAnimationFrame(raf); raf = 0; }
+      if (timer) { clearTimeout(timer); timer = 0; }
     }
   }
 
   // Worlds load after first paint, one at a time, nearest to the scene on screen first (the
   // next one ahead before the one behind). A world that fails leaves its flat frame in place.
+  // data-loaded lists the worlds in use.
   async function loadWorlds(): Promise<void> {
     const queue = SCENE_IDS.map((id, k) => ({ id, k })).filter(({ id }) => wanted.has(id));
     while (queue.length) {
@@ -189,7 +209,11 @@ export function initWorld(): void {
       queue.sort((a, b) => dist(a.k) - dist(b.k));
       const { id } = queue.shift()!;
       const w = await loadWorld(id);
-      if (w) { worlds.set(id, w); draw(true); }
+      if (w) {
+        worlds.set(id, w);
+        cv!.dataset.loaded = SCENE_IDS.filter((s) => worlds.has(s)).join(' ');
+        render(true);
+      }
     }
   }
   const idle = (fn: () => void) => ('requestIdleCallback' in window ? requestIdleCallback(fn, { timeout: 2000 }) : setTimeout(fn, 200));
@@ -202,14 +226,14 @@ export function initWorld(): void {
     idle(() => void loadWorlds());
   }
 
-  const onLoad = () => requestAnimationFrame(() => { schedule(); painted = true; startWorlds(); });
+  const onLoad = () => requestAnimationFrame(() => { request(); painted = true; startWorlds(); });
   if (document.readyState === 'complete') onLoad(); else addEventListener('load', onLoad, { once: true });
 
-  addEventListener('scroll', schedule, { passive: true });
+  addEventListener('scroll', request, { passive: true });
   addEventListener('resize', () => { adopt(); });
   // Layout can move the stops without a scroll (a details panel opening, fonts settling).
-  new ResizeObserver(schedule).observe(document.body);
-  reduced.addEventListener('change', () => { ambient(); draw(true); startWorlds(); });
+  new ResizeObserver(request).observe(document.body);
+  reduced.addEventListener('change', () => { follow.snap(scrollY); ambient(); render(true); startWorlds(); });
   document.addEventListener('visibilitychange', ambient);
   ambient();
   adopt();

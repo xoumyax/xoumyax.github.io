@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { existsSync } from 'node:fs';
 import { worldAt } from '../../src/lib/world-math';
-import { IDS, canvasHash, covers, sceneOf, scrollToCentre, scrollToPan, settle, still } from './scene-probe';
+import { IDS, brokenBlocks, canvasHash, covers, geometry, sceneOf, scrollToCentre, scrollToPan, settle, still, worldsLoaded } from './scene-probe';
 
 const cv = (page: import('@playwright/test').Page) => page.locator('#scene');
 
@@ -11,6 +11,7 @@ test.describe('still', () => {
   test('the same scroll position gives the same frame going down and back up', async ({ page }) => {
     await page.goto('/');
     await page.waitForSelector('#scene:not([hidden])');
+    await worldsLoaded(page); // a world arriving between the two reads would change the frame
     await scrollToPan(page, 'now', 'phd', 0.5);
     const y = await page.evaluate(() => scrollY);
     const a = await canvasHash(page);
@@ -103,7 +104,7 @@ test.describe('still', () => {
     await scrollToPan(page, 'phd', 'ms', 0.5);
     await expect(cv(page)).toHaveAttribute('data-next', 'ms');
     await page.setViewportSize({ width: 390, height: 844 });
-    await expect.poll(() => cv(page).evaluate((c: HTMLCanvasElement) => [c.width, c.height])).toEqual([120, 214]);
+    await expect(cv(page)).toHaveAttribute('data-set', 'port');
     expect(await covers(page)).toBe(true);
     // The page reflows, so the pair may change: it must be what worldAt gives for the new layout.
     // One evaluate reads the layout and the attributes together, so they cannot race the reflow.
@@ -126,6 +127,113 @@ test.describe('still', () => {
       return JSON.stringify(s.got) === JSON.stringify(want) ? 'match' : JSON.stringify({ got: s.got, want });
     }).toBe('match');
   });
+});
+
+// Best (dx, dy) in device px that maps strip a onto strip b (b(x, y) ≈ a(x − dx, y − dy)) over the
+// middle of the strip, and the share of pixels that still differ at that shift.
+const SHIFT = `(a, b, w, h, R, RY) => {
+  let best = [0, 0], err = Infinity;
+  for (let dy = -RY; dy <= RY; dy++) for (let dx = -R; dx <= R; dx++) {
+    let n = 0, bad = 0;
+    for (let y = RY; y < h - RY; y += 1) for (let x = R; x < w - R; x += 2) {
+      const i = (y * w + x) * 4, j = ((y - dy) * w + (x - dx)) * 4;
+      n++;
+      if (a[j] !== b[i] || a[j + 1] !== b[i + 1] || a[j + 2] !== b[i + 2]) bad++;
+    }
+    const e = bad / n;
+    if (e < err - 1e-12 || (e === err && Math.abs(dx) + Math.abs(dy) < Math.abs(best[0]) + Math.abs(best[1]))) { err = e; best = [dx, dy]; }
+  }
+  return { dx: best[0], dy: best[1], err };
+}`;
+
+test.describe('still', () => {
+  test.beforeEach(({ page }) => still(page));
+
+  test('at rest every block is whole and the frame is the flat file', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#scene:not([hidden])');
+    await worldsLoaded(page);
+    for (const id of ['now', 'phd', 'river']) {
+      await scrollToCentre(page, id);                       // p = 0: every layer on the block grid
+      if (id !== 'river') expect(await sceneOf(page), id).toBe(id); // river's last stop has p > 0 at its centre
+      expect(await brokenBlocks(page), id).toEqual([]);
+    }
+    const g = await geometry(page);
+    expect(Number.isInteger(g.b)).toBe(true);
+  });
+
+  test('inside the Ph.D. stop the near layer drifts a little each step, never a block at once', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('#scene:not([hidden])');
+    await worldsLoaded(page);
+    await scrollToCentre(page, 'phd');
+    await page.evaluate(() => scrollBy({ top: 120, behavior: 'instant' }));
+    await settle(page);
+    const g = await geometry(page);
+    // The bottom rows of the view show only the near bank (`fore`, rate 1.4, no act). Still mode:
+    // the shown position is the real one, so two frames after a scroll the canvas shows it.
+    const rows = Math.round(4 * g.b);
+    const steps: { dx: number; dy: number; err: number; scene: string }[] = await page.evaluate(async ({ y0, rows, f }) => {
+      const shift = new Function(`return ${f}`)();
+      const c = document.getElementById('scene') as HTMLCanvasElement;
+      const read = () => c.getContext('2d')!.getImageData(0, y0, c.width, rows).data;
+      const two = () => new Promise((ok) => requestAnimationFrame(() => requestAnimationFrame(ok)));
+      let prev = read();
+      const out = [];
+      for (let i = 0; i < 60; i++) {
+        scrollBy({ top: 4, behavior: 'instant' });
+        await two();
+        const next = read();
+        out.push({ ...shift(prev, next, c.width, rows, 12, 4), scene: c.dataset.scene + (c.dataset.next ?? '') });
+        prev = next;
+      }
+      return out;
+    }, { y0: g.h - rows - Math.round(g.b), rows, f: SHIFT });
+    const moved = steps.filter((s) => s.dx || s.dy).length;
+    const total = steps.reduce((a, s) => a + Math.abs(s.dx), 0);
+    console.log(`b=${g.b}: ${moved}/60 steps moved, ${total} device px in all; per step dx ${steps.map((s) => s.dx).join(' ')}`);
+    for (const s of steps) {
+      expect(s.scene).toBe('phd');
+      expect(s.err, JSON.stringify(s)).toBeLessThan(0.02);                       // one rigid layer
+      expect(Math.max(Math.abs(s.dx), Math.abs(s.dy)), JSON.stringify(s)).toBeLessThanOrEqual(2);
+    }
+    expect(total).toBeGreaterThan(0.5 * g.b);  // it moved (more than half a block)…
+    expect(moved).toBeGreaterThan(total / 2);  // …in small steps, not in a few block-sized ones
+  });
+});
+
+test('a 20 px scroll mid-pan glides over several frames', async ({ page }) => {
+  await page.goto('/');
+  await page.waitForSelector('#scene:not([hidden])');
+  await worldsLoaded(page);
+  await scrollToPan(page, 'phd', 'ms', 0.45);
+  await expect(cv(page)).toHaveAttribute('data-next', 'ms');
+  const g = await geometry(page);
+  const rows = Math.round(3 * g.b);
+  const y0 = g.h - rows - Math.round(g.b);
+  // One rAF loop reads the bottom strip every frame from the scroll until the follower settles.
+  const frames: number[][] = await page.evaluate(async ({ y0, rows }) => {
+    const c = document.getElementById('scene') as HTMLCanvasElement;
+    const read = () => [...c.getContext('2d')!.getImageData(0, y0, c.width, rows).data];
+    const out = [read()];
+    scrollBy({ top: 20, behavior: 'instant' });
+    for (let i = 0; i < 90; i++) {
+      await new Promise((ok) => requestAnimationFrame(ok));
+      out.push(read());
+      if (i > 3 && !c.hasAttribute('data-follow')) break;
+    }
+    return out;
+  }, { y0, rows });
+  const shifts: number[] = await page.evaluate(({ frames, w, h, f }) => {
+    const shift = new Function(`return ${f}`)();
+    return frames.slice(1).map((b, i) => shift(frames[i], b, w, h, 90, 0).dx);
+  }, { frames, w: g.w, h: rows, f: SHIFT });
+  const total = shifts.reduce((a, v) => a + Math.abs(v), 0);
+  const max = Math.max(...shifts.map(Math.abs));
+  console.log(`b=${g.b}: per-frame band shift ${shifts.join(' ')} (total ${total}, max ${max})`);
+  expect(total).toBeGreaterThan(2 * g.b);
+  expect(shifts.filter((v) => v !== 0).length).toBeGreaterThanOrEqual(5);
+  expect(max).toBeLessThanOrEqual(0.3 * total);
 });
 
 test('the ambient clock runs and stops with the tab', async ({ page }) => {

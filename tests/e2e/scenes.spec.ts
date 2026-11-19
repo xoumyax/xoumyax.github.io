@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { STOP_IDS } from '../../src/lib/schema';
-import { sceneOf, scrollToCentre, scrollToPan, still } from './scene-probe';
+import { geometry, sceneOf, scrollToCentre, scrollToPan, still } from './scene-probe';
 
 test.beforeEach(({ page }) => still(page));
 
@@ -47,7 +47,7 @@ test('portrait to landscape keeps the canvas covering the viewport while the set
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.waitForTimeout(100);
   const cv = page.locator('#scene');
-  expect(await cv.evaluate((c: HTMLCanvasElement) => c.width)).toBe(120);
+  await expect(cv).toHaveAttribute('data-set', 'port');
   expect(await cv.evaluate((c) => { const r = c.getBoundingClientRect(); return r.left <= 0 && r.top <= 0 && r.right >= innerWidth && r.bottom >= innerHeight; })).toBe(true);
 });
 
@@ -122,9 +122,13 @@ test('resize to portrait re-picks the set and covers the viewport', async ({ pag
   test.skip(info.project.name === 'phone', 'starts in portrait already');
   await page.goto('/');
   await page.waitForSelector('#scene:not([hidden])');
-  expect(await page.locator('#scene').evaluate((c: HTMLCanvasElement) => [c.width, c.height])).toEqual([240, 135]);
+  await expect(page.locator('#scene')).toHaveAttribute('data-set', 'land');
   await page.setViewportSize({ width: 390, height: 844 });
-  await expect.poll(() => page.locator('#scene').evaluate((c: HTMLCanvasElement) => [c.width, c.height])).toEqual([120, 214]);
+  await expect(page.locator('#scene')).toHaveAttribute('data-set', 'port');
+  // the backing store is the view in whole blocks of device px
+  const g = await geometry(page);
+  expect([g.w / g.b, g.h / g.b]).toEqual([120, 214]);
+  expect(Number.isInteger(g.b)).toBe(true);
   const covers = await page.locator('#scene').evaluate((c) => {
     const r = c.getBoundingClientRect();
     return r.left <= 0 && r.top <= 0 && r.right >= innerWidth && r.bottom >= innerHeight;

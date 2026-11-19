@@ -2,22 +2,22 @@
 import { test, expect, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import type { SceneMeta } from '../../src/lib/world';
-import { camera, worldAt } from '../../src/lib/world-math';
-import { canvasHash, scrollToCentre, settle, still } from './scene-probe';
+import { PAN_MAX, PAN_VH, camera, snapOffset, worldAt } from '../../src/lib/world-math';
+import { VIEW, canvasHash, scrollToCentre, settle, still } from './scene-probe';
 
 const meta = (id: string) => JSON.parse(readFileSync(`public/scenes/${id}/scene.json`, 'utf8')) as SceneMeta;
 
 /** Puts the viewport middle at progress p through stop `id` (whose next stop is `next`): d = p · (G − P). */
 async function scrollToStop(page: Page, id: string, next: string, p: number) {
   await scrollToCentre(page, id);
-  await page.evaluate(({ id, next, p }) => {
+  await page.evaluate(({ id, next, p, PAN_VH, PAN_MAX }) => {
     const inset = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
     const c = (i: string) => { const r = document.getElementById(`stop-${i}`)!.getBoundingClientRect(); return Math.min(r.top + r.height / 2, r.top + innerHeight / 2 - inset); };
     const a = c(id);
     const G = c(next) - a;
-    const P = Math.max(0, Math.min(0.6 * innerHeight, 0.5 * G));
+    const P = Math.max(0, Math.min(PAN_VH * innerHeight, PAN_MAX * G));
     scrollBy({ top: a + p * (G - P) - innerHeight / 2, behavior: 'instant' });
-  }, { id, next, p });
+  }, { id, next, p, PAN_VH, PAN_MAX });
   await settle(page);
 }
 
@@ -30,29 +30,33 @@ async function state(page: Page) {
       return Math.min(r.top + r.height / 2, r.top + innerHeight / 2 - inset);
     });
     const cv = document.getElementById('scene') as HTMLCanvasElement;
-    return { anchors, mid: innerHeight / 2, vh: innerHeight, remaining: document.documentElement.scrollHeight - innerHeight - scrollY, w: cv.width };
+    return { anchors, mid: innerHeight / 2, vh: innerHeight, remaining: document.documentElement.scrollHeight - innerHeight - scrollY, set: cv.dataset.set as 'land' | 'port', w: cv.width };
   });
-  return { ...worldAt(s.anchors, s.mid, s.vh, s.remaining), set: s.w === 240 ? 'land' as const : 'port' as const };
+  return { ...worldAt(s.anchors, s.mid, s.vh, s.remaining), set: s.set, b: s.w / VIEW[s.set][0] };
 }
 
 /**
- * Where a sprite's top-left lands on the canvas for scene `id` at progress p (no pan), using the
- * offsets compose() uses: view + round(camera · rate) of the sprite's layer.
+ * Where a sprite's top-left lands on the canvas, in device px, for a scene at progress p (no pan),
+ * using the offsets the screen renderer uses: view + camera · rate of the sprite's layer, snapped
+ * to whole device px (snapOffset), b device px per world px. Sprite pixel (i, j) is the block
+ * [x + i·b, x + (i + 1)·b) × [y + j·b, …).
  */
-function onScreen(m: SceneMeta, sprite: string, set: 'land' | 'port', p: number): [number, number] {
-  const s = m.sprites.find((x) => x.name === sprite)!;
-  const rate = m.layers.find((l) => l.name === s.layer)!.rate;
-  const cam = camera(p);
-  const v = m.view[set];
-  return [s.at[0] - (v[0] + Math.round(cam.x * rate)), s.at[1] - (v[1] + Math.round(cam.y * rate))];
+function onScreen(m: SceneMeta, sprite: string, s: { set: 'land' | 'port'; p: number; b: number }): [number, number] {
+  const sp = m.sprites.find((x) => x.name === sprite)!;
+  const rate = m.layers.find((l) => l.name === sp.layer)!.rate;
+  const cam = camera(s.p);
+  const v = m.view[s.set];
+  const sx = snapOffset(v[0] + cam.x * rate, s.b);
+  const sy = snapOffset(v[1] + cam.y * rate, s.b);
+  return [sx.d + (sp.at[0] - sx.n) * s.b, sy.d + (sp.at[1] - sy.n) * s.b];
 }
 
 /**
  * Compares the canvas with frame `frame` of a sprite, over that frame's opaque pixels in rows
- * [r0, r1), the frame's top-left at canvas (x, y). Returns whether all match, and a hash of the
- * canvas pixels there.
+ * [r0, r1), the frame's top-left at device (x, y), each sprite pixel read at its block's centre.
+ * Returns whether all match, and a hash of the canvas pixels there.
  */
-const underSprite = (page: Page, a: { id: string; name: string; h: number; frame: number; r0: number; r1: number; x: number; y: number }) =>
+const underSprite = (page: Page, a: { id: string; name: string; h: number; frame: number; r0: number; r1: number; x: number; y: number; b: number }) =>
   page.evaluate(async (a) => {
     const img = new Image();
     img.src = `/scenes/${a.id}/${a.name}.png`;
@@ -70,8 +74,8 @@ const underSprite = (page: Page, a: { id: string; name: string; h: number; frame
     for (let y = a.r0; y < a.r1; y++) for (let x = 0; x < img.naturalWidth; x++) {
       const i = (y * img.naturalWidth + x) * 4;
       if (spr[i + 3] === 0) continue;
-      const cx = a.x + x;
-      const cy = a.y + y;
+      const cx = Math.floor(a.x + (x + 0.5) * a.b);
+      const cy = Math.floor(a.y + (y + 0.5) * a.b);
       if (cx < 0 || cy < 0 || cx >= cv.width || cy >= cv.height) continue;
       const j = (cy * cv.width + cx) * 4;
       n++;
@@ -85,8 +89,8 @@ async function horseFrameShown(page: Page, m: SceneMeta, frames: number[]): Prom
   const horse = m.sprites.find((s) => s.name === 'horse')!;
   const s = await state(page);
   if (s.k !== 2 || s.t > 0) return -1;
-  const [x, y] = onScreen(m, 'horse', s.set, s.p);
-  for (const frame of frames) if ((await underSprite(page, { id: 'phd', name: 'horse', h: horse.h, frame, r0: 0, r1: 34, x, y })).all) return frame;
+  const [x, y] = onScreen(m, 'horse', s);
+  for (const frame of frames) if ((await underSprite(page, { id: 'phd', name: 'horse', h: horse.h, frame, r0: 0, r1: 34, x, y, b: s.b })).all) return frame;
   return -1;
 }
 
@@ -100,8 +104,8 @@ test.describe('still', () => {
     const head = async () => {
       const s = await state(page);
       expect(s.k).toBe(2);
-      const [x, y] = onScreen(m, 'horse', s.set, s.p);
-      return { p: s.p, ...(await underSprite(page, { id: 'phd', name: 'horse', h: horse.h, frame: 0, r0: 0, r1: 34, x, y })) };
+      const [x, y] = onScreen(m, 'horse', s);
+      return { p: s.p, ...(await underSprite(page, { id: 'phd', name: 'horse', h: horse.h, frame: 0, r0: 0, r1: 34, x, y, b: s.b })) };
     };
     await page.goto('/');
     await page.waitForSelector('#scene:not([hidden])');
@@ -153,11 +157,11 @@ test.describe('still', () => {
     const sample = async () => {
       const s = await state(page);
       expect(s.k).toBe(1);
-      const [x, y] = onScreen(m, 'door', s.set, s.p);
+      const [x, y] = onScreen(m, 'door', s);
       const rgb = await page.evaluate(([x, y]) => {
         const cv = document.getElementById('scene') as HTMLCanvasElement;
         return [...cv.getContext('2d')!.getImageData(x, y, 1, 1).data].slice(0, 3);
-      }, [x + px![0], y + px![1]]);
+      }, [Math.floor(x + (px![0] + 0.5) * s.b), Math.floor(y + (px![1] + 0.5) * s.b)]);
       return { p: s.p, rgb };
     };
     await scrollToCentre(page, 'now');
