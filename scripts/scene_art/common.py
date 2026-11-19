@@ -551,7 +551,7 @@ def world_sheet(k, art, meta, rest, pal):
             views.append((im, f'{set_} {t}'))
     row(views, f'{k}: views (port guides: green = middle 90 px, red = ~97 px a 390 px phone shows)')
     for sp in art.sprites:                      # the strip as it is on disk, every frame
-        s = max(1, min(8, 560 // sp.w))
+        s = max(2, min(8, 560 // sp.w))
         row([(_big(f, sp.w, sp.h, pal, s), f'{i}' + (' rest' if i == sp.rest else '')) for i, f in enumerate(sp.frames)],
             f'{k}: sprite strip {sp.name}.png, {len(sp.frames)} frames of {sp.w}x{sp.h} at (x{s}), on {sp.layer}, at {tuple(sp.at)}')
     for sp in art.sprites:

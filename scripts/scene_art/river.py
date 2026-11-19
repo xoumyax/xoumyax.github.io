@@ -12,7 +12,7 @@ Cut lines are found from the photo's colours (the skyline) or are photo-px polyl
 with to_world (the camp's top, the near scrub's top)."""
 import math, random
 from . import common as C
-from .common import KEY, BAYER, line_y, lum, wobble
+from .common import KEY, line_y, lum, wobble
 
 # ---------------------------------------------------------------- photo-space lines
 SKY_SEARCH = 1150                     # photo y: the skyline is searched below this (clouds above)

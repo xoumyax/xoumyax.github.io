@@ -96,6 +96,9 @@ def build(world, render, to_world):
         st.append(r if r is not None else hz[x] - 6)
     st = [sorted(st[max(0, x - 3):x + 4])[len(st[max(0, x - 3):x + 4]) // 2] for x in range(W)]  # median: no lone spikes
     st = [min(s, hz[x] - 6) for x, s in enumerate(st)]
+    for _ in range(2):                          # no step of more than 2 rows between columns: a
+        for x in range(1, W): st[x] = min(st[x], st[x - 1] + 2)       # slid band shows no
+        for x in range(W - 2, -1, -1): st[x] = min(st[x], st[x + 1] + 2)   # vertical notch
     # the trailing edge: left of TAIL the band's top sinks toward the horizon, raggedly, so a
     # slide to the right shows the storm's end leaving, not a cut
     tx = x_of(TAIL)
@@ -172,9 +175,7 @@ def build(world, render, to_world):
     assert not miss, f'storm underlap: {len(miss)} px unfilled'
     Qstorm = list(render(storm_img).get_flattened_data())
 
-    q = render(world)
-    Q = list(q.get_flattened_data())
-    pal = [tuple(q.getpalette()[3 * i:3 * i + 3]) for i in range(KEY)]
+    Q = list(render(world).get_flattened_data())
     storm = [Qstorm[i] if st[i % W] <= i // W < sb[i % W] else KEY for i in range(W * H)]
     land_px = [Qland[i] if land[i] else KEY for i in range(W * H)]
     road_px = [Q[i] if road[i] else KEY for i in range(W * H)]
@@ -186,7 +187,7 @@ def build(world, render, to_world):
         C.Layer('road', 1, 1.3, road_px),
     ]
     rain = C.rain_sprite(random.Random(1305), (0, min(st)), 'storm')
-    lit = road_lit_sprite(road_px, surface, W, H, pal)
+    lit = road_lit_sprite(road_px, surface, W, H)
     return C.Art(layers, [rain, lit, car_sprite()], {'alt': {'rain': 1, 'road-lit': 2, 'car': 1}})
 
 
@@ -213,7 +214,7 @@ def clear_fill(img, st, hz, W, H):
 
 
 # ---------------------------------------------------------------- the road brightening
-def road_lit_sprite(road_px, surface, W, H, pal):
+def road_lit_sprite(road_px, surface, W, H):
     """Frame 0 is empty (rest: the road as generated). Frames 1 and 2 move a growing share
     (LIT) of the road surface's pixels one step up the road's own colour ramp (RAMP), chosen by
     a world-aligned Bayer threshold, so frame 2 holds every pixel of frame 1. The share fades

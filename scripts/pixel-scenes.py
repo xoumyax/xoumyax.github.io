@@ -19,9 +19,8 @@ PULL = 0.22
 
 # id -> (photo, landscape crop, portrait crop); a crop is (cx, cy) or (cx, cy, zoom), see load().
 # Crops are judged on the built page with the section centred: the panel and deck cover most of
-# the middle, so each subject is placed in what they leave free. The crops of the scenes with
-# worlds (hero, now, phd, ms, cognizant) are unused (see their world settings; --new-palette still
-# reads them). river (phone): the camp between the panel and the footer.
+# the middle, so each subject is placed in what they leave free. Every scene now has a world, so
+# these crops are unused (see the world settings; --new-palette still reads them).
 SCENES = {
     'hero':      ('DSC04135.JPG', (0.42, 1, 1.3), (0.85, 1, 1.9), {
         # A world at 600 px per photo width, the photo's lower right: the phone needs the peak
