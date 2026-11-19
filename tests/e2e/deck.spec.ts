@@ -4,7 +4,7 @@ import AxeBuilder from '@axe-core/playwright';
 const ms = (page: import('@playwright/test').Page) => page.locator('#stop-ms');
 
 test('one card per view and a pager only for multi-card stops', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/road/');
   await expect(page.locator('#stop-srm .pager')).toHaveCount(0);
   await expect(ms(page).locator('.pager [data-go]')).toHaveCount(6);
   const widths = await ms(page).locator('[data-track]').evaluate((t) =>
@@ -13,7 +13,7 @@ test('one card per view and a pager only for multi-card stops', async ({ page })
 });
 
 test('pager click moves the deck, not the page', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/road/');
   await ms(page).scrollIntoViewIfNeeded();
   const y = await page.evaluate(() => scrollY);
   await ms(page).locator('[data-go="2"]').click();
@@ -25,7 +25,7 @@ test('pager click moves the deck, not the page', async ({ page }) => {
 });
 
 test('prev and next stop at the ends', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/road/');
   await ms(page).scrollIntoViewIfNeeded();
   await expect(ms(page).locator('[data-prev]')).toHaveAttribute('aria-disabled', 'true');
   await expect(ms(page).locator('[data-next]')).not.toHaveAttribute('aria-disabled', 'true');
@@ -40,7 +40,7 @@ test('prev and next stop at the ends', async ({ page }) => {
 });
 
 test('keyboard focus stays on Next at the last card; Space then leaves the page still', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/road/');
   const next = ms(page).locator('[data-next]');
   await next.focus();
   for (let i = 0; i < 5; i++) await page.keyboard.press('Enter');
@@ -55,7 +55,7 @@ test('keyboard focus stays on Next at the last card; Space then leaves the page 
 });
 
 test('keyboard focus stays on Prev at the first card; Space then leaves the page still', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/road/');
   await ms(page).locator('[data-next]').focus();
   await page.keyboard.press('Enter');
   await expect(ms(page).locator('[data-go="1"]')).toHaveAttribute('aria-current', 'true');
@@ -72,7 +72,7 @@ test('keyboard focus stays on Prev at the first card; Space then leaves the page
 });
 
 test('Next then Prev in quick succession ends back on the first card', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/road/');
   await ms(page).scrollIntoViewIfNeeded();
   await ms(page).locator('.pager').evaluate((p) => {
     (p.querySelector('[data-next]') as HTMLElement).click();
@@ -84,7 +84,7 @@ test('Next then Prev in quick succession ends back on the first card', async ({ 
 });
 
 test('each pager is named after its stop', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/road/');
   const names = await page.locator('nav.pager').evaluateAll((els) => els.map((e) => e.getAttribute('aria-label')));
   expect(names.length).toBeGreaterThan(1);
   expect(new Set(names).size).toBe(names.length);
@@ -94,7 +94,7 @@ test('each pager is named after its stop', async ({ page }) => {
 });
 
 test('swiping the track moves the current number', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/road/');
   await ms(page).scrollIntoViewIfNeeded();
   await ms(page).locator('[data-track]').evaluate((t) => { t.scrollLeft = 4 * t.clientWidth; });
   await page.waitForTimeout(300);
@@ -102,7 +102,7 @@ test('swiping the track moves the current number', async ({ page }) => {
 });
 
 test('arrow keys move one card and the pager follows', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/road/');
   const track = ms(page).locator('[data-track]');
   await track.focus();
   await page.keyboard.press('ArrowRight');
@@ -113,14 +113,14 @@ test('arrow keys move one card and the pager follows', async ({ page }) => {
 });
 
 test('rapid arrow presses each move one card', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/road/');
   await ms(page).locator('[data-track]').focus();
   for (let i = 0; i < 3; i++) await page.keyboard.press('ArrowRight');
   await expect(ms(page).locator('[data-go="3"]')).toHaveAttribute('aria-current', 'true');
 });
 
 test('rapid Next clicks each move one card', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/road/');
   await ms(page).scrollIntoViewIfNeeded();
   const next = ms(page).locator('[data-next]');
   for (let i = 0; i < 3; i++) await next.dispatchEvent('click');
@@ -128,7 +128,7 @@ test('rapid Next clicks each move one card', async ({ page }) => {
 });
 
 test('a swipe resyncs the target before the next key press', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/road/');
   const track = ms(page).locator('[data-track]');
   await track.focus();
   await page.keyboard.press('ArrowRight');
@@ -140,7 +140,7 @@ test('a swipe resyncs the target before the next key press', async ({ page }) =>
 });
 
 test('arrow keys in a focused card link are left to the browser', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/road/');
   const link = ms(page).locator('[data-track] a').first();
   await link.focus();
   // The deck must not claim the key: it is never preventDefault()ed by the track handler.
@@ -153,7 +153,7 @@ test('arrow keys in a focused card link are left to the browser', async ({ page 
 });
 
 test('ArrowLeft at the first card and ArrowRight at the last are not remembered', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/road/');
   const track = ms(page).locator('[data-track]');
   await track.focus();
   await page.keyboard.press('ArrowLeft');
@@ -167,7 +167,7 @@ test('ArrowLeft at the first card and ArrowRight at the last are not remembered'
 });
 
 test('focusing a link in an off-screen card brings the pager along', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/road/');
   const track = ms(page).locator('[data-track]');
   await track.locator('a').nth(2).focus();
   await expect.poll(async () => track.evaluate((t) => Math.round(t.scrollLeft / t.clientWidth))).toBeGreaterThan(0);
@@ -179,7 +179,7 @@ test('focusing a link in an off-screen card brings the pager along', async ({ pa
 
 test('phone pager fits', async ({ page }, info) => {
   test.skip(info.project.name !== 'phone');
-  await page.goto('/');
+  await page.goto('/road/');
   const res = await page.locator('.pager').evaluateAll((els) => els.map((p) => {
     const box = p.getBoundingClientRect();
     const btns = [...p.querySelectorAll<HTMLElement>('button')].filter((b) => b.offsetParent !== null);
@@ -197,7 +197,7 @@ test('phone pager fits', async ({ page }, info) => {
 
 test('panels line up with the top of their cards', async ({ page }, info) => {
   test.skip(info.project.name === 'phone');
-  await page.goto('/');
+  await page.goto('/road/');
   const res = await page.locator('[data-stop]').evaluateAll((stops) => stops.flatMap((s) => {
     const first = s.querySelector('[data-block] h3, .grid > [data-deck]') as HTMLElement | null;
     const panel = s.querySelector('[data-panel]') as HTMLElement;
@@ -209,7 +209,7 @@ test('panels line up with the top of their cards', async ({ page }, info) => {
 
 test('the pager is easy to see', async ({ page }, info) => {
   const phone = info.project.name === 'phone';
-  await page.goto('/');
+  await page.goto('/road/');
   const res = await page.locator('nav.pager').evaluateAll((els) => els.map((p) => ({
     bg: getComputedStyle(p).backgroundColor,
     btns: [...p.querySelectorAll<HTMLElement>('button')].filter((b) => b.offsetParent !== null)
@@ -232,7 +232,7 @@ test('the pager is easy to see', async ({ page }, info) => {
 test.describe('without JavaScript', () => {
   test.use({ javaScriptEnabled: false });
   test('every card is in a scrollable track', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/road/');
     const rows = await page.locator('[data-card-row]').evaluateAll((els) => els.map((e) => {
       const s = getComputedStyle(e);
       return [s.overflowX, s.scrollSnapType, e.children.length];
@@ -241,7 +241,7 @@ test.describe('without JavaScript', () => {
     for (const r of rows) expect([r[0], r[1]]).toEqual(['auto', 'x mandatory']);
   });
   test('the pager keeps its space but is not shown', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/road/');
     const pagers = await page.locator('nav.pager').evaluateAll((els) =>
       els.map((e) => [getComputedStyle(e).visibility, e.getBoundingClientRect().height > 0]));
     expect(pagers.length).toBeGreaterThan(0);
@@ -251,7 +251,7 @@ test.describe('without JavaScript', () => {
 
 test('on a phone, block headings and the Small projects panel line up with the decks', async ({ page }, info) => {
   test.skip(info.project.name !== 'phone');
-  await page.goto('/');
+  await page.goto('/road/');
   const r = await page.locator('#stop-phd').evaluate((s) => {
     const box = (e: Element) => { const b = e.getBoundingClientRect(); return [Math.round(b.x), Math.round(b.width)]; };
     return {

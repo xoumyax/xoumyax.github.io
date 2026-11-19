@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-const ROUTES = ['/', '/resume/', '/projects/', '/teaching/', '/study/', '/personal/'];
+const ROUTES = ['/', '/road/', '/resume/', '/projects/', '/teaching/', '/study/', '/personal/'];
 const NAV = [
   ['Home', '/'], ['Resume', '/resume/'], ['Projects', '/projects/'],
   ['Personal', '/personal/'], ['Teaching', '/teaching/'], ['Study', '/study/'],

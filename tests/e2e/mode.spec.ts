@@ -144,7 +144,7 @@ async function measure(page: Page, backdrops: number[][]): Promise<Measured> {
   }, backdrops);
 }
 
-const PAGES = ['/', '/projects/', '/projects/autopyara/', '/resume/', '/teaching/', '/study/', '/404'];
+const PAGES = ['/', '/road/', '/projects/', '/projects/autopyara/', '/resume/', '/teaching/', '/study/', '/404'];
 for (const mode of ['light', 'dark'] as const) {
   for (const path of PAGES) {
     test(`${path} reads in ${mode} mode`, async ({ page }) => {
@@ -154,25 +154,43 @@ for (const mode of ['light', 'dark'] as const) {
       const bad: string[] = [];
 
       // 1. axe: any definite violation fails.
-      const res = await new AxeBuilder({ page }).withRules(['color-contrast']).exclude('.scenes').exclude('[data-cover]').analyze();
+      const res = await new AxeBuilder({ page }).withRules(['color-contrast']).exclude('.scenes').exclude('[data-m2-bg]').exclude('[data-cover]').analyze();
       for (const r of res.violations) for (const n of r.nodes) bad.push(`axe ${n.target.join(' ')} :: ${n.any[0]?.message ?? ''}`);
 
       // 2. Axe cannot resolve translucent panels, blurred surfaces or overlapping cards, so
       // measure every visible text element ourselves (see measure()). The home backdrop gets the
       // mode's filter: dark = brightness(.6) saturate(.9), light = none.
-      const backdrops = path === '/' ? scenePalette().map((c) => (mode === 'dark' ? filtered(c, 0.6, 0.9) : c)) : [];
+      // The ASCII home (/) plays photographic clips: any colour can be under a panel, so each
+      // element must read over both pure black and pure white (its worst cases).
+      const backdrops = path === '/road/' ? scenePalette().map((c) => (mode === 'dark' ? filtered(c, 0.6, 0.9) : c))
+        : path === '/' ? [[0, 0, 0], [255, 255, 255]] : [];
       const m = await measure(page, backdrops);
       expect(m.count).toBeGreaterThan(5);
-      if (path === '/') console.log(`LOWEST ${mode} /: ${m.worst!.ratio.toFixed(2)} ${m.worst!.label} over backdrop rgb(${m.worst!.seed})`);
+      if (backdrops.length) console.log(`LOWEST ${mode} ${path}: ${m.worst!.ratio.toFixed(2)} ${m.worst!.label} over backdrop rgb(${m.worst!.seed})`);
       for (const [l, r] of m.low) bad.push(`measured ${l} contrast ${r.toFixed(2)}`);
-      expect(bad).toEqual([]);
+      // On / every other tab (and the YARAikiba steps, the Ph.D. dropdowns) gets measured too.
+      if (path === '/') {
+        await page.locator('[data-yk-steps] summary').click();
+        for (const tab of await page.locator('[role="tab"]').all()) {
+          await tab.click();
+          await page.waitForTimeout(300);
+          for (const d of await page.locator('[role="tabpanel"]:not([hidden]) details').all()) {
+            if ((await d.getAttribute('open')) === null) await d.locator('summary').click();
+            for (const [l, r] of (await measure(page, backdrops)).low) bad.push(`measured ${l} contrast ${r.toFixed(2)}`);
+          }
+          for (const [l, r] of (await measure(page, backdrops)).low) bad.push(`measured ${l} contrast ${r.toFixed(2)}`);
+        }
+        await page.locator('[data-reveal]').click();
+        for (const [l, r] of (await measure(page, backdrops)).low) bad.push(`measured ${l} contrast ${r.toFixed(2)}`);
+      }
+      expect([...new Set(bad)]).toEqual([]);
     });
   }
 }
 
 test('the home measurement really uses the backdrop colour', async ({ page }) => {
   await page.emulateMedia({ colorScheme: 'light' });
-  await page.goto('/');
+  await page.goto('/road/');
   await page.waitForLoadState('networkidle');
   const onWhite = await measure(page, [[255, 255, 255]]);
   const onBlack = await measure(page, [[0, 0, 0]]);
@@ -184,12 +202,12 @@ test('the home measurement really uses the backdrop colour', async ({ page }) =>
 test('the home backdrop is dimmed in dark mode', async ({ page }) => {
   const filter = () => page.evaluate(() => getComputedStyle(document.querySelector('.scenes')!).filter);
   await page.emulateMedia({ colorScheme: 'dark' });
-  await page.goto('/');
+  await page.goto('/road/');
   const m = (await filter()).match(/brightness\(([\d.]+)\)/);
   expect(m).not.toBeNull();
   expect(Number(m![1])).toBeLessThan(1);
   await page.emulateMedia({ colorScheme: 'light' });
-  await page.goto('/');
+  await page.goto('/road/');
   expect(await filter()).toBe('none');
 });
 
