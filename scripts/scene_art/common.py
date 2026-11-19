@@ -231,6 +231,25 @@ def wobble(w, rng, amp, scales=(5.0, 2.3)):
             for x in range(w)]
 
 
+def components(m, W, H):
+    """The 8-connected pieces of mask m, each a list of flat indices."""
+    seen = bytearray(W * H)
+    out = []
+    for i in range(W * H):
+        if not m[i] or seen[i]: continue
+        comp, stack = [], [i]
+        seen[i] = 1
+        while stack:
+            j = stack.pop(); comp.append(j)
+            x, y = j % W, j // W
+            for yy in range(max(0, y - 1), min(H, y + 2)):
+                for xx in range(max(0, x - 1), min(W, x + 2)):
+                    k = yy * W + xx
+                    if m[k] and not seen[k]: seen[k] = 1; stack.append(k)
+        out.append(comp)
+    return out
+
+
 def drop_specks(m, W, H, n):
     """Clears 8-connected pieces of mask m smaller than n pixels."""
     seen = bytearray(W * H)
@@ -337,6 +356,34 @@ def tile_fill(img, hole, srcs, rng, patch=(4, 3), rows=None):
                 px[x, y] = px[sx + x - tx, sy + y - ty]
 
 
+# ---------------------------------------------------------------- rain (cognizant, srm)
+RAIN = (48, 48)                       # one tile of the rain strip; it tiles in x and y
+RAIN_STREAKS = 15                     # streaks per tile and frame
+RAIN_FRAMES = 3
+GREYBLUE, SLATE = 6, 9
+
+
+def rain_sprite(rng, at, layer):
+    """A tile of rain that repeats in x and y (streaks wrap at its edges): frame 0 is empty (rest),
+    frames 1..RAIN_FRAMES each scatter their own streaks, so cycling them reads as rain falling.
+    A streak is 3-4 px, slanting one px left every two rows, slate with a pale head."""
+    w, h = RAIN
+    frames = [[KEY] * (w * h)]
+    for _ in range(RAIN_FRAMES):
+        g = [KEY] * (w * h)
+        n = 0
+        while n < RAIN_STREAKS:
+            x, y = rng.randrange(w), rng.randrange(h)
+            ln = rng.choice((3, 3, 4))
+            cells = [((x - j // 2) % w, (y + j) % h) for j in range(ln)]
+            if any(g[cy * w + cx] != KEY or g[((cy + 1) % h) * w + cx] != KEY for cx, cy in cells): continue
+            for j, (cx, cy) in enumerate(cells):
+                g[cy * w + cx] = GREYBLUE if j == ln - 1 and rng.random() < 0.5 else SLATE
+            n += 1
+        frames.append(g)
+    return Sprite('rain', w, h, frames, at, layer, 0)
+
+
 # ---------------------------------------------------------------- composite and PNG
 def composite(art, w, h):
     """The rest frame: every layer back to front, each followed by its sprites' rest frames."""
@@ -423,14 +470,16 @@ def rgb_preview(px, w, h, palette, bg=(255, 0, 255)):
 CAM_X, CAM_Y = 12, 4          # as src/lib/world-math.ts
 
 
-def view(art, ww, wh, at, size, p=0.0, frames=None, skip=()):
+def view(art, ww, wh, at, size, p=0.0, frames=None, skip=(), shift=None):
     """One view as the renderer draws it inside a stop: progress p moves each layer by
-    round(CAM·p·rate); sprites use `frames` (name -> frame) or their rest frame."""
+    round(CAM·p·rate); sprites use `frames` (name -> frame) or their rest frame; `shift`
+    (layer name -> (dx, dy)) moves a layer as a shift hook would (right and down positive)."""
     vw, vh = size
     out = [KEY] * (vw * vh)
     for L in art.layers:
-        ox = at[0] + round(CAM_X * p * L.rate)
-        oy = at[1] + round(-CAM_Y * p * L.rate)
+        dx, dy = (shift or {}).get(L.name, (0, 0))
+        ox = at[0] + round(CAM_X * p * L.rate) - dx
+        oy = at[1] + round(-CAM_Y * p * L.rate) - dy
         for y in range(vh):
             for x in range(vw):
                 wx, wy = x + ox, y + oy
@@ -457,6 +506,11 @@ def world_sheet(k, art, meta, rest, pal):
     land, port = meta['view']['land'], meta['view']['port']
     rows = []
     ink, paper = (29, 27, 24), (245, 242, 236)
+    title = (f'{k}: world {ww}x{wh}, land view {tuple(land)}, port view {tuple(port)}; '
+             + ', '.join(f'{L.name} d{L.depth} r{L.rate}' + (f' travel {L.travel}' if L.travel else '') for L in art.layers))
+    head = Image.new('RGB', (20 + 7 * len(title), 30), ink)
+    ImageDraw.Draw(head).text((10, 9), title, fill=paper)
+    rows.append(head)
 
     def row(items, label):
         pad, lab = 10, 14
@@ -479,30 +533,42 @@ def world_sheet(k, art, meta, rest, pal):
     d.rectangle([port[0] * 3, port[1] * 3, (port[0] + 120) * 3 - 1, (port[1] + 214) * 3 - 1], outline=(30, 60, 220), width=2)
     row([(comp, 'rest composite x3: red = land view, blue = port view')], f'{k}: world')
     alt = art.notes.get('alt', {})
+    # the full travel of every layer that declares one: (left, right, up, down) -> one shift each
+    moves = {}
+    for L in art.layers:
+        for n, (dx, dy) in zip(L.travel or (), ((-1, 0), (1, 0), (0, -1), (0, 1))):
+            if n: moves.setdefault(L.name, []).append((dx * n, dy * n))
+    travel = [({name: d}, f'{name} {d[0]:+d},{d[1]:+d}') for name, ds in moves.items() for d in ds]
     views = []
     for set_, at, size, s in (('land', land, (240, 135), 3), ('port', port, (120, 214), 4)):
-        for p, fr, t in ((0, None, 'p=0 rest'), (1, alt, 'p=1 + alt frames')):
-            im = _big(view(art, ww, wh, at, size, p, fr), *size, pal, s)
+        for p, fr, t, sh in [(0, None, 'p=0 rest', None), (1, alt, 'p=1 + alt frames', None)] + \
+                [(1, alt, f'p=1 + alt + {lab}', d) for d, lab in travel]:
+            im = _big(view(art, ww, wh, at, size, p, fr, shift=sh), *size, pal, s)
             if set_ == 'port':
                 d = ImageDraw.Draw(im)
                 for gx, col in ((15, (30, 160, 30)), (105, (30, 160, 30)), (11.25, (220, 30, 30)), (108.75, (220, 30, 30))):
                     d.line([(gx * s, 0), (gx * s, im.height)], fill=col, width=1)
             views.append((im, f'{set_} {t}'))
     row(views, f'{k}: views (port guides: green = middle 90 px, red = ~97 px a 390 px phone shows)')
+    for sp in art.sprites:                      # the strip as it is on disk, every frame
+        s = max(1, min(8, 560 // sp.w))
+        row([(_big(f, sp.w, sp.h, pal, s), f'{i}' + (' rest' if i == sp.rest else '')) for i, f in enumerate(sp.frames)],
+            f'{k}: sprite strip {sp.name}.png, {len(sp.frames)} frames of {sp.w}x{sp.h} at (x{s}), on {sp.layer}, at {tuple(sp.at)}')
     for sp in art.sprites:
         pad = 6
         x0, y0 = max(0, sp.at[0] - pad), max(0, sp.at[1] - pad)
         x1, y1 = min(ww, sp.at[0] + sp.w + pad), min(wh, sp.at[1] + sp.h + pad)
         items = []
+        z = max(2, min(5, 600 // (x1 - x0)))
         for i in range(len(sp.frames)):
             fr = {s.name: s.rest for s in art.sprites}
             fr[sp.name] = i
             v = view(art, ww, wh, (x0, y0), (x1 - x0, y1 - y0), 0, fr)
-            items.append((_big(v, x1 - x0, y1 - y0, pal, 5), f'{sp.name} {i}' + (' rest' if i == sp.rest else '')))
+            items.append((_big(v, x1 - x0, y1 - y0, pal, z), f'{sp.name} {i}' + (' rest' if i == sp.rest else '')))
         bare = view(art, ww, wh, (x0, y0), (x1 - x0, y1 - y0), 0, None, skip=(sp.name,))
-        items.append((_big(bare, x1 - x0, y1 - y0, pal, 5), 'without it'))
+        items.append((_big(bare, x1 - x0, y1 - y0, pal, z), 'without it'))
         for j in range(0, len(items), 6):
-            row(items[j:j + 6], f'{k}: sprite {sp.name} on its background (x5)')
+            row(items[j:j + 6], f'{k}: sprite {sp.name} on its background (x{z})')
     W = max(r.width for r in rows)
     out = Image.new('RGB', (W, sum(r.height for r in rows)), paper)
     y = 0

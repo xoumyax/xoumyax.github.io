@@ -25,10 +25,7 @@ NEAR = 1470                           # photo y: below this the whole width is n
 UNDER = (4, 8)                        # rows the storm runs on under the horizon
 
 # ---------------------------------------------------------------- the sprites (world px)
-RAIN = (48, 48)                       # one tile of the rain strip; it tiles in x and y
-RAIN_STREAKS = 15                     # streaks per tile and frame
-RAIN_FRAMES = 3
-MIST, GREYBLUE, SLATE = 1, 6, 9
+MIST = 1
 FLASH_CENTRE = (232, 140)             # world px: the flash is brightest here (both views see it)
 FLASH_R = (130, 30)                   # its falloff radii in x and y
 FLASH_K = 0.5                         # the most a pixel moves toward mist
@@ -138,31 +135,9 @@ def build(world, render, to_world):
         C.Layer('road', 1, 1.3, road_px),
     ]
     rest = C.composite(C.Art(layers), W, H)
-    rain = rain_sprite(random.Random(1343), (0, min(st) - 8))
+    rain = C.rain_sprite(random.Random(1343), (0, min(st) - 8), 'land')
     flash = flash_sprite(rest, st, hz, W, H, pal, random.Random(2021))
     return C.Art(layers, [flash, rain], {'alt': {'rain': 1, 'flash': 1}})
-
-
-# ---------------------------------------------------------------- rain
-def rain_sprite(rng, at):
-    """A tile of rain that repeats in x and y (streaks wrap at its edges): frame 0 is empty (rest),
-    frames 1..RAIN_FRAMES each scatter their own streaks, so cycling them reads as rain falling.
-    A streak is 3-4 px, slanting one px left every two rows, slate with a pale head."""
-    w, h = RAIN
-    frames = [[KEY] * (w * h)]
-    for _ in range(RAIN_FRAMES):
-        g = [KEY] * (w * h)
-        n = 0
-        while n < RAIN_STREAKS:
-            x, y = rng.randrange(w), rng.randrange(h)
-            ln = rng.choice((3, 3, 4))
-            cells = [((x - j // 2) % w, (y + j) % h) for j in range(ln)]
-            if any(g[cy * w + cx] != KEY or g[((cy + 1) % h) * w + cx] != KEY for cx, cy in cells): continue
-            for j, (cx, cy) in enumerate(cells):
-                g[cy * w + cx] = GREYBLUE if j == ln - 1 and rng.random() < 0.5 else SLATE
-            n += 1
-        frames.append(g)
-    return C.Sprite('rain', w, h, frames, at, 'land', 0)
 
 
 # ---------------------------------------------------------------- the distant flash

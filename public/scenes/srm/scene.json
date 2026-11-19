@@ -1,0 +1,83 @@
+{
+ "id": "srm",
+ "world": [
+  336,
+  224
+ ],
+ "view": {
+  "land": [
+   56,
+   68
+  ],
+  "port": [
+   108,
+   8
+  ]
+ },
+ "layers": [
+  {
+   "name": "sky",
+   "depth": 0,
+   "rate": 0.2
+  },
+  {
+   "name": "storm",
+   "depth": 0.15,
+   "rate": 0.3,
+   "travel": [
+    0,
+    50,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "land",
+   "depth": 0.5,
+   "rate": 0.6
+  },
+  {
+   "name": "road",
+   "depth": 1,
+   "rate": 1.3
+  }
+ ],
+ "sprites": [
+  {
+   "name": "rain",
+   "w": 48,
+   "h": 48,
+   "frames": 4,
+   "at": [
+    0,
+    90
+   ],
+   "layer": "storm",
+   "rest": 0
+  },
+  {
+   "name": "road-lit",
+   "w": 166,
+   "h": 46,
+   "frames": 3,
+   "at": [
+    86,
+    178
+   ],
+   "layer": "road",
+   "rest": 0
+  },
+  {
+   "name": "car",
+   "w": 9,
+   "h": 5,
+   "frames": 3,
+   "at": [
+    206,
+    186
+   ],
+   "layer": "road",
+   "rest": 0
+  }
+ ]
+}

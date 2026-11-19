@@ -1,0 +1,65 @@
+{
+ "id": "river",
+ "world": [
+  336,
+  252
+ ],
+ "view": {
+  "land": [
+   26,
+   68
+  ],
+  "port": [
+   121,
+   6
+  ]
+ },
+ "layers": [
+  {
+   "name": "sky",
+   "depth": 0,
+   "rate": 0.2
+  },
+  {
+   "name": "hills",
+   "depth": 0.3,
+   "rate": 0.4
+  },
+  {
+   "name": "camp",
+   "depth": 0.6,
+   "rate": 0.7
+  },
+  {
+   "name": "brush",
+   "depth": 1,
+   "rate": 1.3
+  }
+ ],
+ "sprites": [
+  {
+   "name": "lights",
+   "w": 165,
+   "h": 44,
+   "frames": 4,
+   "at": [
+    83,
+    122
+   ],
+   "layer": "camp",
+   "rest": 0
+  },
+  {
+   "name": "smoke",
+   "w": 10,
+   "h": 22,
+   "frames": 6,
+   "at": [
+    204,
+    152
+   ],
+   "layer": "camp",
+   "rest": 0
+  }
+ ]
+}

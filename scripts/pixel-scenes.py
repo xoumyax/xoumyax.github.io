@@ -32,7 +32,14 @@ SCENES = {
         # and the seam need.
         'density': 600, 'world': (348, 224), 'centre': (0.62, 0.7199999),
         'land': (50, 4), 'port': (214, 10)}),
-    'srm':       ('DSC04305.JPG', (0.5, 0.55), (0.5, 0.55)),
+    'srm':       ('DSC04305.JPG', (0.5, 0.55), (0.5, 0.55), {
+        # The whole photo at 336 px per photo width (the least that is >= 222 rows tall): the
+        # desktop is ~1.4x tighter than today, biased low so the road shows below the deck card
+        # and the storm band beside and under the panel; the phone keeps today's framing (~1.05x),
+        # the road's far end just right of the deck card. land.x 56 leaves the seam's 4 px past
+        # the storm's 50 px of travel to the right.
+        'density': 336, 'world': (336, 224), 'centre': (0.5, 0.5),
+        'land': (56, 68), 'port': (108, 8)}),
     'cognizant': ('DSC04343.JPG', (0.5, 0.55), (0.5, 0.55), {
         # The whole photo at 336 px per photo width (the least that is >= 222 rows tall): the
         # desktop is ~1.4x tighter than today, with the storm band right of the panel and the
@@ -63,7 +70,13 @@ SCENES = {
         # keeps today's framing, ~1.08x tighter: the door right of the Now panel's edge.
         'density': 260, 'world': (260, 224), 'centre': (0.5, 0.510577),
         'land': (4, 51), 'port': (90, 6)}),
-    'river':     ('IMG_7241.JPG', (0.5, 0.55), (0.55, 0, 1.22)),
+    'river':     ('IMG_7241.JPG', (0.5, 0.55), (0.55, 0, 1.22), {
+        # The whole photo at 336 px per photo width (1.4x tighter than today's desktop; the
+        # phone, ~0.97x today's, needs the trailer below its panel): the desktop frames the camp
+        # right of the panel and above the footer, the sky and the hills over it; the phone the
+        # camp between the panel and the footer, its top row or two tucked under the panel's foot.
+        'density': 336, 'world': (336, 252), 'centre': (0.5, 0.5),
+        'land': (26, 68), 'port': (121, 6)}),
 }
 # The shared palette, fixed so a crop change never recolours the other scenes. It was made by
 # build_palette() (median cut + k-means over the seven landscape crops, each colour pulled
