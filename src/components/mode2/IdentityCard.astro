@@ -1,7 +1,8 @@
 ---
 // Mode II identity card: who, what, open to work, one row of links, and YARAikiba folded into a
-// dropdown (its sign-in steps open on demand).
-import { inlineMd } from '../journey/inline-md';
+// dropdown (its sign-in steps open on demand). On narrow screens the art style switch lives here.
+import YaraikibaCard from '../YaraikibaCard.astro';
+import ArtSwitch from '../ArtSwitch.astro';
 import './m2.css';
 
 interface Props {
@@ -13,6 +14,7 @@ const { name, role, openToWork, email, github, linkedin, resumePdf, cvPdf, yarai
 ---
 <div class="idcol">
   <section class="m2-glass id" aria-labelledby="hero-name">
+    <ArtSwitch current="ascii" place="page" />
     <h1 id="hero-name">{name}</h1>
     <p class="role">{role}</p>
     <p class="open"><span class="dot" aria-hidden="true"></span><span>{openToWork}</span></p>
@@ -25,26 +27,12 @@ const { name, role, openToWork, email, github, linkedin, resumePdf, cvPdf, yarai
     </ul>
   </section>
 
-  <section class="m2-glass yaraikiba" aria-labelledby="yk-title">
-    <p class="m2-kicker">Live demo · guest access</p>
-    <h2 id="yk-title">Try YARAikiba</h2>
-    <p class="blurb">{yaraikiba.blurb}</p>
-    <p class="actions">
-      <a class="go" href={yaraikiba.url} rel="noopener" target="_blank">Open YARAikiba ↗<span class="visually-hidden"> (opens in a new tab)</span></a>
-      <a href="/projects/yaraikiba/">How it works</a>
-    </p>
-    <details class="m2-drop" data-yk-steps>
-      <summary>Guest sign-in, {yaraikiba.steps.length} steps</summary>
-      <ol>
-        {yaraikiba.steps.map((s) => <li set:html={inlineMd(s)} />)}
-      </ol>
-    </details>
-  </section>
+  <YaraikibaCard {...yaraikiba} folded />
 </div>
 
 <style>
   .idcol { display: grid; gap: .9rem; align-content: start; min-width: 0; }
-  .id, .yaraikiba { padding: clamp(1.1rem, 2.4vw, 1.6rem); }
+  .id { padding: clamp(1.1rem, 2.4vw, 1.6rem); }
   h1 { font-size: clamp(2rem, 3.6vw, 2.9rem); margin-bottom: .4rem; overflow-wrap: break-word; }
   .role { font-size: 1rem; line-height: 1.45; margin-bottom: .7rem; }
   .open {
@@ -68,21 +56,5 @@ const { name, role, openToWork, email, github, linkedin, resumePdf, cvPdf, yarai
   }
   .links a:hover { background: color-mix(in oklab, var(--amber) 28%, transparent); }
 
-  h2 { font-size: 1.3rem; margin-bottom: .3rem; }
-  .blurb { font-size: .92rem; line-height: 1.45; margin-bottom: .75rem; }
-  .actions { display: flex; flex-wrap: wrap; gap: .5rem 1rem; align-items: center; margin-bottom: .6rem; font-size: .9rem; }
-  .go {
-    padding: .5rem .95rem; border-radius: 999px; text-decoration: none; font-weight: 600;
-    background: var(--amber); color: var(--char);
-  }
-  .go:hover { background: color-mix(in oklab, var(--amber) 80%, var(--char)); }
-  ol { margin: .5rem 0 0; padding: 0; list-style: none; counter-reset: step; font-size: .88rem; }
-  ol > li { counter-increment: step; position: relative; padding: .25rem 0 .25rem 1.9rem; }
-  ol > li::before {
-    content: counter(step); font-family: var(--font-mono); font-size: .7rem;
-    position: absolute; left: 0; top: .3rem;
-    width: 1.35rem; height: 1.35rem; border-radius: 50%; display: grid; place-items: center;
-    background: var(--ink); color: var(--paper);
-  }
-  ol > li :global(strong) { font-weight: 650; }
+  .id > :global(.art) { margin: -.3rem 0 .9rem auto; }
 </style>

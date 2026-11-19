@@ -1,22 +1,30 @@
 ---
 import { inlineMd } from './journey/inline-md';
 import './journey/panel.css';
+import './mode2/m2.css';
 
-interface Props { url: string; steps: string[]; blurb: string }
-const { url, steps, blurb } = Astro.props;
+// `folded` (Mode II): a glass card whose sign-in steps sit in a dropdown under the links.
+interface Props { url: string; steps: string[]; blurb: string; folded?: boolean }
+const { url, steps, blurb, folded = false } = Astro.props;
+const Tag = folded ? 'section' : 'aside';
+const items = steps.map((s) => inlineMd(s));
 ---
-<aside class="panel yaraikiba" data-panel aria-labelledby="yk-title">
-  <p class="label">Live demo · guest access</p>
+<Tag class:list={[folded ? 'm2-glass folded' : 'panel', 'yaraikiba']} data-panel={folded ? undefined : ''} aria-labelledby="yk-title">
+  <p class:list={[folded ? 'm2-kicker' : 'label']}>Live demo · guest access</p>
   <h2 id="yk-title">Try YARAikiba</h2>
   <p class="blurb">{blurb}</p>
-  <ol>
-    {steps.map((s) => <li set:html={inlineMd(s)} />)}
-  </ol>
+  {!folded && <ol>{items.map((h) => <li set:html={h} />)}</ol>}
   <p class="actions">
     <a class="go" href={url} rel="noopener" target="_blank">Open YARAikiba ↗<span class="visually-hidden"> (opens in a new tab)</span></a>
     <a class="more" href="/projects/yaraikiba/">How it works</a>
   </p>
-</aside>
+  {folded && (
+    <details class="m2-drop" data-yk-steps>
+      <summary>Guest sign-in, {steps.length} steps</summary>
+      <ol>{items.map((h) => <li set:html={h} />)}</ol>
+    </details>
+  )}
+</Tag>
 
 <style>
   .label { display: flex; align-items: center; gap: .55rem; }
@@ -40,4 +48,14 @@ const { url, steps, blurb } = Astro.props;
   }
   .go:hover { background: color-mix(in oklab, var(--amber) 80%, var(--char)); }
   .more { font-size: .92rem; }
+
+  /* Folded (Mode II): tighter, over the clip. */
+  .folded { padding: clamp(1.1rem, 2.4vw, 1.6rem); }
+  .folded h2 { font-size: 1.3rem; margin-bottom: .3rem; }
+  .folded .blurb { font-size: .92rem; margin-bottom: .75rem; }
+  .folded .actions { gap: .5rem 1rem; margin-bottom: .6rem; font-size: .9rem; }
+  .folded .go { padding: .5rem .95rem; }
+  .folded ol { margin: .5rem 0 0; font-size: .88rem; }
+  .folded li { padding: .25rem 0 .25rem 1.9rem; }
+  .folded li::before { top: .3rem; width: 1.35rem; height: 1.35rem; font-size: .7rem; }
 </style>

@@ -1,0 +1,27 @@
+---
+// The home's art style switch: ASCII (/, Mode II) or Pixel (/road/, Mode I). The top bar carries
+// it on wide screens; on narrow ones it moves into the page (the identity card on /, the footer
+// on /road/), so the bar keeps room for its links. Clicks are remembered by src/lib/art-style.ts.
+interface Props { current: 'ascii' | 'pixel'; place: 'bar' | 'page' }
+const { current, place } = Astro.props;
+---
+<div class:list={['art', place]} role="group" aria-label="Art style">
+  <a href="/?style=ascii" data-art="ascii" aria-current={current === 'ascii' ? 'page' : undefined}>ASCII</a>
+  <a href="/road/" data-art="pixel" aria-current={current === 'pixel' ? 'page' : undefined}>Pixel</a>
+</div>
+
+<style>
+  .art {
+    flex: none; display: flex; width: fit-content; padding: .2rem; gap: .15rem;
+    border-radius: 999px; border: 1px solid color-mix(in oklab, var(--ink) 22%, transparent);
+    font: 600 .72rem/1 var(--font-mono); letter-spacing: .06em; text-transform: uppercase;
+  }
+  a { padding: .5rem .65rem; border-radius: 999px; text-decoration: none; white-space: nowrap; }
+  a:hover { background: color-mix(in oklab, currentColor 8%, transparent); }
+  a[aria-current='page'] { background: var(--ink); color: var(--paper); }
+  a:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+  .bar { margin-left: .5rem; }
+  /* One copy shows at a time: the bar's on wide screens, the page's on narrow ones. */
+  @media (max-width: 60rem) { .bar { display: none; } }
+  @media (min-width: 60.001rem) { .page { display: none; } }
+</style>
