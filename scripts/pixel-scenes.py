@@ -19,15 +19,31 @@ PULL = 0.22
 
 # id -> (photo, landscape crop, portrait crop); a crop is (cx, cy) or (cx, cy, zoom), see load().
 # Crops are judged on the built page with the section centred: the panel and deck cover most of
-# the middle, so each subject is placed in what they leave free. hero: the Chisos peak right of
-# the YARAikiba card (desktop), in the band above the intro panel (phone). phd's and now's crops
-# are unused while they have worlds (see their world settings; --new-palette still reads them).
-# river (phone): the camp between the panel and the footer.
+# the middle, so each subject is placed in what they leave free. The crops of the scenes with
+# worlds (hero, now, phd, ms, cognizant) are unused (see their world settings; --new-palette still
+# reads them). river (phone): the camp between the panel and the footer.
 SCENES = {
-    'hero':      ('DSC04135.JPG', (0.42, 1, 1.3), (0.85, 1, 1.9)),
+    'hero':      ('DSC04135.JPG', (0.42, 1, 1.3), (0.85, 1, 1.9), {
+        # A world at 600 px per photo width, the photo's lower right: the phone needs the peak
+        # near its top (today's portrait crop is ~610), and the photo below the peak is only
+        # ~0.32 x density tall. The desktop is therefore ~1.9x tighter than today: the peak
+        # top-right, above and right of the YARAikiba card, the haze band over it.
+        'density': 600, 'world': (340, 224), 'centre': (0.6266667, 0.7199999),
+        'land': (56, 4), 'port': (206, 10)}),
     'srm':       ('DSC04305.JPG', (0.5, 0.55), (0.5, 0.55)),
-    'cognizant': ('DSC04343.JPG', (0.5, 0.55), (0.5, 0.55)),
-    'ms':        ('IMG_1444.JPG', (0.5, 0.55), (0.5, 0.55)),
+    'cognizant': ('DSC04343.JPG', (0.5, 0.55), (0.5, 0.55), {
+        # The whole photo at 336 px per photo width (the least that is >= 222 rows tall): the
+        # desktop is ~1.4x tighter than today, with the storm band right of the panel and the
+        # road below it; the phone keeps today's framing (~1.05x), the storm band and the road's
+        # far end in the free band between the panel and the next card.
+        'density': 336, 'world': (336, 224), 'centre': (0.5, 0.5),
+        'land': (56, 67), 'port': (105, 8)}),
+    'ms':        ('IMG_1444.JPG', (0.5, 0.55), (0.5, 0.55), {
+        # The whole photo at 300 px per photo width (the least that is >= 222 rows tall with the
+        # clouds' 6 px of downward travel): desktop ~1.25x tighter than today, the mesa's skyline
+        # right of the panel as today; the phone keeps today's framing (~1.05x).
+        'density': 300, 'world': (300, 225), 'centre': (0.5, 0.5),
+        'land': (32, 32), 'port': (87, 10)}),
     'phd':       ('DSC04340.JPG', (0.82, 1, 1.8), (0.52, 0, 1.35), {
         # A world at 400 px per photo width (the old crops were 432): the horse is ~72 px wide,
         # so on a phone its rest pose sits inside the middle 90 px of the 120 px view and its

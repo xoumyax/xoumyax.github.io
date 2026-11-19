@@ -8,8 +8,7 @@ gravel (the near stones). Sprite on `dome`: door, the open doorway from dark (re
 Cut lines and outlines are in photo px and mapped with to_world."""
 import math, random
 from . import common as C
-from .common import KEY
-from .phd import line_y, wobble
+from .common import KEY, BAYER, drop_specks, line_y, lum, smooth_fill, wobble
 
 # ---------------------------------------------------------------- photo-space outlines
 # The dome and its deck, clockwise from the deck's left end (the bottom runs under the gravel).
@@ -35,9 +34,6 @@ DOOR = [(1349, 1791), (1663, 1791), (1663, 2524), (1349, 2524)]
 
 HILL_TOP = 1100                       # photo y: the hill's ridge is searched below the storm cloud
 UNDER = (6, 10)                       # rows the hill and dome run on under the gravel's top
-
-
-def lum(c): return 0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2]
 
 
 def is_sky(c): return c[2] - c[0] > 22 and lum(c) > 95
@@ -186,90 +182,9 @@ def cloud_sprite(sky, W, H, rng):
     return C.Sprite('cloud', w, h, frames, (x0, y0), 'sky', 0)
 
 
-def drop_specks(m, W, H, n):
-    """Clears 8-connected pieces of mask m smaller than n pixels."""
-    seen = bytearray(W * H)
-    out = bytearray(m)
-    for i in range(W * H):
-        if not m[i] or seen[i]: continue
-        comp, stack = [], [i]
-        seen[i] = 1
-        while stack:
-            j = stack.pop(); comp.append(j)
-            x, y = j % W, j // W
-            for yy in range(max(0, y - 1), min(H, y + 2)):
-                for xx in range(max(0, x - 1), min(W, x + 2)):
-                    k = yy * W + xx
-                    if m[k] and not seen[k]: seen[k] = 1; stack.append(k)
-        if len(comp) < n:
-            for j in comp: out[j] = 0
-    return out
-
-
-def smooth_fill(img, hole, inside, key):
-    """Fills the hole pixels for which inside(x, y) holds (RGB, in place): each takes the mean of
-    the non-hole pixels with the same key (+-3 keys), eased toward the colours at the edges of
-    its run in the row, then two passes of a vertical 1-2-1 blur inside the fill. Smooth colour
-    that the Bayer dither then textures (with a faint wave, so no dither band runs dead straight):
-    no copied flecks."""
-    W, H = img.size
-    px = img.load()
-    sums = {}
-    for y in range(H):
-        for x in range(W):
-            if not hole[y * W + x] and inside(x, y):
-                k = key(x, y)
-                s = sums.setdefault(k, [0, 0, 0, 0])
-                for c in range(3): s[c] += px[x, y][c]
-                s[3] += 1
-    keys = sorted(sums)
-
-    def mean(k):
-        acc, n = [0, 0, 0], 0
-        for kk in keys:
-            if abs(kk - k) <= 3:
-                s = sums[kk]
-                for c in range(3): acc[c] += s[c]
-                n += s[3]
-        if not n:
-            kk = min(keys, key=lambda q: abs(q - k)); s = sums[kk]
-            return [s[c] / s[3] for c in range(3)]
-        return [v / n for v in acc]
-    fill = {}
-    for y in range(H):
-        x = 0
-        while x < W:
-            if not (hole[y * W + x] and inside(x, y)):
-                x += 1; continue
-            x0 = x
-            while x < W and hole[y * W + x] and inside(x, y): x += 1
-            x1 = x                                   # run x0 .. x1 - 1
-
-            def edge(xs):
-                cs = [px[e, y] for e in xs if 0 <= e < W and not hole[y * W + e] and inside(e, y)]
-                return [sum(c[j] for c in cs) / len(cs) for j in range(3)] if cs else None
-            cl, cr = edge(range(x0 - 3, x0)), edge(range(x1, x1 + 3))
-            for xx in range(x0, x1):
-                m = mean(key(xx, y))
-                for e, d in ((cl, xx - x0 + 1), (cr, x1 - xx)):
-                    if e: m = [m[j] + (e[j] - m[j]) * math.exp(-d / 6) for j in range(3)]
-                fill[(xx, y)] = m
-    for _ in range(2):
-        nxt = {}
-        for (x, y), c in fill.items():
-            up, dn = fill.get((x, y - 1), c), fill.get((x, y + 1), c)
-            nxt[(x, y)] = [(up[j] + 2 * c[j] + dn[j]) / 4 for j in range(3)]
-        fill = nxt
-    for (x, y), c in fill.items():               # soft wisps, so a dither threshold never runs as a straight row
-        n = 5 * math.sin(x / 7.3 + y / 2.9) + 4 * math.sin(x / 13.7 - y / 4.1 + 1.3)
-        px[x, y] = tuple(round(v + n) for v in c)
-        hole[y * W + x] = 0
-
-
 # ---------------------------------------------------------------- the door light
 ORANGE = 15
 DARK, NIGHT, BROWN, GREYBROWN = 27, 26, 21, 19
-BAYER = [[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]]
 
 
 def door_frames(Q, door, W, H):

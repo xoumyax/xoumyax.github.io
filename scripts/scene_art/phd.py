@@ -9,7 +9,7 @@ world px (they follow the drawn sprite, so they are tied to this density)."""
 import math, random
 from PIL import ImageFilter
 from . import common as C
-from .common import KEY
+from .common import KEY, line_y, lum, wobble
 
 # ---------------------------------------------------------------- photo-space cut lines
 HORSE = [(992, 1051), (994, 1024), (1005, 1005), (1021, 991), (1042, 980), (1069, 974), (1096, 974),
@@ -34,29 +34,6 @@ LIP = [(781, 1462), (1100, 1452), (1450, 1468), (1800, 1458), (2304, 1466)]
 
 PAPER, MIST, CREAM, TAN, DKTAN, GREY, DUSK, BROWN = 0, 1, 3, 8, 11, 16, 19, 21
 OLIVE, DKGREEN, MOSS = 18, 20, 25
-
-
-def lum(c): return 0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2]
-
-
-def line_y(pts, to_world, w):
-    """A polyline in photo px -> one y per world column (linear in between)."""
-    q = [to_world(*p) for p in pts]
-    out = []
-    for x in range(w):
-        for (x0, y0), (x1, y1) in zip(q, q[1:]):
-            if x0 <= x + 0.5 <= x1 or (x + 0.5 < q[0][0] and (x0, y0) == q[0]) or (x + 0.5 > q[-1][0] and (x1, y1) == q[-1]):
-                t = 0 if x1 == x0 else min(1, max(0, (x + 0.5 - x0) / (x1 - x0)))
-                out.append(y0 + (y1 - y0) * t)
-                break
-    return out
-
-
-def wobble(w, rng, amp, scales=(5.0, 2.3)):
-    """Smooth-ish integer noise per column: the cut lines are never straight."""
-    ph = [rng.random() * 6.3 for _ in scales]
-    return [round(sum(amp / (i + 1) * math.sin(x / s + p) for i, (s, p) in enumerate(zip(scales, ph))) + rng.choice((0, 0, 0, 1, -1)) * (amp > 1))
-            for x in range(w)]
 
 
 def fray(tree, W, H, b, rng):

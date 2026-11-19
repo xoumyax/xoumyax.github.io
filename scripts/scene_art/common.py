@@ -204,6 +204,139 @@ def despeckle(g, w, h, keep=()):
     return out
 
 
+# ---------------------------------------------------------------- colour, cut lines, fills
+BAYER = [[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]]
+
+
+def lum(c): return 0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2]
+
+
+def line_y(pts, to_world, w):
+    """A polyline in photo px -> one y per world column (linear in between)."""
+    q = [to_world(*p) for p in pts]
+    out = []
+    for x in range(w):
+        for (x0, y0), (x1, y1) in zip(q, q[1:]):
+            if x0 <= x + 0.5 <= x1 or (x + 0.5 < q[0][0] and (x0, y0) == q[0]) or (x + 0.5 > q[-1][0] and (x1, y1) == q[-1]):
+                t = 0 if x1 == x0 else min(1, max(0, (x + 0.5 - x0) / (x1 - x0)))
+                out.append(y0 + (y1 - y0) * t)
+                break
+    return out
+
+
+def wobble(w, rng, amp, scales=(5.0, 2.3)):
+    """Smooth-ish integer noise per column: the cut lines are never straight."""
+    ph = [rng.random() * 6.3 for _ in scales]
+    return [round(sum(amp / (i + 1) * math.sin(x / s + p) for i, (s, p) in enumerate(zip(scales, ph))) + rng.choice((0, 0, 0, 1, -1)) * (amp > 1))
+            for x in range(w)]
+
+
+def drop_specks(m, W, H, n):
+    """Clears 8-connected pieces of mask m smaller than n pixels."""
+    seen = bytearray(W * H)
+    out = bytearray(m)
+    for i in range(W * H):
+        if not m[i] or seen[i]: continue
+        comp, stack = [], [i]
+        seen[i] = 1
+        while stack:
+            j = stack.pop(); comp.append(j)
+            x, y = j % W, j // W
+            for yy in range(max(0, y - 1), min(H, y + 2)):
+                for xx in range(max(0, x - 1), min(W, x + 2)):
+                    k = yy * W + xx
+                    if m[k] and not seen[k]: seen[k] = 1; stack.append(k)
+        if len(comp) < n:
+            for j in comp: out[j] = 0
+    return out
+
+
+def smooth_fill(img, hole, inside, key):
+    """Fills the hole pixels for which inside(x, y) holds (RGB, in place): each takes the mean of
+    the non-hole pixels with the same key (+-3 keys), eased toward the colours at the edges of
+    its run in the row, then two passes of a vertical 1-2-1 blur inside the fill. Smooth colour
+    that the Bayer dither then textures (with a faint wave, so no dither band runs dead straight):
+    no copied flecks."""
+    W, H = img.size
+    px = img.load()
+    sums = {}
+    for y in range(H):
+        for x in range(W):
+            if not hole[y * W + x] and inside(x, y):
+                k = key(x, y)
+                s = sums.setdefault(k, [0, 0, 0, 0])
+                for c in range(3): s[c] += px[x, y][c]
+                s[3] += 1
+    keys = sorted(sums)
+
+    def mean(k):
+        acc, n = [0, 0, 0], 0
+        for kk in keys:
+            if abs(kk - k) <= 3:
+                s = sums[kk]
+                for c in range(3): acc[c] += s[c]
+                n += s[3]
+        if not n:
+            kk = min(keys, key=lambda q: abs(q - k)); s = sums[kk]
+            return [s[c] / s[3] for c in range(3)]
+        return [v / n for v in acc]
+    fill = {}
+    for y in range(H):
+        x = 0
+        while x < W:
+            if not (hole[y * W + x] and inside(x, y)):
+                x += 1; continue
+            x0 = x
+            while x < W and hole[y * W + x] and inside(x, y): x += 1
+            x1 = x                                   # run x0 .. x1 - 1
+
+            def edge(xs):
+                cs = [px[e, y] for e in xs if 0 <= e < W and not hole[y * W + e] and inside(e, y)]
+                return [sum(c[j] for c in cs) / len(cs) for j in range(3)] if cs else None
+            cl, cr = edge(range(x0 - 3, x0)), edge(range(x1, x1 + 3))
+            for xx in range(x0, x1):
+                m = mean(key(xx, y))
+                for e, d in ((cl, xx - x0 + 1), (cr, x1 - xx)):
+                    if e: m = [m[j] + (e[j] - m[j]) * math.exp(-d / 6) for j in range(3)]
+                fill[(xx, y)] = m
+    for _ in range(2):
+        nxt = {}
+        for (x, y), c in fill.items():
+            up, dn = fill.get((x, y - 1), c), fill.get((x, y + 1), c)
+            nxt[(x, y)] = [(up[j] + 2 * c[j] + dn[j]) / 4 for j in range(3)]
+        fill = nxt
+    for (x, y), c in fill.items():               # soft wisps, so a dither threshold never runs as a straight row
+        n = 5 * math.sin(x / 7.3 + y / 2.9) + 4 * math.sin(x / 13.7 - y / 4.1 + 1.3)
+        px[x, y] = tuple(round(v + n) for v in c)
+        hole[y * W + x] = 0
+
+
+def tile_fill(img, hole, srcs, rng, patch=(4, 3), rows=None):
+    """Fills the hole pixels of RGB image img (in place) patch by patch, each patch copied from
+    its own random source patch that lies wholly in mask srcs (and, with rows(ty) -> (lo, hi),
+    whose top row is in lo..hi). Random per patch, so no offset repeats along a row: no streaks."""
+    W, H = img.size
+    px = img.load()
+    pw, ph = patch
+    ok = [(x, y) for y in range(H - ph + 1) for x in range(W - pw + 1)
+          if all(srcs[(y + j) * W + x + i] and not hole[(y + j) * W + x + i] for j in range(ph) for i in range(pw))]
+    assert ok, 'tile_fill: no source patch'
+    by_row = {}
+    for x, y in ok: by_row.setdefault(y, []).append((x, y))
+    for ty in range(0, H, ph):
+        for tx in range(0, W, pw):
+            cells = [(tx + i, ty + j) for j in range(ph) for i in range(pw) if tx + i < W and ty + j < H and hole[(ty + j) * W + tx + i]]
+            if not cells: continue
+            if rows:
+                lo, hi = rows(ty)
+                pool = [p for y in range(lo, hi + 1) for p in by_row.get(y, ())] or ok
+            else:
+                pool = ok
+            sx, sy = rng.choice(pool)
+            for x, y in cells:
+                px[x, y] = px[sx + x - tx, sy + y - ty]
+
+
 # ---------------------------------------------------------------- composite and PNG
 def composite(art, w, h):
     """The rest frame: every layer back to front, each followed by its sprites' rest frames."""

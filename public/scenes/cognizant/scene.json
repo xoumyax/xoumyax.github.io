@@ -1,0 +1,65 @@
+{
+ "id": "cognizant",
+ "world": [
+  336,
+  224
+ ],
+ "view": {
+  "land": [
+   56,
+   67
+  ],
+  "port": [
+   105,
+   8
+  ]
+ },
+ "layers": [
+  {
+   "name": "sky",
+   "depth": 0,
+   "rate": 0.2
+  },
+  {
+   "name": "storm",
+   "depth": 0.15,
+   "rate": 0.3
+  },
+  {
+   "name": "land",
+   "depth": 0.5,
+   "rate": 0.6
+  },
+  {
+   "name": "road",
+   "depth": 1,
+   "rate": 1.3
+  }
+ ],
+ "sprites": [
+  {
+   "name": "flash",
+   "w": 336,
+   "h": 53,
+   "frames": 2,
+   "at": [
+    0,
+    114
+   ],
+   "layer": "storm",
+   "rest": 0
+  },
+  {
+   "name": "rain",
+   "w": 48,
+   "h": 48,
+   "frames": 4,
+   "at": [
+    0,
+    114
+   ],
+   "layer": "land",
+   "rest": 0
+  }
+ ]
+}

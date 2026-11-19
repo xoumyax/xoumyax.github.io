@@ -1,0 +1,46 @@
+{
+ "id": "hero",
+ "world": [
+  340,
+  224
+ ],
+ "view": {
+  "land": [
+   56,
+   4
+  ],
+  "port": [
+   206,
+   10
+  ]
+ },
+ "layers": [
+  {
+   "name": "sky",
+   "depth": 0,
+   "rate": 0.2
+  },
+  {
+   "name": "cloud",
+   "depth": 0.15,
+   "rate": 0.3,
+   "travel": [
+    0,
+    40,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "peaks",
+   "depth": 0.4,
+   "rate": 0.5
+  },
+  {
+   "name": "ridge",
+   "depth": 0.8,
+   "rate": 1.0
+  }
+ ],
+ "sprites": []
+}
