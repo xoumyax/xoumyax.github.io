@@ -252,19 +252,8 @@ def components(m, W, H):
 
 def drop_specks(m, W, H, n):
     """Clears 8-connected pieces of mask m smaller than n pixels."""
-    seen = bytearray(W * H)
     out = bytearray(m)
-    for i in range(W * H):
-        if not m[i] or seen[i]: continue
-        comp, stack = [], [i]
-        seen[i] = 1
-        while stack:
-            j = stack.pop(); comp.append(j)
-            x, y = j % W, j // W
-            for yy in range(max(0, y - 1), min(H, y + 2)):
-                for xx in range(max(0, x - 1), min(W, x + 2)):
-                    k = yy * W + xx
-                    if m[k] and not seen[k]: seen[k] = 1; stack.append(k)
+    for comp in components(m, W, H):
         if len(comp) < n:
             for j in comp: out[j] = 0
     return out
@@ -363,19 +352,23 @@ RAIN_FRAMES = 3
 GREYBLUE, SLATE = 6, 9
 
 
-def rain_sprite(rng, at, layer):
-    """A tile of rain that repeats in x and y (streaks wrap at its edges): frame 0 is empty (rest),
-    frames 1..RAIN_FRAMES each scatter their own streaks, so cycling them reads as rain falling.
-    A streak is 3-4 px, slanting one px left every two rows, slate with a pale head."""
-    w, h = RAIN
+def rain_sprite(rng, at, layer, size=RAIN, streaks=RAIN_STREAKS, mask=None):
+    """A strip of rain: frame 0 is empty (rest), frames 1..RAIN_FRAMES each scatter `streaks`
+    streaks of their own, so cycling them reads as rain falling. A streak is 3-4 px, slanting one
+    px left every two rows, slate with a pale head. Without a mask the strip is a tile that
+    repeats in x and y (streaks wrap at its edges); with one (w*h of 0/1) every streak lies
+    wholly inside it and none wraps."""
+    w, h = size
     frames = [[KEY] * (w * h)]
     for _ in range(RAIN_FRAMES):
         g = [KEY] * (w * h)
         n = 0
-        while n < RAIN_STREAKS:
+        while n < streaks:
             x, y = rng.randrange(w), rng.randrange(h)
             ln = rng.choice((3, 3, 4))
             cells = [((x - j // 2) % w, (y + j) % h) for j in range(ln)]
+            if mask is not None and any(not mask[cy * w + cx] or cx != x - j // 2 or cy != y + j
+                                        for j, (cx, cy) in enumerate(cells)): continue
             if any(g[cy * w + cx] != KEY or g[((cy + 1) % h) * w + cx] != KEY for cx, cy in cells): continue
             for j, (cx, cy) in enumerate(cells):
                 g[cy * w + cx] = GREYBLUE if j == ln - 1 and rng.random() < 0.5 else SLATE

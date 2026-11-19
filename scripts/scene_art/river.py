@@ -47,7 +47,7 @@ FIRE = (207, 173)                     # the campfire (world px): the smoke rises
 SMOKE = (10, 22)                      # the smoke strip's size; the fire is at its bottom, column 3
 SMOKE_FRAMES = 5
 PUFF_ROWS = 2                         # rows the plume rises a frame
-PALE, MIST, HAZE = 1, 2, 6
+HAZE, SLATE, DUSK = 6, 9, 16      # the smoke: light grey-blue, slate, warm grey
 
 
 def is_sky(c): return lum(c) >= 85 or c[2] - c[0] > 70
@@ -181,11 +181,13 @@ def is_glass(v): return v in GLASS
 
 # ---------------------------------------------------------------- the smoke
 def smoke_sprite():
-    """Frame 0 is empty. Frames 1..SMOKE_FRAMES: a thin, wavering plume over the fire that leans
-    right as it rises, one pixel wide low down and two higher up, with gaps between its puffs
-    that grow toward the top, where it fades out. The wave and the gaps move up PUFF_ROWS rows a
-    frame and repeat every SMOKE_FRAMES * PUFF_ROWS rows, so the frames loop. Pale near the fire,
-    greyer higher up. The fire is an amber ember at the foot, one pixel or two."""
+    """Frame 0 is empty. Frames 1..SMOKE_FRAMES: a soft, wavering plume over the fire that leans
+    right as it rises. Its core is one pixel of light grey-blue low down, slate higher up; a
+    frayed edge of every other pixel (plume-aligned) widens it toward the top, and gaps between
+    its puffs grow there until it fades out. Nothing in it is white, so it stays dim at dusk. The
+    wave, the fray and the gaps move up PUFF_ROWS rows a frame and repeat every
+    SMOKE_FRAMES * PUFF_ROWS rows, so the frames loop. The fire is an amber ember at the foot,
+    one pixel or two."""
     w, h = SMOKE
     fx, fy = 3, h - 1
     period = SMOKE_FRAMES * PUFF_ROWS
@@ -196,12 +198,17 @@ def smoke_sprite():
             t = r / (h - 2)
             ph = (r - PUFF_ROWS * f) % period    # the plume's own phase at this row
             if r > 3 and ph < 1 + round(3 * t): continue          # the gap between two puffs
-            if t > 0.55 and ph % 3 == 1: continue                 # thinning out near the top
-            cx = fx + 4.2 * t * t + (0.4 + 1.1 * t) * math.sin(2 * math.pi * ph / period)
-            xs = [round(cx)] + ([round(cx) + 1] if 0.3 < t < 0.8 and ph % 2 == 0 else [])
-            col = PALE if t < 0.3 else MIST if t < 0.65 else HAZE
-            for x in xs:
-                if 0 <= x < w: g[(fy - r) * w + x] = col
+            cx = fx + 4.2 * t * t + (0.5 + 1.1 * t) * math.sin(2 * math.pi * (ph + 0.5 * r) / period)
+            c = round(cx)
+            core = HAZE if t < 0.4 else SLATE
+            fray = SLATE if t < 0.4 else DUSK
+            if not (t > 0.6 and ph % 3 == 1):     # thinning out near the top
+                g[(fy - r) * w + c] = core
+            for side in (-1, 1):                 # the frayed edge, every other pixel, wider higher up
+                for k in range(1, 1 + (t > 0.35) + (t > 0.7)):
+                    x = c + side * k
+                    if 0 <= x < w and (ph + x + k) % 2 == 0 and (k == 1 or ph % 3 == 0):
+                        g[(fy - r) * w + x] = fray
         g[fy * w + fx] = LAMP
         if f % 2: g[fy * w + fx + 1] = LAMP
         frames.append(g)

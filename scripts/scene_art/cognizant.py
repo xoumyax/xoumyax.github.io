@@ -25,7 +25,6 @@ NEAR = 1470                           # photo y: below this the whole width is n
 UNDER = (4, 8)                        # rows the storm runs on under the horizon
 
 # ---------------------------------------------------------------- the sprites (world px)
-MIST = 1
 FLASH_CENTRE = (232, 140)             # world px: the flash is brightest here (both views see it)
 FLASH_R = (130, 30)                   # its falloff radii in x and y
 FLASH_K = 0.5                         # the most a pixel moves toward mist

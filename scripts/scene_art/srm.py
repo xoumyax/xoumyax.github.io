@@ -7,18 +7,18 @@ the fields; travel right 50: a shift hook slides it off to the right, and its fa
 no view shows at rest, is its trailing edge, thinning toward the world's left edge), land (the
 fields, the hill on the left and the billboard; under the road it is fields too), road (the road
 from its far end down, with a ragged verge along both edges and across the bottom).
-Sprites: rain (on `storm`, so the fields hide it below the horizon and it leaves with the storm:
-a tileable strip of falling streaks, frame 0 empty), road-lit (on `road`: frame 0 empty, frames
+Sprites: rain (on `storm`: a band-wide strip of falling streaks, only inside the storm's dark
+mass and curtain, so the fields hide it below the horizon and it leaves with the storm; frame 0
+empty), road-lit (on `road`: frame 0 empty, frames
 1-2 the road surface a little lighter each, as when the storm moves off), car (on `road`, after
 road-lit: a small generic car drawn by hand, frame 0 empty, frames 1-2 its lamps and wheels
 flickering).
 
 Cut lines are found from the photo's colours (storm top, horizon) or are photo-px polylines
 mapped with to_world (the road's edges)."""
-import random
+import math, random
 from . import common as C
-import math
-from .common import KEY, BAYER, line_y, lum, wobble
+from .common import KEY, line_y, lum, wobble
 
 # ---------------------------------------------------------------- photo-space lines
 STORM_SEARCH = 620                    # photo y: the storm band's top is searched below this
@@ -37,26 +37,27 @@ NEAR = 1478                           # photo y: below this the whole width is n
 UNDER = (4, 8)                        # rows the storm runs on under the horizon
 
 # ---------------------------------------------------------------- the sprites (world px)
-LIT = (0.25, 0.5)                     # road-lit frames 1, 2: the share of road pixels one step lighter
+DARKS = {27, 26, 25}                  # road-lit frame 1: these road tones step up the ramp
+RUT = 0.45                            # road-lit frame 1: ruts lift where the road-long noise is over this
+SHEEN = 0.62                          # road-lit frame 2: where the road-long noise is over this, olive lightens
+RAIN_STREAKS = 110                    # rain streaks per frame over the band (cognizant's density)
+RAIN_IN = 3                           # rain starts this many rows under the band's top
+RAIN_LUM = 112                        # and only where the band is this dark (its mass and curtain)
 # the road's own colours, dark to light: road-lit moves a pixel one step up this ramp
 RAMP = [27, 26, 25, 20, 18]
 CLEAR = 0.3                           # the cleared sky at the horizon: this share toward LIGHT
 LIGHT = (150, 196, 180)               # the pale teal of the clearing sky
-CAR_AT = (206, 186)                   # the car's default spot: the road's right lane, where both
+CAR_AT = (205, 187)                   # the car's default spot: the road's right lane, where both
                                       # views see it (the phone right of the deck card, the
                                       # desktop below it); the act drives it about
 SILVER, ROOF, GLASS, LAMP, WARM, TYRE = 9, 23, 6, 0, 3, 27
-CAR = [                               # 9x5, seen from ahead and a little to the left
-    ['..rrrrr..',                     # 1: lamps full, tyres
-     '.rgggggr.',
-     'sssssssss',
-     'LsssssssL',
-     '.t.....t.'],
-    ['..rrrrr..',                     # 2: lamps dipped, tyres turned
-     '.rgggggr.',
-     'sssssssss',
-     'WsssssssW',
-     'tt.....tt'],
+CAR = [                               # 5x3, seen from ahead: near the photo's own car's scale
+    ['.rgr.',                         # 1: lamps full
+     'LsssL',
+     't...t'],
+    ['.rgr.',                         # 2: lamps dipped, tyres turned
+     'WsssW',
+     'tt.tt'],
 ]
 
 
@@ -165,13 +166,17 @@ def build(world, render, to_world):
     under = [round((UNDER[0] + UNDER[1]) / 2) + d for d in wobble(W, rng, (UNDER[1] - UNDER[0]) / 2, (5.0, 2.2))]   # a ragged hem, no spikes
     # the storm's foot: under the lowest horizon from 6 px left to 56 px right of it (the storm
     # slides up to 50 px right), so neither a comb of spikes between the hills nor a gap over the
-    # far horizon shows once it slides; the hidden rows are copied from the band's own pixels in
-    # the same rows (behind the hill on the left, from the open horizon to its right)
+    # far horizon shows once it slides; the hidden rows are copied one row at a time: at and
+    # under the open horizon from the band's last row (its darkest, the navy ridge line), so the
+    # strip that camera drift or a pan bares under the fields reads as more of that ridge, not as
+    # a lighter streak; behind the hill, above that, from the band's own pixels in the same rows
     sb = [max(hz[max(0, x - 6):x + 57]) + under[x] for x in range(W)]
     uhole = bytearray(1 if hz[i % W] <= i // W < sb[i % W] else 0 for i in range(W * H))
     band = lambda x, y: st[x] <= y < hz[x] and not is_land(src[y * W + x])
-    miss = C.inpaint(storm_img, uhole, lambda sx, sy, tx_, ty: band(sx, sy) and abs(sy - min(ty, hz[sx] - 1)) <= 1,
-                     rng, patch=(3, 2), reach=(2, 120), dy=10)
+    far = [v - u for v, u in zip(sb, under)]   # the open horizon's row for each column
+    miss = C.inpaint(storm_img, uhole, lambda sx, sy, tx_, ty: band(sx, sy) and (
+                     sy == hz[sx] - 1 if ty >= far[tx_] - 1 else abs(sy - ty) <= 1 and sy < hz[sx] - 1),
+                     rng, patch=(3, 1), reach=(2, 120), dy=12)
     assert not miss, f'storm underlap: {len(miss)} px unfilled'
     Qstorm = list(render(storm_img).get_flattened_data())
 
@@ -186,9 +191,21 @@ def build(world, render, to_world):
         C.Layer('land', 0.5, 0.6, land_px),
         C.Layer('road', 1, 1.3, road_px),
     ]
-    rain = C.rain_sprite(random.Random(1305), (0, min(st)), 'storm')
-    lit = road_lit_sprite(road_px, surface, W, H)
-    return C.Art(layers, [rain, lit, car_sprite()], {'alt': {'rain': 1, 'road-lit': 2, 'car': 1}})
+    # rain: cognizant's streaks over the whole band, but only inside the storm's own darkest
+    # mass and curtain (and above the horizon), so it leaves with the storm and never falls on
+    # the cleared sky its slide reveals
+    ry0, ry1 = min(st), max(hz)
+    inside = [1 if 0 <= (y := ry0 + i // W) < H and storm[y * W + i % W] != KEY and st[i % W] + RAIN_IN <= y < hz[i % W]
+              and lum(src[y * W + i % W]) < RAIN_LUM else 0 for i in range(W * (ry1 - ry0))]
+    rain = C.rain_sprite(random.Random(1305), (0, ry0), 'storm', size=(W, ry1 - ry0),
+                         streaks=RAIN_STREAKS, mask=inside)
+    lit = road_lit_sprite(road_px, surface, W, H, random.Random(2305))
+    car = car_sprite()
+    for y in range(car.h):                      # the car sits on the road's surface
+        for x in range(car.w):
+            if any(f[y * car.w + x] != KEY for f in car.frames):
+                assert surface[(CAR_AT[1] + y) * W + CAR_AT[0] + x], f'car off the road at {x},{y}'
+    return C.Art(layers, [rain, lit, car], {'alt': {'rain': 1, 'road-lit': 2, 'car': 1}})
 
 
 # ---------------------------------------------------------------- the cleared sky
@@ -214,32 +231,50 @@ def clear_fill(img, st, hz, W, H):
 
 
 # ---------------------------------------------------------------- the road brightening
-def road_lit_sprite(road_px, surface, W, H):
-    """Frame 0 is empty (rest: the road as generated). Frames 1 and 2 move a growing share
-    (LIT) of the road surface's pixels one step up the road's own colour ramp (RAMP), chosen by
-    a world-aligned Bayer threshold, so frame 2 holds every pixel of frame 1. The share fades
-    toward the surface's edges, so the lit road has no outline. Pixels that do not change stay
-    transparent; the strip covers the surface's bounding box."""
+def road_lit_sprite(road_px, surface, W, H, rng):
+    """Frame 0 is empty (rest: the road as generated). The road brightens along its own tones:
+    frame 1 lifts its darkest pixels (the wheel ruts and wet shadows) one step up its colour
+    ramp (RAMP) where soft, road-long patches of value noise are over RUT; frame 2 lifts them
+    all and also turns the olive surface lighter where those patches are high (over SHEEN) and
+    around the light streaks the road already has, so the sheen grows from what is there, not as a screen over it. Every pixel of frame 1
+    is in frame 2. The patches fade toward the surface's edges, so the lit road has no outline.
+    Pixels that do not change stay transparent; the strip covers the surface's bounding box."""
     up = {RAMP[i]: RAMP[i + 1] for i in range(len(RAMP) - 1)}
     cells = [i for i in range(W * H) if surface[i] and road_px[i] in up]
     xs, ys = [i % W for i in cells], [i // W for i in cells]
     x0, y0, x1, y1 = min(xs), min(ys), max(xs) + 1, max(ys) + 1
     w, h = x1 - x0, y1 - y0
+    on = lambda x, y: 0 <= x < W and 0 <= y < H and surface[y * W + x]
 
     def inset(x, y):                            # columns to the surface's nearer edge in this row
         d = 0
-        while d < 6 and surface[y * W + x - d - 1] and surface[y * W + x + d + 1]: d += 1
+        while d < 6 and on(x - d - 1, y) and on(x + d + 1, y): d += 1
         return d
-    frames = [[KEY] * (w * h)]
-    for k in LIT:
-        g = [KEY] * (w * h)
-        for i in cells:
-            x, y = i % W, i // W
-            share = k * min(1.0, (inset(x, y) + 1) / 4)
-            if BAYER[y % 4][x % 4] / 16 < share:
-                g[(y - y0) * w + x - x0] = up[road_px[i]]
-        frames.append(g)
-    return C.Sprite('road-lit', w, h, frames, (x0, y0), 'road', 0)
+    gx, gy = 7, 2                               # value-noise cells: long across, thin down the road
+    cell = [[rng.random() for _ in range(W // gx + 2)] for _ in range(H // gy + 2)]
+
+    def noise(x, y):
+        i, j = x / gx, y / gy
+        i0, j0 = int(i), int(j)
+        fx, fy = i - i0, j - j0
+        fx, fy = fx * fx * (3 - 2 * fx), fy * fy * (3 - 2 * fy)
+        a = cell[j0][i0] * (1 - fx) + cell[j0][i0 + 1] * fx
+        b = cell[j0 + 1][i0] * (1 - fx) + cell[j0 + 1][i0 + 1] * fx
+        return a * (1 - fy) + b * fy
+    light = RAMP[-1]
+    near_light = lambda x, y: any(on(xx, yy) and road_px[yy * W + xx] == light
+                                  for xx, yy in ((x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)))
+    f1, f2 = [KEY] * (w * h), [KEY] * (w * h)
+    for i in cells:
+        x, y = i % W, i // W
+        v = road_px[i]
+        o = (y - y0) * w + x - x0
+        if v in DARKS:                          # the ruts lift in patches first, then wholly
+            f2[o] = up[v]
+            if noise(x, y) > RUT: f1[o] = up[v]
+        elif noise(x, y) * min(1.0, (inset(x, y) + 1) / 4) > SHEEN or (near_light(x, y) and noise(x, y) > SHEEN - 0.2):
+            f2[o] = up[v]
+    return C.Sprite('road-lit', w, h, [[KEY] * (w * h), f1, f2], (x0, y0), 'road', 0)
 
 
 # ---------------------------------------------------------------- the car
