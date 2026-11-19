@@ -10,7 +10,7 @@ test.describe('still', () => {
   test.beforeEach(({ page }) => still(page));
 
   test('the same scroll position gives the same frame going down and back up', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/road/');
     await page.waitForSelector('#scene:not([hidden])');
     await worldsLoaded(page); // a world arriving between the two reads would change the frame
     await scrollToPan(page, 'now', 'phd', 0.5);
@@ -24,7 +24,7 @@ test.describe('still', () => {
   });
 
   test('mid-pan frame has no blank pixels', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/road/');
     await page.waitForSelector('#scene:not([hidden])');
     for (const share of [0.25, 0.5, 0.75]) {
       await page.evaluate(() => scrollTo({ top: 0, behavior: 'instant' }));
@@ -44,7 +44,7 @@ test.describe('still', () => {
   test('a scene whose world fails to load falls back to its flat frame', async ({ page }) => {
     test.skip(!existsSync('public/scenes/phd/scene.json'), 'needs a world for phd (Task 3 on)');
     await page.route('**/scenes/phd/**', (r) => r.abort());
-    await page.goto('/');
+    await page.goto('/road/');
     await page.waitForSelector('#scene:not([hidden])');
     await scrollToCentre(page, 'phd');
     await expect.poll(() => sceneOf(page)).toBe('phd');
@@ -59,7 +59,7 @@ test.describe('still', () => {
   });
 
   test('inside the Ph.D. stop the scene moves with scroll, not on its own', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/road/');
     await page.waitForSelector('#scene:not([hidden])');
     await scrollToCentre(page, 'phd');
     await expect(cv(page)).toHaveAttribute('data-scene', 'phd');
@@ -76,7 +76,7 @@ test.describe('still', () => {
   });
 
   test('opening Small projects keeps scenes on their stops', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/road/');
     await page.waitForSelector('#scene:not([hidden])');
     const more = page.locator('[data-more]').first();
     await more.locator('summary').click();
@@ -87,7 +87,7 @@ test.describe('still', () => {
   });
 
   test('deep link lands settled', async ({ page }) => {
-    await page.goto('/#stop-ms');
+    await page.goto('/road/#stop-ms');
     await page.waitForLoadState('load');
     await page.waitForSelector('#scene:not([hidden])');
     await expect(cv(page)).toHaveAttribute('data-scene', 'ms');
@@ -100,7 +100,7 @@ test.describe('still', () => {
 
   test('rotating mid-pan keeps the scene pair and covers the viewport', async ({ page }, info) => {
     test.skip(info.project.name === 'phone', 'needs a landscape start');
-    await page.goto('/');
+    await page.goto('/road/');
     await page.waitForSelector('#scene:not([hidden])');
     await scrollToPan(page, 'phd', 'ms', 0.5);
     await expect(cv(page)).toHaveAttribute('data-next', 'ms');
@@ -151,7 +151,7 @@ test.describe('still', () => {
   test.beforeEach(({ page }) => still(page));
 
   test('at rest every block is whole and the frame is the flat file', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/road/');
     await page.waitForSelector('#scene:not([hidden])');
     await worldsLoaded(page);
     for (const id of ['now', 'phd', 'river']) {
@@ -164,7 +164,7 @@ test.describe('still', () => {
   });
 
   test('inside the Ph.D. stop the near layer drifts a little each step, never a block at once', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/road/');
     await page.waitForSelector('#scene:not([hidden])');
     await worldsLoaded(page);
     await scrollToCentre(page, 'phd');
@@ -204,7 +204,7 @@ test.describe('still', () => {
 });
 
 test('a 20 px scroll mid-pan glides over several frames', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/road/');
   await page.waitForSelector('#scene:not([hidden])');
   await worldsLoaded(page);
   await scrollToPan(page, 'phd', 'ms', 0.45);
@@ -238,7 +238,7 @@ test('a 20 px scroll mid-pan glides over several frames', async ({ page }) => {
 });
 
 test('"Travel the road" lands on Now at once, without gliding through the pan', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/road/');
   await page.waitForSelector('#scene:not([hidden])');
   await page.evaluate(() => document.fonts.ready);
   const seen = await page.evaluate(async () => {
@@ -268,7 +268,7 @@ test('mid-pan at a fractional DPR the seam is as ragged as at DPR 1, with no bla
     const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: dpr, baseURL: info.project.use.baseURL });
     const page = await ctx.newPage();
     await still(page);
-    await page.goto('/');
+    await page.goto('/road/');
     await page.waitForSelector('#scene:not([hidden])');
     await worldsLoaded(page);
     const L = await page.evaluate(() => {
@@ -337,7 +337,7 @@ test('the ambient clock runs and stops with the tab', async ({ page }) => {
     const raf = window.requestAnimationFrame.bind(window);
     window.requestAnimationFrame = (cb) => { w.__raf++; return raf(cb); };
   });
-  await page.goto('/');
+  await page.goto('/road/');
   await page.waitForLoadState('load');
   await page.waitForSelector('#scene:not([hidden])');
   await page.evaluate(() => document.fonts.ready);
@@ -364,7 +364,7 @@ test('the ambient clock runs and stops with the tab', async ({ page }) => {
 
 test('reduced motion: no pan, no ambient', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.goto('/');
+  await page.goto('/road/');
   await page.waitForSelector('#scene:not([hidden])');
   await expect(cv(page)).toHaveAttribute('data-ambient', 'off');
   await scrollToPan(page, 'phd', 'ms', 0.5);
@@ -376,7 +376,7 @@ test('no console errors on load and full scroll', async ({ page }) => {
   const errors: string[] = [];
   page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
   page.on('pageerror', (e) => errors.push(String(e)));
-  await page.goto('/');
+  await page.goto('/road/');
   await page.waitForSelector('#scene:not([hidden])');
   await page.evaluate(async () => {
     const end = document.documentElement.scrollHeight - innerHeight;

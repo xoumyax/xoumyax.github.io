@@ -107,7 +107,7 @@ test.describe('still', () => {
       const [x, y] = onScreen(m, 'horse', s);
       return { p: s.p, ...(await underSprite(page, { id: 'phd', name: 'horse', h: horse.h, frame: 0, r0: 0, r1: 34, x, y, b: s.b })) };
     };
-    await page.goto('/');
+    await page.goto('/road/');
     await page.waitForSelector('#scene:not([hidden])');
     // Grazing at p ≈ 0.4 (poll: the world loads after first paint; the flat frame never moves).
     await scrollToStop(page, 'phd', 'ms', 0.4);
@@ -130,7 +130,7 @@ test.describe('still', () => {
   test('now: the door lights up through the stop', async ({ page }) => {
     const m = meta('now');
     const door = m.sprites.find((s) => s.name === 'door')!;
-    await page.goto('/');
+    await page.goto('/road/');
     await page.waitForSelector('#scene:not([hidden])');
     // A door pixel that is the lit orange in the last frame and dark at rest, nearest the door's middle.
     const px = await page.evaluate(async ({ w, h, last }) => {
@@ -175,7 +175,7 @@ test.describe('still', () => {
 });
 
 test('phd: ambient motion changes the frame without scrolling', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/road/');
   await page.waitForSelector('#scene:not([hidden])');
   await expect(page.locator('#scene')).toHaveAttribute('data-ambient', 'on');
   await scrollToStop(page, 'phd', 'ms', 0.4);

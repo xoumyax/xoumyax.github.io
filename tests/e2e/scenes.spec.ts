@@ -8,20 +8,20 @@ test('the hero scene shows on load, with no console errors', async ({ page }) =>
   const errors: string[] = [];
   page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
   page.on('pageerror', (e) => errors.push(String(e)));
-  await page.goto('/');
+  await page.goto('/road/');
   expect(await sceneOf(page)).toBe('hero');
   expect(errors).toEqual([]);
 });
 
 test('scrolling to a stop shows its scene', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/road/');
   await page.waitForSelector('#scene:not([hidden])');
   await scrollToCentre(page, 'phd');
   expect(await sceneOf(page)).toBe('phd');
 });
 
 test('each stop shows its own scene in the new order', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/road/');
   await page.waitForSelector('#scene:not([hidden])');
   for (const id of STOP_IDS) {
     await scrollToCentre(page, id);
@@ -30,7 +30,7 @@ test('each stop shows its own scene in the new order', async ({ page }) => {
 });
 
 test('mid-pan is a mix of both scenes', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/road/');
   await page.waitForSelector('#scene:not([hidden])');
   await scrollToPan(page, 'phd', 'ms', 0.5);
   expect(await sceneOf(page)).toBe('mixed');
@@ -42,7 +42,7 @@ test('portrait to landscape keeps the canvas covering the viewport while the set
   test.skip(info.project.name === 'phone', 'needs a viewport resize from portrait');
   await page.route(/\/scenes\/[a-z]+\.png/, async (r) => { await new Promise((ok) => setTimeout(ok, 1500)); await r.continue(); });
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('/');
+  await page.goto('/road/');
   await page.waitForSelector('#scene:not([hidden])');
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.waitForTimeout(100);
@@ -55,7 +55,7 @@ test('portrait to landscape with the landscape set failing still covers the view
   test.skip(info.project.name === 'phone', 'needs a viewport resize from portrait');
   await page.route(/\/scenes\/[a-z]+\.png/, (r) => r.abort());
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('/');
+  await page.goto('/road/');
   await page.waitForSelector('#scene:not([hidden])');
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.waitForTimeout(300);
@@ -72,7 +72,7 @@ test('a phone URL bar showing and hiding does not rescale the backdrop', async (
   const size = () => page.locator('#scene').evaluate((c) => { const r = c.getBoundingClientRect(); return [r.width, r.height]; });
   const settle = () => page.evaluate(() => new Promise((ok) => requestAnimationFrame(() => requestAnimationFrame(ok))));
   await page.setViewportSize({ width: 412, height: 839 });
-  await page.goto('/');
+  await page.goto('/road/');
   await page.waitForSelector('#scene:not([hidden])');
   expect(await covers()).toBe(true);
   await page.setViewportSize({ width: 412, height: 895 });
@@ -99,7 +99,7 @@ test('a phone URL bar showing and hiding does not rescale the backdrop', async (
 });
 
 test('end key lands on the river scene', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/road/');
   await page.waitForSelector('#scene:not([hidden])');
   await page.keyboard.press('End');
   await page.waitForTimeout(300);
@@ -109,7 +109,7 @@ test('end key lands on the river scene', async ({ page }) => {
 
 test('reduced motion never mixes', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.goto('/');
+  await page.goto('/road/');
   await page.waitForSelector('#scene:not([hidden])');
   for (const frac of [0.3, 0.45, 0.55, 0.7]) {
     await scrollToCentre(page, 'phd', 'ms', frac);
@@ -120,7 +120,7 @@ test('reduced motion never mixes', async ({ page }) => {
 
 test('resize to portrait re-picks the set and covers the viewport', async ({ page }, info) => {
   test.skip(info.project.name === 'phone', 'starts in portrait already');
-  await page.goto('/');
+  await page.goto('/road/');
   await page.waitForSelector('#scene:not([hidden])');
   await expect(page.locator('#scene')).toHaveAttribute('data-set', 'land');
   await page.setViewportSize({ width: 390, height: 844 });
@@ -139,7 +139,7 @@ test('resize to portrait re-picks the set and covers the viewport', async ({ pag
 test.describe('without JavaScript', () => {
   test.use({ javaScriptEnabled: false });
   test('no JS shows the static hero image', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/road/');
     const img = page.locator('.scenes img');
     await expect(img).toBeVisible();
     await expect(img).toHaveCSS('image-rendering', 'pixelated');
@@ -151,7 +151,7 @@ test('a failed scene load leaves the static image and no errors', async ({ page 
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(String(e)));
   await page.route('**/scenes/phd*.png', (r) => r.abort());
-  await page.goto('/');
+  await page.goto('/road/');
   await page.waitForSelector('#scene:not([hidden])');
   for (const id of ['srm', 'ms', 'phd', 'now', 'river']) await scrollToCentre(page, id);
   await expect(page.locator('.scenes img')).toHaveCount(1);
@@ -159,7 +159,7 @@ test('a failed scene load leaves the static image and no errors', async ({ page 
 });
 
 test('scroll stays smooth', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/road/');
   await page.waitForSelector('#scene:not([hidden])');
   const avg = await page.evaluate(async () => {
     const step = Math.max(1, (document.documentElement.scrollHeight - innerHeight) / 30);
@@ -188,7 +188,7 @@ for (const [name, size, reduced] of [
     await page.setViewportSize(size);
     if (reduced) await page.emulateMedia({ reducedMotion: 'reduce' });
     for (const id of STOP_IDS) {
-      await page.goto(`/#stop-${id}`);
+      await page.goto(`/road/#stop-${id}`);
       await page.waitForLoadState('load');
       await page.waitForSelector('#scene:not([hidden])');
       await expect.poll(() => sceneOf(page), { message: id }).toBe(id);
