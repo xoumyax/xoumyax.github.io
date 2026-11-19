@@ -1,0 +1,54 @@
+---
+import Base from '../../layouts/Base.astro';
+import Hero from '../../components/Hero.astro';
+import SceneBackdrop from '../../components/SceneBackdrop.astro';
+import Stop from '../../components/Stop.astro';
+import Contact from '../../components/journey/Contact.astro';
+import { getProfile, getJourney, getProjects, getConfig } from '../../lib/data';
+
+const profile = getProfile();
+const journey = getJourney();
+const cfg = getConfig();
+const projects = new Map((await getProjects()).map((p) => [p.slug, p]));
+const yk = projects.get('yaraikiba');
+if (!yk) throw new Error('index: the yaraikiba project is missing');
+---
+<Base title="Soumyajyoti Dutta" description={`${profile.name}: ${profile.role}`} theme="world">
+  <Hero
+    name={profile.name}
+    role={profile.role}
+    openToWork={profile.openToWork}
+    yaraikiba={{ url: cfg.yaraikiba.url, steps: cfg.yaraikiba.steps, blurb: yk.oneLiner }}
+  />
+
+  <div class="journey">
+    {journey.stops.map((stop, i) => (
+      <Stop stop={stop} index={i} count={journey.stops.length} projects={projects}>
+        {stop.id === 'river' && (
+          <Contact email={profile.email} github={profile.github} linkedin={profile.linkedin} resumePdf={cfg.resumePdf} cvPdf={cfg.cvPdf} />
+        )}
+      </Stop>
+    ))}
+  </div>
+  <SceneBackdrop />
+</Base>
+
+<script>
+  import { initDecks } from '../../lib/deck';
+  import { initWorld } from '../../scripts/world';
+  initDecks();
+  initWorld();
+</script>
+
+<style>
+  /* Stacking: the content sits above the page backdrop. Content wrappers pass pointer
+     events through; only [data-panel] and [data-deck] take them. */
+  :global(.hero), .journey { position: relative; z-index: 1; }
+  .journey { pointer-events: none; }
+  /* The shared footer sits over the backdrop; give it paper to stand on. */
+  :global(body[data-theme='world'] .footer) {
+    background: color-mix(in oklab, var(--paper) 86%, transparent);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+  }
+</style>

@@ -1,10 +1,12 @@
 ---
+// Mode II, the ASCII home (default). The pixel-world home (Mode I) is /road/; the top-bar switch
+// moves between them and Base's head script honours a stored 'pixel' choice.
 import Base from '../layouts/Base.astro';
-import Hero from '../components/Hero.astro';
-import SceneBackdrop from '../components/SceneBackdrop.astro';
-import Stop from '../components/Stop.astro';
-import Contact from '../components/journey/Contact.astro';
+import Backdrop from '../components/mode2/Backdrop.astro';
+import IdentityCard from '../components/mode2/IdentityCard.astro';
+import Console from '../components/mode2/Console.astro';
 import { getProfile, getJourney, getProjects, getConfig } from '../lib/data';
+import { posterUrl, LANDING_CLIP } from '../lib/mode2';
 
 const profile = getProfile();
 const journey = getJourney();
@@ -12,43 +14,45 @@ const cfg = getConfig();
 const projects = new Map((await getProjects()).map((p) => [p.slug, p]));
 const yk = projects.get('yaraikiba');
 if (!yk) throw new Error('index: the yaraikiba project is missing');
+const contact = { email: profile.email, github: profile.github, linkedin: profile.linkedin, resumePdf: cfg.resumePdf, cvPdf: cfg.cvPdf };
 ---
-<Base title="Soumyajyoti Dutta" description={`${profile.name}: ${profile.role}`} theme="world">
-  <Hero
-    name={profile.name}
-    role={profile.role}
-    openToWork={profile.openToWork}
-    yaraikiba={{ url: cfg.yaraikiba.url, steps: cfg.yaraikiba.steps, blurb: yk.oneLiner }}
-  />
-
-  <div class="journey">
-    {journey.stops.map((stop, i) => (
-      <Stop stop={stop} index={i} count={journey.stops.length} projects={projects}>
-        {stop.id === 'river' && (
-          <Contact email={profile.email} github={profile.github} linkedin={profile.linkedin} resumePdf={cfg.resumePdf} cvPdf={cfg.cvPdf} />
-        )}
-      </Stop>
-    ))}
+<Base title="Soumyajyoti Dutta" description={`${profile.name}: ${profile.role}`} theme="ascii" artRedirect>
+  <link slot="head" rel="preload" as="image" href={posterUrl(LANDING_CLIP)} fetchpriority="high" />
+  <Backdrop />
+  <div class="wrap m2">
+    <IdentityCard
+      name={profile.name}
+      role={profile.role}
+      openToWork={profile.openToWork}
+      {...contact}
+      yaraikiba={{ url: cfg.yaraikiba.url, steps: cfg.yaraikiba.steps, blurb: yk.oneLiner }}
+    />
+    <Console stops={journey.stops} projects={projects} contact={contact} />
   </div>
-  <SceneBackdrop />
 </Base>
 
 <script>
-  import { initDecks } from '../lib/deck';
-  import { initWorld } from '../scripts/world';
-  initDecks();
-  initWorld();
+  import { initMode2 } from '../scripts/mode2';
+  initMode2();
 </script>
 
 <style>
-  /* Stacking: the content sits above the page backdrop. Content wrappers pass pointer
-     events through; only [data-panel] and [data-deck] take them. */
-  :global(.hero), .journey { position: relative; z-index: 1; }
-  .journey { pointer-events: none; }
-  /* The shared footer sits over the backdrop; give it paper to stand on. */
-  :global(body[data-theme='world'] .footer) {
-    background: color-mix(in oklab, var(--paper) 86%, transparent);
-    -webkit-backdrop-filter: blur(14px);
-    backdrop-filter: blur(14px);
+  .m2 {
+    display: grid; gap: 1rem; align-items: start;
+    grid-template-columns: minmax(0, 1fr);
+    padding-block: clamp(1rem, 24svh, 12rem) 2.5rem;
+  }
+  @media (min-width: 56rem) {
+    .m2 {
+      grid-template-columns: minmax(17rem, 23rem) minmax(0, 1fr);
+      gap: 1.25rem;
+      padding-block: clamp(1.25rem, 6vh, 3.5rem) 3rem;
+    }
+    .m2 > :global(.idcol) { position: sticky; top: calc(var(--bar-h) + 1.25rem); }
+  }
+  /* The footer sits over the clip: give it glass to stand on. */
+  :global(body[data-theme='ascii'] .footer) {
+    background: color-mix(in oklab, var(--paper) 88%, transparent);
+    -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
   }
 </style>

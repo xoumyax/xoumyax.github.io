@@ -1,0 +1,53 @@
+---
+// Sliding cards: a horizontal scroll-snap track of fixed-width cards (two or three in view on a
+// desktop, one and a peek on a phone), with Previous / Next and a position read-out. Without JS
+// the track is a plain horizontal scroller and the controls stay hidden.
+interface Props { label: string; count: number }
+const { label, count } = Astro.props;
+---
+<div class="slides" data-slides>
+  <div class="card-row" data-card-row data-track role="region" aria-label={label} tabindex="0">
+    <slot />
+  </div>
+  {count > 1 && (
+    <div class="ctl" data-ctl>
+      <button type="button" data-prev aria-label="Previous card" aria-disabled="true">‹</button>
+      <span class="pos" data-pos aria-live="polite">1 / {count}</span>
+      <button type="button" data-next aria-label="Next card" aria-disabled="false">›</button>
+    </div>
+  )}
+</div>
+
+<style>
+  .slides { min-width: 0; --card-tilt: 0; }
+  .card-row {
+    display: flex; gap: .75rem; min-width: 0;
+    overflow-x: auto; overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    padding: .3rem; margin: -.3rem; /* room for the cards' focus rings */
+    scroll-padding-inline: .3rem;
+    border-radius: 1rem;
+  }
+  .card-row::-webkit-scrollbar { display: none; }
+  .card-row > :global(*) { flex: 0 0 var(--card-w, clamp(10.5rem, 40%, 12.5rem)); min-width: 0; scroll-snap-align: start; }
+  .card-row:focus-visible { outline: 2px solid var(--ink); outline-offset: 0; }
+  .ctl {
+    display: none; align-items: center; justify-content: flex-end; gap: .35rem; margin-top: .65rem;
+    font: 700 .78rem/1 var(--font-mono); letter-spacing: .04em;
+  }
+  :global(.js) .ctl { display: flex; }
+  .ctl[hidden] { display: none !important; }
+  .pos { min-width: 6ch; text-align: center; font-variant-numeric: tabular-nums; }
+  .ctl button {
+    flex: none; width: 2.25rem; height: 2.25rem; padding: 0; border-radius: 999px; cursor: pointer;
+    font: 700 1.05rem/1 var(--font-mono);
+    border: 1px solid color-mix(in oklab, var(--ink) 30%, transparent);
+    background: transparent; color: var(--ink);
+    transition: background-color .2s var(--ease);
+  }
+  .ctl button:hover:not([aria-disabled='true']) { background: color-mix(in oklab, var(--ink) 10%, transparent); }
+  .ctl button[aria-disabled='true'] { opacity: .4; cursor: default; }
+  .ctl button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+</style>

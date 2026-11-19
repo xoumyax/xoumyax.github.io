@@ -1,0 +1,189 @@
+---
+// Mode II journey console: a tab strip (years + short title) over one stop panel at a time.
+// Server-rendered as every stop stacked with its heading; the tab strip only shows with JS, and
+// the client script turns the stack into ARIA tabs (src/scripts/mode2/tabs.ts).
+import ProjectCard from '../ProjectCard.astro';
+import TextCard from '../journey/TextCard.astro';
+import Contact from '../journey/Contact.astro';
+import Slides from './Slides.astro';
+import Scratch from './Scratch.astro';
+import { STOP_CLIP, STOP_SHORT } from '../../lib/mode2';
+import type { JourneyStop, Project } from '../../lib/schema';
+import './m2.css';
+
+interface Props {
+  stops: JourneyStop[];
+  projects: Map<string, Project>;
+  contact: { email: string; github: string; linkedin: string; resumePdf: string; cvPdf: string };
+}
+const { stops, projects, contact } = Astro.props;
+
+type Card = { kind: 'project'; project: Project } | { kind: 'text'; title: string; text: string };
+const card = (stop: JourneyStop, item: JourneyStop['items'][number]): Card => {
+  if (typeof item !== 'string') return { kind: 'text', ...item };
+  const project = projects.get(item);
+  if (!project) throw new Error(`journey.yaml: stop "${stop.id}" lists unknown project "${item}"`);
+  return { kind: 'project', project };
+};
+const project = (stop: JourneyStop, slug: string) => {
+  const p = projects.get(slug);
+  if (!p) throw new Error(`journey.yaml: stop "${stop.id}" lists unknown project "${slug}"`);
+  return p;
+};
+const view = stops.map((stop) => ({
+  stop,
+  cards: stop.items.map((i) => card(stop, i)),
+  groups: (stop.groups ?? []).map((g) => ({ title: g.title, cards: g.items.map((i) => card(stop, i)) })),
+  more: stop.more ? { title: stop.more.title, projects: stop.more.items.map((s) => project(stop, s)) } : undefined,
+}));
+const n = (k: number) => `${k} ${k === 1 ? 'item' : 'items'}`;
+---
+<section class="m2-glass console" aria-label="Journey" data-console>
+  <div class="tabs" role="tablist" aria-label="Journey stops" data-tabs>
+    {stops.map((s, i) => (
+      <button type="button" role="tab" id={`tab-${s.id}`} aria-controls={`stop-${s.id}`}
+        aria-selected={i === 0 ? 'true' : 'false'} tabindex={i === 0 ? 0 : -1} data-tab={s.id} data-clip={STOP_CLIP[s.id]}>
+        <span class="yrs">{s.years}</span>
+        <span class="short">{STOP_SHORT[s.id]}</span>
+      </button>
+    ))}
+  </div>
+
+  <div class="panels">
+    {view.map(({ stop, cards, groups, more }) => (
+      <section id={`stop-${stop.id}`} class="stop-panel" data-stop={stop.id} data-clip={STOP_CLIP[stop.id]} aria-labelledby={`stop-${stop.id}-title`}>
+        <header class="head">
+          <p class="meta"><span class="yrs">{stop.years}</span><span class="sep" aria-hidden="true">//</span><span>{stop.place}</span></p>
+          <h2 id={`stop-${stop.id}-title`}>{stop.title}</h2>
+          {stop.id !== 'river' && <p class="summary">{stop.summary}</p>}
+        </header>
+
+        {cards.length > 0 && (
+          <Slides label={`${stop.title}: ${n(cards.length)}`} count={cards.length}>
+            {cards.map((c) => (c.kind === 'project' ? <ProjectCard project={c.project} /> : <TextCard title={c.title} text={c.text} />))}
+          </Slides>
+        )}
+
+        {groups.length > 0 && (
+          <div class="groups">
+            {groups.map((g, i) => (
+              <details class="m2-drop grp" name={`${stop.id}-groups`} open={i === 0} data-block>
+                <summary><span class="t">{g.title}</span><span class="count">{g.cards.length}</span></summary>
+                <Slides label={`${stop.title} — ${g.title}: ${n(g.cards.length)}`} count={g.cards.length}>
+                  {g.cards.map((c) => (c.kind === 'project' ? <ProjectCard project={c.project} /> : <TextCard title={c.title} text={c.text} />))}
+                </Slides>
+              </details>
+            ))}
+            {more && (
+              <details class="m2-drop grp" name={`${stop.id}-groups`} data-more>
+                <summary><span class="t">{more.title}</span><span class="count">{more.projects.length}</span></summary>
+                <ul class="more">
+                  {more.projects.map((p) => (
+                    <li><a href={`/projects/${p.slug}/`}>{p.title}</a> <span class="yrs">{p.years}</span></li>
+                  ))}
+                </ul>
+              </details>
+            )}
+          </div>
+        )}
+
+        {stop.id === 'river' && (
+          <Scratch>
+            <p class="summary">{stop.summary}</p>
+            <Contact {...contact} />
+          </Scratch>
+        )}
+      </section>
+    ))}
+  </div>
+</section>
+<script is:inline>
+  // Before paint: show only the deep-linked stop (or the first), so the stack never flashes.
+  (function () {
+    var root = document.querySelector('[data-console]');
+    var m = /^#stop-([a-z]+)$/.exec(location.hash);
+    var want = m && root.querySelector('[data-stop="' + m[1] + '"]') ? m[1] : root.querySelector('[data-stop]').getAttribute('data-stop');
+    root.querySelectorAll('[data-stop]').forEach(function (p) { p.hidden = p.getAttribute('data-stop') !== want; });
+    root.querySelectorAll('[role="tab"]').forEach(function (t) {
+      var on = t.getAttribute('data-tab') === want;
+      t.setAttribute('aria-selected', String(on));
+      t.tabIndex = on ? 0 : -1;
+    });
+    root.setAttribute('data-active', want);
+  })();
+</script>
+
+<style>
+  .console { padding: .5rem clamp(.9rem, 2vw, 1.4rem) clamp(1rem, 2vw, 1.4rem); min-width: 0; }
+
+  /* Tabs: shown only with JS; without it every stop is stacked with its heading. */
+  .tabs { display: none; }
+  :global(.js) .tabs {
+    display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: .25rem;
+    margin: 0 calc(-1 * clamp(.4rem, 1vw, .8rem)) .9rem;
+    padding-bottom: .5rem;
+    border-bottom: 1px solid color-mix(in oklab, var(--ink) 14%, transparent);
+  }
+  [role='tab'] {
+    display: grid; gap: .2rem; justify-items: start; text-align: left; min-width: 0;
+    padding: .55rem .6rem .5rem; border: 0; border-radius: .65rem; cursor: pointer;
+    background: transparent; color: var(--ink); font: inherit;
+  }
+  [role='tab'] .yrs { font: 500 .68rem/1.2 var(--font-mono); letter-spacing: .05em; }
+  [role='tab'] .short { font-size: .9rem; font-weight: 600; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+  [role='tab']:hover { background: color-mix(in oklab, var(--ink) 7%, transparent); }
+  [role='tab'][aria-selected='true'] { background: var(--ink); color: var(--paper); }
+  [role='tab']:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+  /* Panels. Without JS: stacked with room between them. */
+  .panels { display: grid; gap: 2.25rem; min-width: 0; }
+  :global(.js) .panels { display: block; }
+  .stop-panel { min-width: 0; padding-top: .35rem; }
+  :global(.js) .stop-panel { scroll-margin-top: 5rem; }
+  .stop-panel[hidden] { display: none; }
+  .head { margin-bottom: 1rem; }
+  .meta {
+    display: flex; flex-wrap: wrap; gap: .1rem .5rem; margin: 0 0 .35rem;
+    font: 500 .74rem/1.4 var(--font-mono); letter-spacing: .04em;
+  }
+  .meta .yrs { font-weight: 700; }
+  .sep { opacity: .6; }
+  h2 { font-size: clamp(1.35rem, 2.3vw, 1.75rem); margin-bottom: .4rem; }
+  .summary { margin: 0; line-height: 1.5; max-width: 62ch; }
+
+  .groups { display: grid; gap: .1rem; }
+  .grp { border-top: 1px solid color-mix(in oklab, var(--ink) 12%, transparent); }
+  .grp:last-child { border-bottom: 1px solid color-mix(in oklab, var(--ink) 12%, transparent); }
+  .grp > summary .t { flex: 1; }
+  .count {
+    font-weight: 700; min-width: 1.6rem; text-align: center; padding: .15rem .35rem; border-radius: 999px;
+    background: color-mix(in oklab, var(--ink) 10%, transparent);
+  }
+  .grp > :global(.slides) { padding: .3rem 0 1rem; }
+  .more { list-style: none; margin: .2rem 0 .6rem; padding: 0 .2rem; columns: 2; column-gap: 1.5rem; }
+  .more li { display: flex; flex-wrap: wrap; gap: .1rem .6rem; align-items: baseline; break-inside: avoid; margin-bottom: .45rem; }
+  .more a { font-weight: 600; }
+  .more .yrs { font: .76rem/1.3 var(--font-mono); }
+
+  .stop-panel :global(.scratch) { margin-top: .25rem; }
+  .stop-panel :global(.scratch .summary) { margin-bottom: 0; }
+  .stop-panel :global(.contact) { margin-top: .9rem; }
+
+  /* Phone: the tab strip becomes a sticky row of chips under the top bar. */
+  @media (max-width: 56rem) {
+    :global(.js) .tabs {
+      position: sticky; top: var(--bar-h); z-index: 5;
+      display: flex; gap: .35rem; overflow-x: auto; scrollbar-width: none;
+      margin: 0 calc(-1 * clamp(.9rem, 2vw, 1.4rem)) .9rem; padding: .55rem clamp(.9rem, 2vw, 1.4rem);
+      background: color-mix(in oklab, var(--paper) 94%, transparent);
+      -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+      border-radius: 1.1rem 1.1rem 0 0;
+    }
+    .tabs::-webkit-scrollbar { display: none; }
+    [role='tab'] {
+      flex: none; display: flex; align-items: baseline; gap: .4rem; padding: .45rem .75rem; border-radius: 999px;
+      border: 1px solid color-mix(in oklab, var(--ink) 20%, transparent);
+    }
+    .more { columns: 1; }
+  }
+</style>

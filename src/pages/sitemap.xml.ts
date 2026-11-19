@@ -3,7 +3,7 @@
 import type { APIRoute } from 'astro';
 import { getProjects } from '../lib/data';
 
-export const SITEMAP_PAGES = ['/', '/resume/', '/projects/', '/teaching/', '/study/'];
+export const SITEMAP_PAGES = ['/', '/road/', '/resume/', '/projects/', '/teaching/', '/study/'];
 
 export const GET: APIRoute = async ({ site }) => {
   const paths = [...SITEMAP_PAGES, ...(await getProjects()).map((p) => `/projects/${p.slug}/`)];

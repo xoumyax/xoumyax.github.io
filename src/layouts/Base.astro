@@ -9,10 +9,12 @@ import Footer from '../components/Footer.astro';
 interface Props {
   title: string;
   description: string;
-  theme?: 'paper' | 'night' | 'world';
+  theme?: 'paper' | 'night' | 'world' | 'ascii';
   noindex?: boolean;
+  /** The ASCII home (/): send a visitor who chose the pixel style to /road/ before paint. */
+  artRedirect?: boolean;
 }
-const { title, description, theme = 'paper', noindex = false } = Astro.props;
+const { title, description, theme = 'paper', noindex = false, artRedirect = false } = Astro.props;
 const fullTitle = title === 'Soumyajyoti Dutta' ? title : `${title} — Soumyajyoti Dutta`;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 // The hero scene (1440×810) is every page's social preview image
@@ -20,11 +22,27 @@ const ogImage = new URL('/og.png', Astro.site);
 // Browser-chrome colour per theme; mode.ts rewrites both metas when the visitor picks a mode.
 const bar = theme === 'night' ? { light: '#0B0B0C', dark: '#0B0B0C' }
   : theme === 'world' ? { light: '#E9DCC4', dark: '#24201A' }
+  : theme === 'ascii' ? { light: '#F5F2EC', dark: '#171512' }
   : { light: '#F5F2EC', dark: '#171512' };
 ---
 <!doctype html>
 <html lang="en">
   <head>
+    <meta charset="utf-8" />
+    {artRedirect && (
+      <script is:inline>
+        // Art style (Mode II / Mode I): ?style=ascii or the top-bar switch stores the choice;
+        // a stored 'pixel' sends / to /road/, keeping the #stop-<id> deep link.
+        try {
+          if (/(^|[?&])style=ascii(&|$)/.test(location.search)) {
+            localStorage.setItem('art-style', 'ascii');
+            history.replaceState(history.state, '', location.pathname + location.hash);
+          } else if (localStorage.getItem('art-style') === 'pixel') {
+            location.replace('/road/' + location.hash);
+          }
+        } catch (e) {}
+      </script>
+    )}
     <script is:inline>
       document.documentElement.classList.add('js');
       try {
@@ -32,7 +50,6 @@ const bar = theme === 'night' ? { light: '#0B0B0C', dark: '#0B0B0C' }
         if (m === 'dark' || m === 'light') document.documentElement.setAttribute('data-mode', m);
       } catch (e) {}
     </script>
-    <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{fullTitle}</title>
     <meta name="description" content={description} />

@@ -1,0 +1,69 @@
+---
+// Mode II background: two stacked looping clips that cross-fade when the part on show changes.
+// Server-rendered without autoplay: no JS (and reduced motion) keeps the hero poster. The inline
+// script right below picks the deep-linked stop's clip and starts it before the page finishes.
+import { LANDING_CLIP, STOP_CLIP, clipUrl, posterUrl } from '../../lib/mode2';
+
+const first = LANDING_CLIP;
+---
+<div class="m2-bg" aria-hidden="true" data-m2-bg data-clip={first} style={`--poster:url(${posterUrl(first)})`}>
+  <video class="clip on" muted playsinline loop preload="none" poster={posterUrl(first)} data-clip={first}>
+    <source media="(orientation: portrait)" src={clipUrl(first, true)} type="video/mp4" />
+    <source src={clipUrl(first, false)} type="video/mp4" />
+  </video>
+  <video class="clip" muted playsinline loop preload="none"></video>
+  <div class="scrim"></div>
+</div>
+<script is:inline define:vars={{ stopClip: STOP_CLIP }}>
+  (function () {
+    var bg = document.querySelector('[data-m2-bg]');
+    var v = bg.querySelector('video');
+    var m = /^#stop-([a-z]+)$/.exec(location.hash);
+    var id = (m && stopClip[m[1]]) || bg.getAttribute('data-clip');
+    var portrait = matchMedia('(orientation: portrait)').matches;
+    if (id !== v.getAttribute('data-clip')) {
+      while (v.firstChild) v.removeChild(v.firstChild);
+      v.poster = '/mode2/' + id + '.jpg';
+      v.setAttribute('data-clip', id);
+      bg.setAttribute('data-clip', id);
+      bg.style.setProperty('--poster', 'url(/mode2/' + id + '.jpg)');
+      if (!matchMedia('(prefers-reduced-motion: reduce)').matches) v.src = '/mode2/' + id + (portrait ? '-m' : '') + '.mp4';
+    }
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    v.muted = true;
+    v.preload = 'auto';
+    var p = v.play();
+    if (p && p.catch) p.catch(function () {});
+  })();
+</script>
+
+<style>
+  .m2-bg {
+    /* Large-viewport height: a phone's URL bar sliding away must not resize the clip. */
+    position: fixed; inset: 0 0 auto; z-index: -1;
+    height: 100vh; height: 100lvh;
+    overflow: hidden; pointer-events: none;
+    background: #262a2b var(--poster) center / cover no-repeat;
+  }
+  .clip {
+    position: absolute; inset: 0; width: 100%; height: 100%; max-width: none;
+    object-fit: cover;
+    opacity: 0; transition: opacity .6s var(--ease);
+    filter: var(--m2-clip-filter, none);
+  }
+  .clip.on { opacity: 1; }
+  /* The legibility scrim: the clip stays the art, the panels get a calmer field to sit on. */
+  .scrim {
+    position: absolute; inset: 0;
+    background:
+      linear-gradient(to bottom, color-mix(in oklab, var(--paper) 22%, transparent), transparent 30%),
+      radial-gradient(130% 100% at 0% 100%, color-mix(in oklab, var(--paper) 38%, transparent), transparent 70%);
+  }
+  :global(:root[data-mode='dark']) .m2-bg { --m2-clip-filter: brightness(.72) saturate(.9); }
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-mode='light'])) .m2-bg { --m2-clip-filter: brightness(.72) saturate(.9); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .clip { transition: none; }
+  }
+</style>
