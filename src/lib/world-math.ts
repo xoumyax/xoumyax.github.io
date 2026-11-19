@@ -1,7 +1,8 @@
 // Pure maths for the living world: stop progress, the sideways pan between scenes, band shifts,
-// seam jitter, camera drift and ambient event timing. Import-free so the client bundle stays light.
+// seam jitter, camera drift, ambient event timing, and the screen side: device-px snapping, the
+// seam clip and the smoothed scroll position. Import-free so the client bundle stays light.
 
-export const PAN_VH = 0.6;
+export const PAN_VH = 1;
 export const PAN_MAX = 0.5;
 export const CAM_X = 12;
 export const CAM_Y = 4;
@@ -10,7 +11,7 @@ export const SEAM_MAX = 4;
 const clamp = (x: number, lo: number, hi: number): number => Math.min(hi, Math.max(lo, x));
 const smoothstep = (x: number): number => x * x * (3 - 2 * x);
 
-/** Scroll px the pan between two stops takes: 60% of a viewport, never more than half the gap. */
+/** Scroll px the pan between two stops takes: a viewport, never more than half the gap. */
 export const panLength = (gap: number, vh: number): number => Math.max(0, Math.min(PAN_VH * vh, PAN_MAX * gap));
 
 /**
@@ -120,5 +121,75 @@ export class EventSchedule {
       this.n++;
       this.next();
     }
+  }
+}
+
+// ---------------------------------------------------------------- ambient clock grid
+
+/** The ambient clock on its 0.1 s grid (frame flips, poses, events): floor(t · 10) / 10, exact for t = n / 10. */
+export const tenth = (t: number): number => Math.floor(t * 10 + 1e-7) / 10;
+
+// ---------------------------------------------------------------- screen: device px
+
+/**
+ * Where a layer offset `o` (world px, fractional) lands at `b` device px per world px: layer
+ * column (or row) n = floor(o) starts at device px d = −round(frac(o) · b), in [−b, 0]. A whole
+ * offset gives d = 0, so a layer at rest sits on the same device grid as a flat frame; between whole
+ * offsets it moves in whole device px (blocks never straddle a device px, so they never shimmer).
+ */
+export function snapOffset(o: number, b: number): { n: number; d: number } {
+  const n = Math.floor(o);
+  return { n, d: 0 - Math.round((o - n) * b) }; // 0 − …: never −0
+}
+
+/** Device px the band of pan share `share` (bandShift) has slid, for a view `vw` world px wide. */
+export const panDev = (share: number, vw: number, b: number): number => Math.round(share * vw * b);
+
+/** Device y where view row j starts (j = 0 … rows): row j covers [rowY(j), rowY(j + 1)). */
+export const rowY = (j: number, b: number): number => Math.round(j * b);
+
+/**
+ * The left edge, in device px, of scene k + 1's band `band` in each view row while scene k keeps
+ * x < `cut` (device px): cut − round(seamJitter(row) · b), never below 0. Same rounding as the cut,
+ * so where the jitter is 0 the two scenes meet with no gap and no overlap.
+ */
+export function seamEdges(cut: number, band: number, rows: number, b: number): Int32Array {
+  const e = new Int32Array(rows);
+  for (let j = 0; j < rows; j++) e[j] = Math.max(0, cut - Math.round(seamJitter(j, band) * b));
+  return e;
+}
+
+// ---------------------------------------------------------------- the smoothed scroll position
+
+/** Each of the follower's two stages (s): lag behind a steady scroll ≈ 2 · FOLLOW_TAU. */
+export const FOLLOW_TAU = 0.055;
+/** A jump further than this many viewport heights (deep link, End, an anchor) snaps. */
+export const FOLLOW_JUMP = 1.5;
+/** Settled within this many px of the target. */
+export const FOLLOW_EPS = 0.5;
+
+/**
+ * The scroll position the backdrop shows: it follows the real one through two exponential stages
+ * (critically damped, no overshoot: it is a positively weighted average of past targets), so
+ * uneven wheel and trackpad deltas reach the scene as an even glide. `step` returns whether it is
+ * still moving; once within FOLLOW_EPS of the target it lands there exactly.
+ */
+export class Follower {
+  y = 0;              // shown position
+  private a = 0;      // first stage
+  moving = false;
+  snap(target: number): void { this.y = this.a = target; this.moving = false; }
+  /**
+   * One frame: dt in s since the last one (clamped to 1/20 s so a stalled frame does not lurch),
+   * vh the viewport height. `instant` (still mode, reduced motion) lands on the target at once.
+   */
+  step(target: number, dt: number, vh: number, instant = false): boolean {
+    if (instant || !Number.isFinite(this.y) || Math.abs(target - this.y) > FOLLOW_JUMP * vh) { this.snap(target); return false; }
+    const k = 1 - Math.exp(-Math.min(Math.max(dt, 0), 0.05) / FOLLOW_TAU);
+    this.a += (target - this.a) * k;
+    this.y += (this.a - this.y) * k;
+    if (Math.abs(target - this.a) < FOLLOW_EPS && Math.abs(target - this.y) < FOLLOW_EPS) this.snap(target);
+    else this.moving = true;
+    return this.moving;
   }
 }

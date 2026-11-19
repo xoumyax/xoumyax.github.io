@@ -1,5 +1,5 @@
 import { test, expect } from 'vitest';
-import { compose, flatWorld, makeWorld, type Bitmap, type World } from '../../src/scripts/world/compose';
+import { compose, flatWorld, layerCalls, makeWorld, paintLayer, passes, type Bitmap, type World } from '../../src/scripts/world/compose';
 import type { Act } from '../../src/scripts/world/acts';
 import type { SceneMeta } from '../../src/lib/world';
 import { CAM_X, CAM_Y, bandShift, seamJitter } from '../../src/lib/world-math';
@@ -171,4 +171,59 @@ test('plot and sprite round positions the same way', () => {
   const out = frame(world(), act, null, 0, 0);
   expect(out[(2 - 1) * VW + (6 - 2)]).toBe(C);   // plot (5.6, 2.4) → (6, 2)
   expect(out[(3 - 1) * VW + (7 - 2)]).toBe(S0);  // sprite (6.6, 3.4) → (7, 3)
+});
+
+test('passes: depth order, scene k first at equal depth, fractional terms kept separate', () => {
+  const a = world();
+  const act: Act = { shift: { front: (p, t) => [0.25 * p + t, 0.5] } };
+  const list = passes('land', a, act, flatWorld('now', solid(B)), undefined, 0.3, 0.4, 2);
+  expect(list.map((q) => `${q.next ? 'b' : 'a'}${q.i}`)).toEqual(['a0', 'b0', 'a1']);
+  const [back, flat, front] = list;
+  expect(back.cam.map(Math.abs)).toEqual([0, 0]);                      // rate 0
+  expect(front.shift).toEqual([0.25 * 0.3 + 2, 0.5]);
+  expect(front.p).toBe(0.3);
+  expect(flat.p).toBe(0);                                             // scene k + 1 sits at rest
+  expect(back.share).toBe(bandShift(0.4, 0));
+  expect(front.share).toBe(bandShift(0.4, 1));
+  expect(flat.view).toEqual([0, 0]);
+  expect(back.view).toEqual([2, 1]);
+  expect(passes('land', a, undefined, null, undefined, 0.5, 0, 0).every((q) => q.share === 0)).toBe(true);
+  // a rate-1 layer gets the camera unrounded
+  const m: SceneMeta = { ...meta, layers: [{ name: 'back', depth: 0, rate: 1 }], sprites: [] };
+  expect(passes('land', makeWorld(m, [back12()], []), undefined, null, undefined, 0.37, 0, 0)[0].cam).toEqual([0.37 * CAM_X, -0.37 * CAM_Y]);
+});
+const back12 = () => fill(12, 6, (x) => PAL32[x]);
+
+test('layerCalls / paintLayer: the layer in world px with its hook output (or rest sprites) on it, rounded like compose', () => {
+  const w = world();
+  const frontPass = (act: Act | undefined) => passes('land', w, act, null, undefined, 0, 0, 0)[1];
+  // no hook: the rest sprite
+  const rest = layerCalls(frontPass(undefined), 0);
+  expect(rest).toEqual([1, 0, 1, 3, 2]);
+  const px = new Uint32Array(12 * 6);
+  paintLayer(px, w, 1, rest);
+  for (let y = 0; y < 6; y++) for (let x = 0; x < 12; x++) {
+    const want = y === 2 && (x === 3 || x === 4) ? S1 : x === 0 ? D : 0;
+    expect(px[y * 12 + x], `${x},${y}`).toBe(want);
+  }
+  // a hook: rounded plots and sprites, clipped to the world
+  const act: Act = { after: { front: (d) => { d.plot(5.6, 2.4, C); d.sprite('bird', 2, 10.6, 5.4); d.plot(-1, 0, C); d.sprite('nope', 0); } } };
+  const calls = layerCalls(frontPass(act), 0);
+  expect(calls).toEqual([0, 6, 2, C, 1, 0, 0, 11, 5, 0, -1, 0, C]);
+  paintLayer(px, w, 1, calls);
+  expect(px[2 * 12 + 6]).toBe(C);
+  expect(px[5 * 12 + 11]).toBe(S0);   // the sprite's second column is off the world
+  expect(px[2 * 12 + 3]).toBe(0);     // the hook owns the layer: no rest sprite
+  expect(px[0]).toBe(D);
+});
+
+test('compose at a fractional camera rounds each term as before', () => {
+  const m: SceneMeta = { ...meta, world: [30, 12], view: { land: [2, 6], port: [0, 0] }, sprites: [],
+    layers: [{ name: 'back', depth: 0, rate: 0.75 }] };
+  const enc = (x: number, y: number) => (0xff000000 | (y << 8) | x) >>> 0;
+  const w = makeWorld(m, [fill(30, 12, enc)], []);
+  for (const p of [0.1, 0.33, 0.5, 0.77]) {
+    const out = frame(w, undefined, null, p, 0);
+    expect(out[0], String(p)).toBe(enc(2 + Math.round(p * CAM_X * 0.75), 6 + Math.round(-p * CAM_Y * 0.75)));
+  }
 });

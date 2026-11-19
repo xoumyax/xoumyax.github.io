@@ -1,10 +1,10 @@
 import { test, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { PAN_VH, PAN_MAX, CAM_X, CAM_Y, SEAM_MAX, panLength, worldAt, bandShift, seamJitter, camera, eventPhase, EventSchedule, seedHash } from '../../src/lib/world-math';
+import { PAN_VH, PAN_MAX, CAM_X, CAM_Y, SEAM_MAX, panLength, worldAt, bandShift, seamJitter, camera, eventPhase, EventSchedule, seedHash, tenth } from '../../src/lib/world-math';
 import { PALETTE, PAL32 } from '../../src/lib/palette';
 
 test('constants', () => {
-  expect([PAN_VH, PAN_MAX, CAM_X, CAM_Y, SEAM_MAX]).toEqual([0.6, 0.5, 12, 4, 4]);
+  expect([PAN_VH, PAN_MAX, CAM_X, CAM_Y, SEAM_MAX]).toEqual([1, 0.5, 12, 4, 4]);
 });
 
 test('worldAt: inside a stop, p rises 0→1 and t stays 0', () => {
@@ -19,9 +19,10 @@ test('worldAt: the pan is the last part of the gap', () => {
   expect(r.t).toBeCloseTo(0.5);
 });
 
-test('worldAt: a short gap pans over at most half of it', () => {
+test('worldAt: a short gap pans over at most half of it, a long one over a viewport', () => {
   expect(panLength(400, 900)).toBe(200);
   expect(panLength(1000, 900)).toBe(500);
+  expect(panLength(2400, 900)).toBe(PAN_VH * 900);
   expect(panLength(-5, 900)).toBe(0);
 });
 
@@ -171,4 +172,9 @@ test('seedHash: deterministic, distinct, in the Park–Miller seed range; consec
     const ts = s6.map((s) => s[j]);
     expect(Math.max(...ts) - Math.min(...ts), `event ${j}`).toBeGreaterThan(0.5);
   }
+});
+
+test('tenth: the 0.1 s grid, exact on grid points', () => {
+  for (let n = 0; n <= 100000; n++) expect(tenth(n / 10)).toBe(n / 10);
+  for (let n = 0; n <= 2000; n++) for (const e of [0.001, 0.05, 0.0999]) expect(tenth(n / 10 + e), `${n} ${e}`).toBe(n / 10);
 });
