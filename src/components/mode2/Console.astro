@@ -9,6 +9,7 @@ import Slides from './Slides.astro';
 import Scratch from './Scratch.astro';
 import { STOP_CLIP, STOP_SHORT } from '../../lib/mode2';
 import type { JourneyStop, Project } from '../../lib/schema';
+import { cardFor, projectFor } from '../../lib/cards';
 import './m2.css';
 
 interface Props {
@@ -18,23 +19,11 @@ interface Props {
 }
 const { stops, projects, contact } = Astro.props;
 
-type Card = { kind: 'project'; project: Project } | { kind: 'text'; title: string; text: string };
-const card = (stop: JourneyStop, item: JourneyStop['items'][number]): Card => {
-  if (typeof item !== 'string') return { kind: 'text', ...item };
-  const project = projects.get(item);
-  if (!project) throw new Error(`journey.yaml: stop "${stop.id}" lists unknown project "${item}"`);
-  return { kind: 'project', project };
-};
-const project = (stop: JourneyStop, slug: string) => {
-  const p = projects.get(slug);
-  if (!p) throw new Error(`journey.yaml: stop "${stop.id}" lists unknown project "${slug}"`);
-  return p;
-};
 const view = stops.map((stop) => ({
   stop,
-  cards: stop.items.map((i) => card(stop, i)),
-  groups: (stop.groups ?? []).map((g) => ({ title: g.title, cards: g.items.map((i) => card(stop, i)) })),
-  more: stop.more ? { title: stop.more.title, projects: stop.more.items.map((s) => project(stop, s)) } : undefined,
+  cards: stop.items.map((i) => cardFor(stop, i, projects)),
+  groups: (stop.groups ?? []).map((g) => ({ title: g.title, cards: g.items.map((i) => cardFor(stop, i, projects)) })),
+  more: stop.more ? { title: stop.more.title, projects: stop.more.items.map((s) => projectFor(stop, s, projects)) } : undefined,
 }));
 const n = (k: number) => `${k} ${k === 1 ? 'item' : 'items'}`;
 ---

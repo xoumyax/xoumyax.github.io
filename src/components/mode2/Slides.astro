@@ -21,7 +21,7 @@ const { label, count } = Astro.props;
 <style>
   .slides { min-width: 0; --card-tilt: 0; }
   .card-row {
-    display: flex; gap: .75rem; min-width: 0;
+    display: flex; align-items: flex-start; gap: .75rem; min-width: 0;
     overflow-x: auto; overflow-y: hidden;
     scroll-snap-type: x mandatory;
     overscroll-behavior-x: contain;
@@ -31,7 +31,10 @@ const { label, count } = Astro.props;
     border-radius: 1rem;
   }
   .card-row::-webkit-scrollbar { display: none; }
-  .card-row > :global(*) { flex: 0 0 var(--card-w, clamp(10.5rem, 40%, 12.5rem)); min-width: 0; scroll-snap-align: start; }
+  /* 15rem: wide enough for a project card's head (years + status) to clear its title and mark. */
+  .card-row > :global(*) { flex: 0 0 var(--card-w, min(15rem, 82%)); min-width: 0; scroll-snap-align: start; }
+  /* A project card's mark (its glyph art) starts below the longest three-line status. */
+  .card-row :global(.pcard .cover .mark) { top: 4.75rem; }
   .card-row:focus-visible { outline: 2px solid var(--ink); outline-offset: 0; }
   .ctl {
     display: none; align-items: center; justify-content: flex-end; gap: .35rem; margin-top: .65rem;

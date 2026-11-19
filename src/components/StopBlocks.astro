@@ -5,19 +5,15 @@ import ProjectCard from './ProjectCard.astro';
 import TextCard from './journey/TextCard.astro';
 import './journey/panel.css';
 import type { JourneyStop, Project } from '../lib/schema';
+import { cardFor, projectFor } from '../lib/cards';
 
 interface Props { stop: JourneyStop; projects: Map<string, Project> }
 const { stop, projects } = Astro.props;
-const project = (slug: string): Project => {
-  const p = projects.get(slug);
-  if (!p) throw new Error(`journey.yaml: stop "${stop.id}" lists unknown project "${slug}"`);
-  return p;
-};
 const blocks = (stop.groups ?? []).map((g) => ({
   title: g.title,
-  cards: g.items.map((item) => (typeof item === 'string' ? { kind: 'project' as const, project: project(item) } : { kind: 'text' as const, ...item })),
+  cards: g.items.map((item) => cardFor(stop, item, projects)),
 }));
-const more = stop.more ? { title: stop.more.title, projects: stop.more.items.map(project) } : undefined;
+const more = stop.more ? { title: stop.more.title, projects: stop.more.items.map((s) => projectFor(stop, s, projects)) } : undefined;
 ---
 <div class="blocks">
   {blocks.map((b) => (

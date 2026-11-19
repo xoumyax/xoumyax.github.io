@@ -5,15 +5,11 @@ import ProjectCard from './ProjectCard.astro';
 import TextCard from './journey/TextCard.astro';
 import './journey/panel.css';
 import type { JourneyStop, Project } from '../lib/schema';
+import { cardFor } from '../lib/cards';
 
 interface Props { stop: JourneyStop; index: number; count: number; projects: Map<string, Project> }
 const { stop, index, count, projects } = Astro.props;
-const cards = stop.items.map((item) => {
-  if (typeof item !== 'string') return { kind: 'text' as const, ...item };
-  const project = projects.get(item);
-  if (!project) throw new Error(`journey.yaml: stop "${stop.id}" lists unknown project "${item}"`);
-  return { kind: 'project' as const, project };
-});
+const cards = stop.items.map((item) => cardFor(stop, item, projects));
 ---
 <section id={`stop-${stop.id}`} class="stop" data-section data-stop={stop.id} aria-labelledby={`stop-${stop.id}-title`}>
   <div class="wrap grid">
