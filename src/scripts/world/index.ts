@@ -42,6 +42,7 @@ export function initWorld(): void {
   // The shown scroll position: follows scrollY while it settles, rAF-driven only until then.
   const follow = new Follower();
   let followed = false;  // snapped to scrollY at least once
+  let jump = false;      // an in-page link was followed: land on its target at once
 
   // Ambient clock in seconds of rAF time. It is enabled (data-ambient="on") while the tab shows,
   // motion is allowed and still mode is off; disabled, it holds its value and resumes from there.
@@ -82,7 +83,6 @@ export function initWorld(): void {
 
   // Use the set that fits the viewport as soon as it is loaded.
   function adopt(): void {
-    follow.snap(scrollY); // a resize moves the stops under the shown position: land on the real one
     fit(); // keep the current canvas covering the viewport while a new set loads (or fails)
     const v = view();
     const want = pickSet(v.w, v.h);
@@ -173,7 +173,7 @@ export function initWorld(): void {
     const dt = lastFrame ? (now - lastFrame) / 1000 : 1 / 60;
     if (running) clock = Math.max(clock, (now - base) / 1000); // never backwards
     let moving = false;
-    if (!followed) { follow.snap(scrollY); followed = true; } // the first frame lands where the page opened
+    if (!followed || jump) { follow.snap(scrollY); followed = true; jump = false; } // where the page opened, or a link's target
     else moving = follow.step(scrollY, dt, innerHeight, still || reduced.matches);
     // data-follow is present while the shown position is catching up (tests wait for it to go).
     if (moving !== cv!.hasAttribute('data-follow')) cv!.toggleAttribute('data-follow', moving);
@@ -230,6 +230,14 @@ export function initWorld(): void {
   if (document.readyState === 'complete') onLoad(); else addEventListener('load', onLoad, { once: true });
 
   addEventListener('scroll', request, { passive: true });
+  // An in-page link ("Travel the road") or a history step to a fragment is a jump, however short:
+  // the scene lands on the target instead of gliding through the pans in between.
+  const toFragment = (): void => { jump = true; request(); };
+  document.addEventListener('click', (e) => {
+    const a = (e.target as Element | null)?.closest?.('a[href^="#"]');
+    if (a && !e.defaultPrevented) toFragment();
+  });
+  addEventListener('hashchange', toFragment);
   addEventListener('resize', () => { adopt(); });
   // Layout can move the stops without a scroll (a details panel opening, fonts settling).
   new ResizeObserver(request).observe(document.body);
