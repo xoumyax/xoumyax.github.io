@@ -44,13 +44,18 @@ export function initScratch(root: ParentNode = document): ScratchCard[] {
       painted = key;
       canvas.width = Math.round(w * dpr);
       canvas.height = Math.round(h * dpr);
+      // .painted clears the cover's own background (the canvas stands in for it): read the foil
+      // colour with the class off, so a repaint (resize, rotation, zoom) stays opaque.
+      cover.classList.remove('painted');
       const cs = getComputedStyle(cover);
+      const foil = cs.backgroundColor;
+      const ink = cs.color;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.globalCompositeOperation = 'source-over';
-      ctx.fillStyle = cs.backgroundColor;
+      ctx.fillStyle = foil;
       ctx.fillRect(0, 0, w, h);
       // An ASCII field, denser toward the corners; deterministic so it never flickers on resize.
-      ctx.fillStyle = cs.color;
+      ctx.fillStyle = ink;
       ctx.globalAlpha = 0.22;
       ctx.font = `12px ${getComputedStyle(document.documentElement).getPropertyValue('--font-mono') || 'monospace'}`;
       ctx.textBaseline = 'top';

@@ -201,6 +201,23 @@ test('the scratch card clears when scratched past the threshold', async ({ page 
   await expect(cover).toBeHidden();
 });
 
+test('the foil stays opaque when it is repainted at a new size', async ({ page }, info) => {
+  await page.goto('/#stop-river');
+  const cover = page.locator('#stop-river [data-scratch-cover]');
+  await expect(cover).toHaveClass(/painted/);
+  const vp = info.project.use.viewport!;
+  await page.setViewportSize({ width: Math.round(vp.width * 0.75), height: vp.height });
+  await page.waitForTimeout(300);
+  const alpha = await cover.locator('canvas').evaluate((c: HTMLCanvasElement) => {
+    const d = c.getContext('2d')!.getImageData(0, 0, c.width, c.height).data;
+    let min = 255;
+    for (let i = 3; i < d.length; i += 4 * 97) min = Math.min(min, d[i]);
+    return [c.width, min];
+  });
+  expect(alpha[0]).toBeGreaterThan(0);
+  expect(alpha[1]).toBe(255);
+});
+
 test('keyboard focus on a covered link reveals the card', async ({ page }) => {
   await page.goto('/#stop-river');
   const card = page.locator('#stop-river [data-scratch]');
