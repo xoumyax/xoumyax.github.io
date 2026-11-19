@@ -11,7 +11,7 @@ import './m2.css';
     </div>
     <div class="cover" data-scratch-cover aria-hidden="true">
       <canvas></canvas>
-      <p class="hint"><span class="glyph">░▒▓</span> Scratch to see what I'm looking for <span class="glyph">▓▒░</span></p>
+      <p class="hint"><span>Scratch to see what I'm looking for</span></p>
     </div>
   </div>
   <button type="button" class="reveal" data-reveal>Reveal<span class="visually-hidden"> what I'm looking for</span></button>
@@ -41,7 +41,11 @@ import './m2.css';
     font: 600 .82rem/1.4 var(--font-mono); letter-spacing: .03em;
     pointer-events: none; transition: opacity .3s var(--ease);
   }
-  .glyph { opacity: .7; letter-spacing: 0; }
+  .hint span {
+    padding: .45rem .8rem; border-radius: 999px;
+    background: color-mix(in oklab, var(--ink) 92%, var(--paper));
+    box-shadow: 0 0 0 1px color-mix(in oklab, var(--paper) 30%, transparent);
+  }
   .scratch.started .hint { opacity: 0; }
   .reveal {
     margin-top: .6rem; padding: .45rem .9rem; border-radius: 999px; cursor: pointer;
