@@ -1,12 +1,13 @@
 // Now (the dome). Subject: the door light comes on as the visitor scrolls through the stop.
 // Ambient, at rest at t = 0 and calm: a few stars twinkle in the sky, and the tip of a cloud
-// drifts a few px right over ~40 s and back.
+// drifts a few px right over ~40 s and back. Twinkles step on the clock's 0.1 s grid; the cloud
+// drift reads the continuous clock (a sprite frame, so it still moves a whole world px at a time).
 //
 // Sprites (public/scenes/now/scene.json): on `sky`, cloud (frame d = the piece d px right of
 // where it was cut; 0 rest); on `dome`, door (0 dark rest, 1 dim, 2–4 the light growing down
 // from the lamp, 5 lit).
 import type { Act, DrawCtx } from '../acts';
-import { EventSchedule, seedHash as seed } from '../../../lib/world-math';
+import { EventSchedule, seedHash as seed, tenth } from '../../../lib/world-math';
 import { PAL32 } from '../../../lib/palette';
 
 const PAPER = PAL32[0];
@@ -39,8 +40,9 @@ const CLOUD_T = 80;
 
 function sky(d: DrawCtx, _p: number, t: number): void {
   d.sprite('cloud', Math.round((CLOUD_DRIFT * (1 - Math.cos((2 * Math.PI * t) / CLOUD_T))) / 2));
+  const q = tenth(t);
   for (let k = 0; k < STAR_X.length; k++) {
-    const ph = STARS[k].phase(t);
+    const ph = STARS[k].phase(q);
     if (ph < 0) continue;
     const x = STAR_X[k];
     const y = STAR_Y[k];

@@ -3,13 +3,15 @@
 // all at rest at t = 0 and calm: leaf clusters sway, glints come and go on the water, dust motes
 // drift over the upper sand, the ear flicks, the tail swishes, the grass stirs, the horse chews
 // while it grazes, and now and then a bird crosses the top right (the land view).
+// Every event, frame flip and pose steps on the clock's 0.1 s grid (q = tenth(t)); the motes and
+// the bird move along their paths with the continuous clock (still rounded to whole world px).
 //
 // Sprites (public/scenes/phd/scene.json): on `trees`, leaf1–leaf6 (0 rest, 1 one px right, 2 one
 // px left); on `ground`, in draw order, horse (frame = 2·pose + ear; pose 0 up, 1 lowering, 2 low,
 // 3 grazing, 4 chew), tail (0 rest, 1 a little left, 2 full left, 3 a little right) and grass
 // (0 rest, 1 tips right, 2 tips left).
 import type { Act, DrawCtx } from '../acts';
-import { EventSchedule, seedHash as seed } from '../../../lib/world-math';
+import { EventSchedule, seedHash as seed, tenth } from '../../../lib/world-math';
 import { PAL32 } from '../../../lib/palette';
 
 const PAPER = PAL32[0];
@@ -99,8 +101,9 @@ const BIRD_SHAPES = [WINGS_UP, shape(['.....', 'X...X', '.XXX.']), WINGS_UP, sha
 
 // ---------------------------------------------------------------- hooks
 function far(d: DrawCtx, _p: number, t: number): void {
+  const q = tenth(t);
   for (let k = 0; k < GLINTS.length; k++) {
-    const ph = GLINTS[k].phase(t);
+    const ph = GLINTS[k].phase(q);
     if (ph < 0) continue;
     const i = pick(k, GLINTS[k].index, SPOTS);
     const x = GLINT_X[i];
@@ -109,18 +112,20 @@ function far(d: DrawCtx, _p: number, t: number): void {
     const len = ph < 0.2 || ph > 0.8 ? 1 : GLINT_LEN[i];
     for (let j = 0; j < len; j++) d.plot(x + j, y, GLINT_C[i]);
   }
-  const ph = BIRD.phase(t);
+  const ph = BIRD.phase(q);
   if (ph >= 0) {
     const dir = pick(50, BIRD.index, 5) < 3 ? -1 : 1;   // mostly right to left
     const y0 = 90 + pick(51, BIRD.index, 6);
-    const x = Math.round(dir < 0 ? 252 - ph * 116 : 136 + ph * 116);
-    const y = y0 + Math.round(Math.sin(ph * 9) * 1.4);
+    const at = Math.min(ph + (t - q) / BIRD_DUR, 1);    // along its path: continuous
+    const x = Math.round(dir < 0 ? 252 - at * 116 : 136 + at * 116);
+    const y = y0 + Math.round(Math.sin(at * 9) * 1.4);
     const wing = BIRD_SHAPES[Math.floor((ph * BIRD_DUR) / 0.2) % 4];
     for (let j = 0; j < wing.length; j += 2) d.plot(x + wing[j], y + wing[j + 1], INK);
   }
 }
 
-function trees(d: DrawCtx, _p: number, t: number): void {
+function trees(d: DrawCtx, _p: number, clock: number): void {
+  const t = tenth(clock);
   const gust = 0.35 * Math.sin((TAU * t) / 13);
   for (let k = 0; k < 6; k++) {
     const dx = Math.round(LEAF_A[k] * (Math.sin((TAU * t) / LEAF_P[k] + LEAF_PH[k]) + gust));
@@ -128,16 +133,18 @@ function trees(d: DrawCtx, _p: number, t: number): void {
   }
 }
 
-function ground(d: DrawCtx, p: number, t: number): void {
+function ground(d: DrawCtx, p: number, clock: number): void {
+  const t = tenth(clock);
   // motes first: the horse passes in front of them
   for (let k = 0; k < MOTES.length; k++) {
     const dur = MOTE_DUR[k];
     const ph = MOTES[k].phase(t);
     if (ph < 0) continue;
     const i = pick(20 + k, MOTES[k].index, SPOTS);
-    const age = ph * dur;
-    const x = MOTE_X[i] + age * MOTE_VX[i];
-    const y = MOTE_Y[i] + Math.sin(MOTE_PH[i] + age * 0.9) * 2 - age * 0.6;
+    const age = ph * dur;                               // on the grid: when it shows and its colour
+    const go = Math.min(age + clock - t, dur);          // continuous: where it is
+    const x = MOTE_X[i] + go * MOTE_VX[i];
+    const y = MOTE_Y[i] + Math.sin(MOTE_PH[i] + go * 0.9) * 2 - go * 0.6;
     d.plot(x, y, age < 0.5 || dur - age < 0.5 ? CREAM : PAPER);
   }
 

@@ -2,7 +2,7 @@
 // rest at t = 0, sprite names and frames that exist, and the pure p → subject mappings.
 import { test, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { ACTS } from '../../src/scripts/world/acts';
+import { ACTS, continuous } from '../../src/scripts/world/acts';
 import type { DrawCtx } from '../../src/scripts/world/acts';
 import type { SceneMeta } from '../../src/lib/world';
 import type { SceneId } from '../../src/lib/scenes';
@@ -141,4 +141,49 @@ test('now: the door frame is non-decreasing in p, dark at p = 0, fully lit by p 
   }
   expect(doorFrame(-1)).toBe(0);
   expect(doorFrame(2)).toBe(frames - 1);
+});
+
+test('the clock contract: frame flips and events step on the 0.1 s grid, drifts read the continuous clock', () => {
+  // Between grid points the same sprite frames show and the same plots exist; plotted positions
+  // (motes, the bird) may move on, by at most 2 world px on each axis within 0.1 s (the bird flies ~10 px/s). `cloud` is a drift
+  // whose frame is its offset, so it may step between grid points.
+  const drift = new Set(['cloud']);
+  let moved = 0;
+  for (const id of ids) {
+    const m = meta(id);
+    const act = ACTS[id]!;
+    for (const L of m.layers) {
+      const hook = act.after?.[L.name];
+      if (!hook) continue;
+      for (const p of [0, 0.4, 1]) for (let n = 0; n < 1200; n++) {
+        const at = (t: number) => { const { d, calls } = recorder(m); hook(d, p, t); return calls; };
+        const a = at(n / 10);
+        for (const e of [0.03, 0.0999]) {
+          const b = at(n / 10 + e);
+          expect(b.length, `${id} ${L.name} ${n / 10}+${e}`).toBe(a.length);
+          b.forEach((c, i) => {
+            const o = a[i];
+            expect(c[0]).toBe(o[0]);
+            if (c[0] === 'sprite' && o[0] === 'sprite') {
+              expect(c[1]).toBe(o[1]);
+              if (!drift.has(c[1])) expect(c.slice(2), `${id} ${c[1]} ${n / 10}+${e}`).toEqual(o.slice(2));
+            } else if (c[0] === 'plot' && o[0] === 'plot') {
+              expect(c[3]).toBe(o[3]);
+              expect(Math.max(Math.abs(c[1] - o[1]), Math.abs(c[2] - o[2])), `${id} plot ${n / 10}+${e}`).toBeLessThanOrEqual(2);
+              if (c[1] !== o[1] || c[2] !== o[2]) moved++;
+            }
+          });
+        }
+      }
+    }
+  }
+  expect(moved, 'some plotted drift moves between grid points').toBeGreaterThan(0);
+});
+
+test('continuous: only acts with a layer shift are drawn every frame', () => {
+  expect(continuous(undefined)).toBe(false);
+  expect(continuous({ after: {} })).toBe(false);
+  expect(continuous({ shift: {} })).toBe(false);
+  expect(continuous({ shift: { sky: () => [0, 0] } })).toBe(true);
+  for (const id of ids) expect(continuous(ACTS[id]), id).toBe(!!ACTS[id]!.shift);
 });
