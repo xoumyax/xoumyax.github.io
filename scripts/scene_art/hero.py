@@ -2,14 +2,14 @@
 sky (opaque: the sky, the haze and the far desert plain; under the cloud streaks, the peaks and
 the near slopes it is a smooth haze fill, and below the ridge's top the plain runs on, so a pan
 or the cloud's slide never shows a ghost), cloud (the bank of cloud streaks around the peaks,
-from a ragged left end to the world's right edge; it runs on behind the peaks, and a shift hook
-slides it up to 40 px right, off the peak), peaks (the two peaks, solid from their tops down
-under the ridge), ridge (the near dark slopes, the brown hills and the dead tree). No sprites:
+across the whole world, so a streak is never split when the bank moves; it runs on behind the
+peaks, and a shift hook slides it up to 40 px right, off the peak), peaks (the two peaks, solid
+from their tops down under the ridge), ridge (the near dark slopes, the brown hills and the dead tree). No sprites:
 the haze shimmer is plotted by the act.
 
 Lines are found from the photo's colours (the ridge's top, the peaks' outline, the streaks); the
 few constants are photo px mapped with to_world."""
-import math, random
+import random
 from . import common as C
 from .common import KEY, lum, smooth_fill, tile_fill
 
@@ -20,8 +20,6 @@ PEAKS = [(1566, 1002), (1597, 983), (1605, 952), (1628, 933), (1655, 914), (1674
          (1932, 845), (1951, 837), (1966, 829), (1978, 822), (1993, 822), (2008, 833), (2028, 845), (2047, 856),
          (2066, 868), (2085, 879), (2097, 887), (2100, 887), (2100, 1002)]
 SKY_TOP = 800                         # photo y: the ridge's top is searched below this
-CLOUD_X0 = 1350                       # photo x: the cloud bank's ragged left end
-CLOUD_RAG = 16                        # world px the left end wanders
 TRAVEL = 40                           # px the cloud bank may slide right
 UNDER = 8                             # rows the peaks run on under the ridge
 
@@ -81,18 +79,15 @@ def build(world, render, to_world):
     ridge = bytearray(1 if i // W >= rt[i % W] else 0 for i in range(W * H))
 
     # ------------------------------------------------------------ cloud streaks
-    x0 = to_world(CLOUD_X0, 0)[0]
-    left = [x0 + CLOUD_RAG * (0.5 + 0.5 * math.sin(y / 3.7 + 1.9) * math.cos(y / 9.1)) + rng.randint(0, 3)
-            for y in range(H)]
     streak = bytearray(W * H)
     for y in range(H):
         for x in range(W):
             i = y * W + x
-            if x < left[y] or y >= rt[x] or pk[i]: continue
+            if y >= rt[x] or pk[i]: continue
             if is_streak(src[i]): streak[i] = 1
     streak = C.majority(streak, W, H, 1)
     for i in range(W * H):
-        if i % W < left[i // W] or pk[i] or ridge[i]: streak[i] = 0
+        if pk[i] or ridge[i]: streak[i] = 0
     streak = C.drop_specks(streak, W, H, 4)
 
     # ------------------------------------------------------------ sky: streaks, peaks and slopes removed
@@ -111,8 +106,8 @@ def build(world, render, to_world):
     cloud = [Q[i] if streak[i] else KEY for i in range(W * H)]
     # behind the peaks the streak pattern carries on (gaps and all), so the bank slides out from
     # behind them whole; sources: the bank in the open, at the same rows
-    behind = bytearray(1 if pk[i] and i // W < rt[i % W] and i % W >= left[i // W] else 0 for i in range(W * H))
-    open_ = lambda x, y: x >= left[y] and y < rt[x] and not pk[y * W + x] and not behind[y * W + x]
+    behind = bytearray(1 if pk[i] and i // W < rt[i % W] else 0 for i in range(W * H))
+    open_ = lambda x, y: y < rt[x] and not pk[y * W + x] and not behind[y * W + x]
     index_fill(cloud, W, H, behind, open_, rng)
     # under the ridge the peaks run on in their own rock, not the ridge's dark slope
     peak_img = world.copy()
