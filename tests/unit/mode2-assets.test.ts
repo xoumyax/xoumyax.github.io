@@ -48,6 +48,13 @@ test('the clips have one video track, no sound, and no user-data or © metadata 
   }
 });
 
+test('the clips carry no encoder note (the x264 SEI with its name and settings is stripped)', () => {
+  for (const f of files.filter((f) => f.endsWith('.mp4'))) {
+    const b = readFileSync(`${DIR}/${f}`);
+    for (const s of ['x264', 'Lavf', 'Lavc']) expect(b.includes(s), `${f}: ${s}`).toBe(false);
+  }
+});
+
 test('the posters carry no EXIF or comment segments', () => {
   for (const f of files.filter((f) => f.endsWith('.jpg'))) {
     const b = readFileSync(`${DIR}/${f}`);
