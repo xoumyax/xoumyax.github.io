@@ -1,5 +1,6 @@
 ---
 import YaraikibaCard from './YaraikibaCard.astro';
+import ArtSwitch from './ArtSwitch.astro';
 import { STOP_IDS } from '../lib/stops';
 import './journey/panel.css';
 
@@ -12,6 +13,7 @@ const { name, role, openToWork, yaraikiba } = Astro.props;
 <section class="hero" data-section aria-labelledby="hero-name">
   <div class="wrap grid">
     <div class="panel intro" data-panel>
+      <ArtSwitch current="pixel" place="page" />
       <h1 id="hero-name">{name}</h1>
       <p class="role">{role}</p>
       <p class="open"><span class="dot" aria-hidden="true"></span><span>{openToWork}</span></p>
@@ -47,4 +49,6 @@ const { name, role, openToWork, yaraikiba } = Astro.props;
     transform: translateY(-.05rem);
   }
   .start { font-size: .95rem; font-weight: 550; }
+  /* narrow screens only (see ArtSwitch.astro); sits top right, like the identity card's on / */
+  .intro > :global(.art) { margin: 0 0 1rem auto; }
 </style>

@@ -1,7 +1,7 @@
 ---
 // The home's art style switch: ASCII (/, Mode II) or Pixel (/road/, Mode I). The top bar carries
-// it on wide screens; on narrow ones it moves into the page (the identity card on /, the footer
-// on /road/), so the bar keeps room for its links. Clicks are remembered by src/lib/art-style.ts.
+// it on wide screens; on narrow ones it moves to the top of the page (the identity card on /, the
+// hero's intro panel on /road/), so the bar keeps room for its links. Clicks are remembered by src/lib/art-style.ts.
 interface Props { current: 'ascii' | 'pixel'; place: 'bar' | 'page' }
 const { current, place } = Astro.props;
 ---

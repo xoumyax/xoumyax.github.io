@@ -1,18 +1,14 @@
 ---
 // Contact details come from profile.yaml and the CV path from config.yaml (the single sources, M17).
 import { getConfig, getProfile } from '../lib/data';
-import ArtSwitch from './ArtSwitch.astro';
 
 const { name, email, github, linkedin } = getProfile();
 const { cvPdf } = getConfig();
 const year = new Date().getFullYear();
-// The pixel home (/road/) keeps its art style switch here on narrow screens (see ArtSwitch.astro).
-const road = Astro.url.pathname.replace(/\/$/, '') === '/road';
 ---
 <footer class="footer">
   <div class="wrap row">
     <span>© {year} {name}</span>
-    {road && <ArtSwitch current="pixel" place="page" />}
     <span class="links">
       <a href={`mailto:${email}`}>Email</a>
       <a href={github} rel="noopener">GitHub</a>
