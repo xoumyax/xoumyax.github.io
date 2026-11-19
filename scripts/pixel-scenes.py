@@ -27,9 +27,11 @@ SCENES = {
         # A world at 600 px per photo width, the photo's lower right: the phone needs the peak
         # near its top (today's portrait crop is ~610), and the photo below the peak is only
         # ~0.32 x density tall. The desktop is therefore ~1.9x tighter than today: the peak
-        # top-right, above and right of the YARAikiba card, the haze band over it.
-        'density': 600, 'world': (340, 224), 'centre': (0.6266667, 0.7199999),
-        'land': (56, 4), 'port': (206, 10)}),
+        # top-right, its apex right of the YARAikiba card (view x ~210; the card ends at 202), the
+        # haze band over it. The world reaches 6 px further left than the cloud's 40 px of travel
+        # and the seam need.
+        'density': 600, 'world': (348, 224), 'centre': (0.62, 0.7199999),
+        'land': (50, 4), 'port': (214, 10)}),
     'srm':       ('DSC04305.JPG', (0.5, 0.55), (0.5, 0.55)),
     'cognizant': ('DSC04343.JPG', (0.5, 0.55), (0.5, 0.55), {
         # The whole photo at 336 px per photo width (the least that is >= 222 rows tall): the
@@ -41,9 +43,10 @@ SCENES = {
     'ms':        ('IMG_1444.JPG', (0.5, 0.55), (0.5, 0.55), {
         # The whole photo at 300 px per photo width (the least that is >= 222 rows tall with the
         # clouds' 6 px of downward travel): desktop ~1.25x tighter than today, the mesa's skyline
-        # right of the panel as today; the phone keeps today's framing (~1.05x).
+        # right of the panel as today; the phone keeps today's framing (~1.05x). land.x 28 leaves
+        # 4 px spare past the clouds' 24 px of travel at the camera's full drift.
         'density': 300, 'world': (300, 225), 'centre': (0.5, 0.5),
-        'land': (32, 32), 'port': (87, 10)}),
+        'land': (28, 32), 'port': (87, 10)}),
     'phd':       ('DSC04340.JPG', (0.82, 1, 1.8), (0.52, 0, 1.35), {
         # A world at 400 px per photo width (the old crops were 432): the horse is ~72 px wide,
         # so on a phone its rest pose sits inside the middle 90 px of the 120 px view and its

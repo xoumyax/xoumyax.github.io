@@ -32,7 +32,7 @@ UNDER = (8, 12)                       # rows the mesa's hills run on under the n
 
 # ---------------------------------------------------------------- the hawk (world px)
 HAWK_AT = (150, 40)                   # its default spot; the act flies it about
-INK, BROWN, DKTAN = 21, 19, 11
+DKTAN, BROWN = 11, 21               # phd.py's names for these palette indices
 HAWK = [                              # 11x5 pixel maps, 'd' dark brown, 't' pale underside
     ['d.........d',                   # 1: wings raised (soaring, dihedral)
      '.d.......d.',
@@ -151,6 +151,6 @@ def hawk_sprite():
     frames = [[KEY] * (w * h)]
     for rows in HAWK:
         g = [KEY] * (w * h)
-        C.paint(g, w, 0, 0, rows, {'d': INK, 't': DKTAN})
+        C.paint(g, w, 0, 0, rows, {'d': BROWN, 't': DKTAN})
         frames.append(g)
     return C.Sprite('hawk', w, h, frames, HAWK_AT, 'ridge', 0)

@@ -22,6 +22,7 @@ PEAKS = [(1566, 1002), (1597, 983), (1605, 952), (1628, 933), (1655, 914), (1674
 SKY_TOP = 800                         # photo y: the ridge's top is searched below this
 TRAVEL = 40                           # px the cloud bank may slide right
 UNDER = 8                             # rows the peaks run on under the ridge
+PLAIN_TOP = 1036                      # photo y: the near plain (under the haze) starts here
 
 
 def is_ridge(c): return lum(c) < 78 or (lum(c) < 125 and c[2] - c[0] < 28)
@@ -30,13 +31,13 @@ def is_ridge(c): return lum(c) < 78 or (lum(c) < 125 and c[2] - c[0] < 28)
 def is_streak(c): return (c[2] - c[0] >= 75 and lum(c) < 168) or lum(c) > 192   # blue cloud or white
 
 
-def is_haze(c): return 130 < lum(c) < 168 and c[2] - c[0] < 62               # the bare haze and plain
+def is_plain(c): return lum(c) > 95 and c[2] - c[0] < 20                     # the near plain: neutral to tan
 
 
 def is_haze_like(c): return lum(c) > 148 or c[2] - c[0] > 85
 
 
-def index_fill(g, W, H, hole, ok, rng, patch=(4, 3), reach=(4, 60), dy=2):
+def index_fill(g, W, H, hole, ok, rng, patch=(3, 2), reach=(4, 60), dy=1):
     """Fills the hole cells of index grid g (in place) with patches copied, KEY included, from
     cells where ok(x, y) holds, each patch at its own random offset (x within reach, y within
     +-dy): streak and gap patterns carry on into the hole without repeating."""
@@ -94,12 +95,12 @@ def build(world, render, to_world):
     hole = C.dilate(bytearray(1 if streak[i] or pk[i] or ridge[i] else 0 for i in range(W * H)), W, H, 1)
     sky_img = world.copy()
     smooth_fill(sky_img, hole, lambda x, y: y < rt[x], lambda x, y: y)
-    plain = bytearray(1 if not hole[i] and i // W < rt[i % W] and i // W >= y_of(900) and is_haze(src[i]) else 0
+    # below the ridge's top: patches of the near plain (the tan-grey ground under the haze, not
+    # its blue-grey), so what a pan uncovers there reads as terrain
+    plain = bytearray(1 if not hole[i] and y_of(PLAIN_TOP) <= i // W < rt[i % W] - 1 and is_plain(src[i]) else 0
                       for i in range(W * H))
-    p_lo = min(i // W for i in range(W * H) if plain[i])
-    p_hi = max(i // W for i in range(W * H) if plain[i])
     low = bytearray(1 if hole[i] and i // W >= rt[i % W] else 0 for i in range(W * H))
-    tile_fill(sky_img, low, plain, rng, patch=(5, 3), rows=lambda ty: (max(p_lo, min(ty, p_hi - 3) - 2), min(ty, p_hi - 3) + 2))
+    tile_fill(sky_img, low, plain, rng, patch=(4, 2))
     Qsky = list(render(sky_img).get_flattened_data())
 
     Q = list(render(world).get_flattened_data())
