@@ -13,7 +13,7 @@ const projects = new Map((await getProjects()).map((p) => [p.slug, p]));
 const yk = projects.get('yaraikiba');
 if (!yk) throw new Error('index: the yaraikiba project is missing');
 ---
-<Base title="Soumyajyoti Dutta" description={`${profile.name}: ${profile.role}`} theme="world">
+<Base title="Pixel road" description={`${profile.name}: ${profile.role}`} theme="world" canonicalPath="/">
   <Hero
     name={profile.name}
     role={profile.role}

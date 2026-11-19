@@ -146,6 +146,46 @@ test('sliding cards move with Next and Previous and say where they are', async (
   expect(snap).toEqual(['auto', 'x mandatory']);
 });
 
+test('project cards: the head (years, status) never overlaps the title, one-liner or mark', async ({ page }) => {
+  await page.goto('/');
+  const bad: string[] = [];
+  let seen = 0;
+  for (const id of STOP_IDS) {
+    await tab(page, id).click();
+    const panel = page.locator(`#stop-${id}`);
+    const groups = await panel.locator('details[data-block]').all();
+    for (const d of groups.length ? groups : [null]) {
+      if (d && (await d.getAttribute('open')) === null) await d.locator('summary').click();
+      const res = await panel.evaluate((p) => {
+        const box = (e: Element) => e.getBoundingClientRect();
+        const hit = (a: DOMRect, b: DOMRect) => a.left < b.right - 0.5 && b.left < a.right - 0.5 && a.top < b.bottom - 0.5 && b.top < a.bottom - 0.5;
+        // the ink of a text node, line by line (an element box can be wider than its text)
+        const ink = (e: Element) => { const r = document.createRange(); r.selectNodeContents(e); return [...r.getClientRects()]; };
+        const out: string[] = [];
+        let n = 0;
+        for (const card of p.querySelectorAll<HTMLElement>('details[open] .pcard, .stop-panel > .slides .pcard')) {
+          if (!card.getClientRects().length) continue;
+          n++;
+          const head = [...card.querySelectorAll('.top > span')].flatMap(ink);
+          const others = [
+            ...ink(card.querySelector('.caption h3')!), ...ink(card.querySelector('.caption p')!), ...ink(card.querySelector('.mark')!),
+          ];
+          const cardBox = box(card);
+          for (const h of head) {
+            if (h.left < cardBox.left - 0.5 || h.right > cardBox.right + 0.5) out.push(`${card.getAttribute('href')}: head outside the card`);
+            { const k = others.findIndex((o) => hit(h, o)); if (k >= 0) out.push(`${card.getAttribute("href")}: head overlaps ${k} ${Math.round(h.top)}-${Math.round(h.bottom)} vs ${Math.round(others[k].top)}-${Math.round(others[k].bottom)} w${Math.round(cardBox.width)}`); }
+          }
+        }
+        return { out, n };
+      });
+      seen += res.n;
+      bad.push(...res.out);
+    }
+  }
+  expect(seen).toBeGreaterThan(8);
+  expect([...new Set(bad)]).toEqual([]);
+});
+
 test('the scratch card reveals with the button, focus moving into it', async ({ page }) => {
   await page.goto('/#stop-river');
   const card = page.locator('#stop-river [data-scratch]');
@@ -218,11 +258,44 @@ test('the foil stays opaque when it is repainted at a new size', async ({ page }
   expect(alpha[1]).toBe(255);
 });
 
+test('a vertical swipe that starts on the foil scrolls the page', async ({ page, browserName }, info) => {
+  test.skip(info.project.name !== 'phone' || browserName !== 'chromium', 'touch gesture via CDP');
+  await page.goto('/#stop-river');
+  const cover = page.locator('#stop-river [data-scratch-cover]');
+  await expect(cover).toHaveClass(/painted/);
+  expect(await cover.evaluate((e) => getComputedStyle(e).touchAction)).toBe('pan-y pinch-zoom');
+  await page.evaluate(() => scrollTo(0, 0));
+  await cover.scrollIntoViewIfNeeded();
+  const y0 = await page.evaluate(() => scrollY);
+  const b = (await cover.boundingBox())!;
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send('Input.synthesizeScrollGesture', {
+    x: Math.round(b.x + b.width / 2), y: Math.round(b.y + b.height / 2), yDistance: 160, gestureSourceType: 'touch', speed: 800,
+  });
+  await expect.poll(() => page.evaluate(() => scrollY)).not.toBe(y0);
+});
+
 test('keyboard focus on a covered link reveals the card', async ({ page }) => {
   await page.goto('/#stop-river');
   const card = page.locator('#stop-river [data-scratch]');
   await card.locator('[data-scratch-body] a').first().focus();
   await expect(card.locator('[data-scratch-cover]')).toBeHidden();
+});
+
+test('a tab opened in the background does not play the clip until it is shown', async ({ page }) => {
+  await page.addInitScript(() => {
+    (window as any).__hidden = true;
+    Object.defineProperty(document, 'hidden', { configurable: true, get: () => (window as any).__hidden });
+    Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => ((window as any).__hidden ? 'hidden' : 'visible') });
+  });
+  await page.goto('/');
+  await page.waitForTimeout(800);
+  const playing = () => page.locator('[data-m2-bg] video').evaluateAll((vs) => vs.filter((v) => !(v as HTMLVideoElement).paused).length);
+  expect(await playing()).toBe(0);
+  await page.evaluate(() => { (window as any).__hidden = false; document.dispatchEvent(new Event('visibilitychange')); });
+  await expect.poll(playing).toBe(1);
+  await page.evaluate(() => { (window as any).__hidden = true; document.dispatchEvent(new Event('visibilitychange')); });
+  await expect.poll(playing).toBe(0);
 });
 
 test.describe('reduced motion', () => {
@@ -288,12 +361,38 @@ test.describe('the art-style switch', () => {
     expect(new URL(page.url()).pathname).toBe('/');
   });
 
-  test('?style=ascii clears a stored pixel choice', async ({ page }) => {
+  test('?style=ascii clears a stored pixel choice and keeps the other query parameters', async ({ page }) => {
     await page.addInitScript(() => { if (!sessionStorage.getItem('seeded')) { localStorage.setItem('art-style', 'pixel'); sessionStorage.setItem('seeded', '1'); } });
-    await page.goto('/?style=ascii#stop-now');
-    await expect(page).toHaveURL(/\/#stop-now$/);
+    await page.goto('/?utm_source=x&style=ascii&b=2#stop-now');
+    await expect(page).toHaveURL(/\/\?utm_source=x&b=2#stop-now$/);
     await expect(tab(page, 'now')).toHaveAttribute('aria-selected', 'true');
     expect(await page.evaluate(() => localStorage.getItem('art-style'))).toBe('ascii');
+  });
+
+  test('a pixel-preferring visitor leaves / without fetching its poster or clips, query and hash kept', async ({ page }) => {
+    await page.addInitScript(() => localStorage.setItem('art-style', 'pixel'));
+    const asked: string[] = [];
+    page.on('request', (r) => { if (r.url().includes('/mode2/')) asked.push(r.url()); });
+    await page.goto('/?a=1#stop-ms', { waitUntil: 'commit' });
+    await page.waitForURL('**/road/?a=1#stop-ms');
+    await page.waitForLoadState('load');
+    expect(asked).toEqual([]);
+  });
+
+  test('on a narrow screen it sits in the page (identity card on /, footer on /road/), not the bar', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/');
+    await expect(page.locator('header .art')).toBeHidden();
+    const sw = page.getByRole('group', { name: 'Art style' });
+    await expect(sw).toHaveCount(1);
+    await expect(page.locator('.id .art')).toBeVisible();
+    await page.goto('/road/');
+    await expect(page.locator('header .art')).toBeHidden();
+    await expect(page.locator('footer .art')).toBeVisible();
+    await expect(page.getByRole('group', { name: 'Art style' }).getByRole('link', { name: 'Pixel' })).toHaveAttribute('aria-current', 'page');
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await expect(page.locator('header .art')).toBeVisible();
+    await expect(page.locator('footer .art')).toBeHidden();
   });
 
   test('is only on the two home pages', async ({ page }) => {
@@ -308,7 +407,7 @@ for (const mode of ['light', 'dark'] as const) {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
     const check = async (what: string) => {
-      await page.waitForTimeout(400); // tab colours ease over .2s
+      await page.waitForTimeout(400); // let the dropdown carets and card shadows settle
       const res = await new AxeBuilder({ page }).exclude('[data-cover]').analyze();
       expect(res.violations.map((v) => `${what}: ${v.id} ${v.nodes.map((n) => `${n.target.join(' ')} (${n.any[0]?.message ?? ''})`).join(', ')}`)).toEqual([]);
     };

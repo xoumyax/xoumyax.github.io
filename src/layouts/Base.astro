@@ -13,10 +13,12 @@ interface Props {
   noindex?: boolean;
   /** The ASCII home (/): send a visitor who chose the pixel style to /road/ before paint. */
   artRedirect?: boolean;
+  /** Canonical path when it is not this page's own (the pixel home points at /). */
+  canonicalPath?: string;
 }
-const { title, description, theme = 'paper', noindex = false, artRedirect = false } = Astro.props;
+const { title, description, theme = 'paper', noindex = false, artRedirect = false, canonicalPath } = Astro.props;
 const fullTitle = title === 'Soumyajyoti Dutta' ? title : `${title} — Soumyajyoti Dutta`;
-const canonical = new URL(Astro.url.pathname, Astro.site);
+const canonical = new URL(canonicalPath ?? Astro.url.pathname, Astro.site);
 // The hero scene (1440×810) is every page's social preview image
 const ogImage = new URL('/og.png', Astro.site);
 // Browser-chrome colour per theme; mode.ts rewrites both metas when the visitor picks a mode.
@@ -31,14 +33,19 @@ const bar = theme === 'night' ? { light: '#0B0B0C', dark: '#0B0B0C' }
     <meta charset="utf-8" />
     {artRedirect && (
       <script is:inline>
-        // Art style (Mode II / Mode I): ?style=ascii or the top-bar switch stores the choice;
-        // a stored 'pixel' sends / to /road/, keeping the #stop-<id> deep link.
+        // Art style (Mode II / Mode I): ?style=ascii or the switch stores the choice; a stored
+        // 'pixel' sends / to /road/, keeping the query and the #stop-<id> deep link.
         try {
-          if (/(^|[?&])style=ascii(&|$)/.test(location.search)) {
+          var q = new URLSearchParams(location.search);
+          if (q.get('style') === 'ascii') {
             localStorage.setItem('art-style', 'ascii');
-            history.replaceState(history.state, '', location.pathname + location.hash);
+            q.delete('style');
+            var rest = q.toString();
+            history.replaceState(history.state, '', location.pathname + (rest ? '?' + rest : '') + location.hash);
           } else if (localStorage.getItem('art-style') === 'pixel') {
-            location.replace('/road/' + location.hash);
+            // Leaving: the page's own head scripts check this and fetch nothing (no poster preload).
+            document.documentElement.setAttribute('data-leaving', '');
+            location.replace('/road/' + location.search + location.hash);
           }
         } catch (e) {}
       </script>

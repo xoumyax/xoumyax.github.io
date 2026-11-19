@@ -1,13 +1,13 @@
 ---
 // Mode II background: two stacked looping clips that cross-fade when the part on show changes.
-// Server-rendered without autoplay: no JS (and reduced motion) keeps the hero poster. The inline
+// Server-rendered without autoplay or poster: no JS shows the hero poster as the layer's background. The inline
 // script right below picks the deep-linked stop's clip and starts it before the page finishes.
 import { LANDING_CLIP, STOP_CLIP, clipUrl, posterUrl } from '../../lib/mode2';
 
 const first = LANDING_CLIP;
 ---
 <div class="m2-bg" aria-hidden="true" data-m2-bg data-clip={first} style={`--poster:url(${posterUrl(first)})`}>
-  <video class="clip on" muted playsinline loop preload="none" poster={posterUrl(first)} data-clip={first}>
+  <video class="clip on" muted playsinline loop preload="none" data-clip={first}>
     <source media="(orientation: portrait)" src={clipUrl(first, true)} type="video/mp4" />
     <source src={clipUrl(first, false)} type="video/mp4" />
   </video>
@@ -16,14 +16,18 @@ const first = LANDING_CLIP;
 </div>
 <script is:inline define:vars={{ stopClip: STOP_CLIP }}>
   (function () {
+    // A pixel-style visitor is on the way to /road/: fetch nothing.
+    if (document.documentElement.hasAttribute('data-leaving')) return;
     var bg = document.querySelector('[data-m2-bg]');
     var v = bg.querySelector('video');
     var m = /^#stop-([a-z]+)$/.exec(location.hash);
     var id = (m && stopClip[m[1]]) || bg.getAttribute('data-clip');
     var portrait = matchMedia('(orientation: portrait)').matches;
+    // The poster is set here, not in the HTML, so the preload scanner never fetches it for a
+    // visitor who is leaving; without JS the layer's CSS background shows the same image.
+    v.poster = '/mode2/' + id + '.jpg';
     if (id !== v.getAttribute('data-clip')) {
       while (v.firstChild) v.removeChild(v.firstChild);
-      v.poster = '/mode2/' + id + '.jpg';
       v.setAttribute('data-clip', id);
       bg.setAttribute('data-clip', id);
       bg.style.setProperty('--poster', 'url(/mode2/' + id + '.jpg)');
@@ -32,6 +36,8 @@ const first = LANDING_CLIP;
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     v.muted = true;
     v.preload = 'auto';
+    // A tab opened in the background waits: clips.ts starts it on the first visibilitychange.
+    if (document.hidden) return;
     var p = v.play();
     if (p && p.catch) p.catch(function () {});
   })();
@@ -45,6 +51,7 @@ const first = LANDING_CLIP;
     overflow: hidden; pointer-events: none;
     background: #262a2b var(--poster) center / cover no-repeat;
   }
+  :global(:root[data-leaving]) .m2-bg { background-image: none; }
   .clip {
     position: absolute; inset: 0; width: 100%; height: 100%; max-width: none;
     object-fit: cover;

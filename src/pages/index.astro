@@ -6,7 +6,7 @@ import Backdrop from '../components/mode2/Backdrop.astro';
 import IdentityCard from '../components/mode2/IdentityCard.astro';
 import Console from '../components/mode2/Console.astro';
 import { getProfile, getJourney, getProjects, getConfig } from '../lib/data';
-import { posterUrl, LANDING_CLIP } from '../lib/mode2';
+import { STOP_CLIP, LANDING_CLIP } from '../lib/mode2';
 
 const profile = getProfile();
 const journey = getJourney();
@@ -17,7 +17,20 @@ if (!yk) throw new Error('index: the yaraikiba project is missing');
 const contact = { email: profile.email, github: profile.github, linkedin: profile.linkedin, resumePdf: cfg.resumePdf, cvPdf: cfg.cvPdf };
 ---
 <Base title="Soumyajyoti Dutta" description={`${profile.name}: ${profile.role}`} theme="ascii" artRedirect>
-  <link slot="head" rel="preload" as="image" href={posterUrl(LANDING_CLIP)} fetchpriority="high" />
+  <script is:inline slot="head" define:vars={{ stopClip: STOP_CLIP, landing: LANDING_CLIP }}>
+    // Preload the poster this visit opens on (the deep-linked stop's, else the landing one);
+    // nothing when Base's head script is already sending a pixel-style visitor to /road/.
+    (function () {
+      if (document.documentElement.hasAttribute('data-leaving')) return;
+      var m = /^#stop-([a-z]+)$/.exec(location.hash);
+      var l = document.createElement('link');
+      l.rel = 'preload';
+      l.as = 'image';
+      l.href = '/mode2/' + ((m && stopClip[m[1]]) || landing) + '.jpg';
+      l.setAttribute('fetchpriority', 'high');
+      document.head.appendChild(l);
+    })();
+  </script>
   <Backdrop />
   <div class="wrap m2">
     <IdentityCard
