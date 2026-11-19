@@ -21,7 +21,7 @@ const { label, count } = Astro.props;
 <style>
   .slides { min-width: 0; --card-tilt: 0; }
   .card-row {
-    display: flex; align-items: flex-start; gap: .75rem; min-width: 0;
+    display: flex; align-items: stretch; gap: .75rem; min-width: 0;
     overflow-x: auto; overflow-y: hidden;
     scroll-snap-type: x mandatory;
     overscroll-behavior-x: contain;
@@ -31,10 +31,21 @@ const { label, count } = Astro.props;
     border-radius: 1rem;
   }
   .card-row::-webkit-scrollbar { display: none; }
-  /* 15rem: wide enough for a project card's head (years + status) to clear its title and mark. */
   .card-row > :global(*) { flex: 0 0 var(--card-w, min(15rem, 82%)); min-width: 0; scroll-snap-align: start; }
-  /* A project card's mark (its glyph art) starts below the longest three-line status. */
-  .card-row :global(.pcard .cover .mark) { top: 4.75rem; }
+  /* Project cards here are narrow, so their parts stack in flow instead of overlapping: the
+     glyph mark (top right), the head (years, status), then the title and one-liner at the foot.
+     A card keeps at least its 4:5 shape (15rem x 18.75rem) and grows when the text needs room;
+     the row stretches its cards to one height. */
+  .card-row > :global(.pcard) { display: flex; flex-direction: column; }
+  .card-row :global(.pcard > .cover.card) {
+    flex: 1; display: flex; flex-direction: column; aspect-ratio: auto; min-height: 18.75rem;
+  }
+  .card-row :global(.pcard .cover .top) { position: static; padding: .85rem 1rem 0; }
+  .card-row :global(.pcard .cover .mark) {
+    position: static; align-self: flex-end; margin: .5rem 1rem 0; line-height: 1.15;
+    font-size: clamp(2.6rem, 4.5vw, 3.4rem);
+  }
+  .card-row :global(.pcard .cover .caption) { position: static; margin-top: auto; padding-top: 1rem; }
   .card-row:focus-visible { outline: 2px solid var(--ink); outline-offset: 0; }
   .ctl {
     display: none; align-items: center; justify-content: flex-end; gap: .35rem; margin-top: .65rem;

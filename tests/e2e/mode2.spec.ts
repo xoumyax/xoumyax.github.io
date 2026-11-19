@@ -146,7 +146,7 @@ test('sliding cards move with Next and Previous and say where they are', async (
   expect(snap).toEqual(['auto', 'x mandatory']);
 });
 
-test('project cards: the head (years, status) never overlaps the title, one-liner or mark', async ({ page }) => {
+test('project cards: head, mark and title/one-liner never overlap one another', async ({ page }) => {
   await page.goto('/');
   const bad: string[] = [];
   let seen = 0;
@@ -158,7 +158,8 @@ test('project cards: the head (years, status) never overlaps the title, one-line
       if (d && (await d.getAttribute('open')) === null) await d.locator('summary').click();
       const res = await panel.evaluate((p) => {
         const box = (e: Element) => e.getBoundingClientRect();
-        const hit = (a: DOMRect, b: DOMRect) => a.left < b.right - 0.5 && b.left < a.right - 0.5 && a.top < b.bottom - 0.5 && b.top < a.bottom - 0.5;
+        // overlapping, or closer than 2px (glyphs that merely touch read as one shape)
+        const hit = (a: DOMRect, b: DOMRect) => a.left < b.right + 2 && b.left < a.right + 2 && a.top < b.bottom + 2 && b.top < a.bottom + 2;
         // the ink of a text node, line by line (an element box can be wider than its text)
         const ink = (e: Element) => { const r = document.createRange(); r.selectNodeContents(e); return [...r.getClientRects()]; };
         const out: string[] = [];
@@ -166,14 +167,22 @@ test('project cards: the head (years, status) never overlaps the title, one-line
         for (const card of p.querySelectorAll<HTMLElement>('details[open] .pcard, .stop-panel > .slides .pcard')) {
           if (!card.getClientRects().length) continue;
           n++;
-          const head = [...card.querySelectorAll('.top > span')].flatMap(ink);
-          const others = [
-            ...ink(card.querySelector('.caption h3')!), ...ink(card.querySelector('.caption p')!), ...ink(card.querySelector('.mark')!),
-          ];
+          const parts = {
+            head: [...card.querySelectorAll('.top > span')].flatMap(ink),
+            mark: ink(card.querySelector('.mark')!),
+            text: [...ink(card.querySelector('.caption h3')!), ...ink(card.querySelector('.caption p')!)],
+          };
           const cardBox = box(card);
-          for (const h of head) {
-            if (h.left < cardBox.left - 0.5 || h.right > cardBox.right + 0.5) out.push(`${card.getAttribute('href')}: head outside the card`);
-            { const k = others.findIndex((o) => hit(h, o)); if (k >= 0) out.push(`${card.getAttribute("href")}: head overlaps ${k} ${Math.round(h.top)}-${Math.round(h.bottom)} vs ${Math.round(others[k].top)}-${Math.round(others[k].bottom)} w${Math.round(cardBox.width)}`); }
+          const href = card.getAttribute('href');
+          for (const r of [...parts.head, ...parts.mark, ...parts.text]) {
+            if (r.left < cardBox.left - 0.5 || r.right > cardBox.right + 0.5 || r.bottom > cardBox.bottom + 0.5) out.push(`${href}: text outside the card`);
+          }
+          // head vs mark, head vs title/one-liner, and mark vs title/one-liner
+          for (const [a, b] of [['head', 'mark'], ['head', 'text'], ['mark', 'text']] as const) {
+            for (const r of parts[a]) {
+              const o = parts[b].find((x) => hit(r, x));
+              if (o) out.push(`${href}: ${a} overlaps ${b} (${Math.round(r.top)}-${Math.round(r.bottom)} vs ${Math.round(o.top)}-${Math.round(o.bottom)})`);
+            }
           }
         }
         return { out, n };
@@ -379,7 +388,7 @@ test.describe('the art-style switch', () => {
     expect(asked).toEqual([]);
   });
 
-  test('on a narrow screen it sits in the page (identity card on /, footer on /road/), not the bar', async ({ page }) => {
+  test('on a narrow screen it sits at the top of the page (identity card on /, intro panel on /road/), not the bar', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/');
     await expect(page.locator('header .art')).toBeHidden();
@@ -388,11 +397,19 @@ test.describe('the art-style switch', () => {
     await expect(page.locator('.id .art')).toBeVisible();
     await page.goto('/road/');
     await expect(page.locator('header .art')).toBeHidden();
-    await expect(page.locator('footer .art')).toBeVisible();
+    await expect(page.getByRole('group', { name: 'Art style' })).toHaveCount(1);
+    const intro = page.locator('.hero .intro .art');
+    await expect(intro).toBeVisible();
+    await expect(page.locator('footer .art')).toHaveCount(0);
+    // on the first screen, above the name, so a pixel-preferring visitor can switch back without scrolling
+    const sb = (await intro.boundingBox())!;
+    const hb = (await page.locator('#hero-name').boundingBox())!;
+    expect(sb.y + sb.height).toBeLessThanOrEqual(hb.y);
+    expect(sb.y + sb.height).toBeLessThanOrEqual(844);
     await expect(page.getByRole('group', { name: 'Art style' }).getByRole('link', { name: 'Pixel' })).toHaveAttribute('aria-current', 'page');
     await page.setViewportSize({ width: 1440, height: 900 });
     await expect(page.locator('header .art')).toBeVisible();
-    await expect(page.locator('footer .art')).toBeHidden();
+    await expect(intro).toBeHidden();
   });
 
   test('is only on the two home pages', async ({ page }) => {

@@ -140,7 +140,7 @@ const n = (k: number) => `${k} ${k === 1 ? 'item' : 'items'}`;
   h2 { font-size: clamp(1.35rem, 2.3vw, 1.75rem); margin-bottom: .4rem; }
   .summary { margin: 0; line-height: 1.5; max-width: 62ch; }
 
-  .groups { display: grid; gap: .1rem; }
+  .groups { display: grid; grid-template-columns: minmax(0, 1fr); gap: .1rem; }
   .grp { border-top: 1px solid color-mix(in oklab, var(--ink) 12%, transparent); }
   .grp:last-child { border-bottom: 1px solid color-mix(in oklab, var(--ink) 12%, transparent); }
   .grp > summary .t { flex: 1; }
