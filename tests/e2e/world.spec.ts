@@ -236,6 +236,23 @@ test('a 20 px scroll mid-pan glides over several frames', async ({ page }) => {
   expect(max).toBeLessThanOrEqual(0.3 * total);
 });
 
+test('"Travel the road" lands on Now at once, without gliding through the pan', async ({ page }) => {
+  await page.goto('/');
+  await page.waitForSelector('#scene:not([hidden])');
+  await page.evaluate(() => document.fonts.ready);
+  const seen = await page.evaluate(async () => {
+    const c = document.getElementById('scene')!;
+    (document.querySelector('a.start') as HTMLAnchorElement).click();
+    const out: string[] = [];
+    for (let i = 0; i < 6; i++) {
+      await new Promise((ok) => requestAnimationFrame(ok));
+      out.push(`${c.dataset.scene}${c.dataset.next ? '>' + c.dataset.next : ''}${c.hasAttribute('data-follow') ? '~' : ''}`);
+    }
+    return out;
+  });
+  expect(seen.every((s) => s === 'now'), seen.join(' ')).toBe(true);
+});
+
 test('the ambient clock runs and stops with the tab', async ({ page }) => {
   // Count requestAnimationFrame calls (this page's only caller is the backdrop).
   await page.addInitScript(() => {
