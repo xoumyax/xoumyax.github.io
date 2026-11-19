@@ -1,5 +1,6 @@
 ---
 import YaraikibaCard from './YaraikibaCard.astro';
+import { STOP_IDS } from '../lib/stops';
 import './journey/panel.css';
 
 interface Props {
@@ -14,7 +15,7 @@ const { name, role, openToWork, yaraikiba } = Astro.props;
       <h1 id="hero-name">{name}</h1>
       <p class="role">{role}</p>
       <p class="open"><span class="dot" aria-hidden="true"></span><span>{openToWork}</span></p>
-      <a class="start" href="#stop-srm">Travel the road <span aria-hidden="true">↓</span></a>
+      <a class="start" href={`#stop-${STOP_IDS[0]}`}>Travel the road <span aria-hidden="true">↓</span></a>
     </div>
     <YaraikibaCard {...yaraikiba} />
   </div>

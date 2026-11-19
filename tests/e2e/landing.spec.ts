@@ -128,3 +128,11 @@ for (const id of STOP_IDS) {
     }, id)).toBe(true);
   });
 }
+
+test('"Travel the road" goes to the first stop below the intro', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('.hero a.start')).toHaveAttribute('href', '#stop-now');
+  await page.locator('.hero a.start').click();
+  await expect(page).toHaveURL(/#stop-now$/);
+  await expect(page.locator('#stop-now')).toBeInViewport();
+});
