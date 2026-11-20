@@ -69,11 +69,11 @@ test('the posters carry no EXIF or comment segments', () => {
   }
 });
 
-test('weights: desktop clip ≤ 2 MB, phone clip ≤ 0.8 MB, poster ≤ 250 KB, all of public/mode2 ≤ 13 MB', () => {
+test('weights: desktop clip ≤ 2 MB, phone clip ≤ 0.8 MB, poster ≤ 250 KB, all of public/mode2 ≤ 8 MB', () => {
   for (const id of CLIP_IDS) {
     expect(size(`${id}.mp4`), id).toBeLessThanOrEqual(2_000_000);
     expect(size(`${id}-m.mp4`), id).toBeLessThanOrEqual(800_000);
     expect(size(`${id}.jpg`), id).toBeLessThanOrEqual(250_000);
   }
-  expect(files.reduce((n, f) => n + size(f), 0)).toBeLessThanOrEqual(13_000_000);
+  expect(files.reduce((n, f) => n + size(f), 0)).toBeLessThanOrEqual(8_000_000);
 });

@@ -2,7 +2,7 @@
 # Cuts the owner's Mode II clips (ASCII-look loops) into short, light web loops.
 # Usage: scripts/mode2-clips.sh <folder with the owner's clips> [id …]   (no ids: all of them)
 # Each output is an L s seamless loop: the first second cross-fades from the source's L–(L+1) s back
-# into its 0–1 s, so the last frame flows into the first. L is 5 s, or 4 s for a 5 s source.
+# into its 0–1 s, so the last frame flows into the first.
 # No audio, no metadata, no encoder SEI.
 #   public/mode2/<id>.mp4    desktop, 1280 px on the long side
 #   public/mode2/<id>-m.mp4  phone, a 540×960 portrait crop from the centre
@@ -12,7 +12,9 @@ src=${1:?folder with the clips}
 out="$(cd "$(dirname "$0")/.." && pwd)/public/mode2"
 mkdir -p "$out"
 # id:source file:loop length (s)
-CLIPS=(hero:hero.mp4:5 road:road.mp4:5 littlebirdy:littlebirdy.mp4:5 campground:campground.mp4:5 glamping:glamping.mp4:5 mesa:ascii-animation.mp4:4)
+# (the owner's restyled set, 2026-11-19: all 5 s sources, so 4 s loops)
+CLIPS=("hero:ascii-animation (2).mp4:4" "road:ascii-animation (4).mp4:4" "littlebirdy:ascii-animation (1).mp4:4"
+       "campground:ascii-animation (5).mp4:4" "glamping:ascii-animation (3).mp4:4" "mesa:ascii-animation.mp4:4")
 F=1
 want=("${@:2}")
 for c in "${CLIPS[@]}"; do
