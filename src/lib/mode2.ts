@@ -5,21 +5,21 @@ import type { STOP_IDS } from './stops';
 type StopId = (typeof STOP_IDS)[number];
 
 /** The clips in public/mode2 (scripts/mode2-clips.sh cuts them). */
-export const CLIP_IDS = ['hero', 'road', 'littlebirdy', 'campground', 'glamping'] as const;
+export const CLIP_IDS = ['hero', 'road', 'littlebirdy', 'campground', 'glamping', 'mesa'] as const;
 export type ClipId = (typeof CLIP_IDS)[number];
 
-/** The landing clip, shown with the identity card before any tab is chosen. */
-export const LANDING_CLIP: ClipId = 'hero';
-
-/** The clip behind each journey stop. */
+/** Each journey stop's own clip: one clip per stop, never shared (the owner, 2026-11-19). */
 export const STOP_CLIP: Record<StopId, ClipId> = {
   now: 'glamping',
   phd: 'hero',
   ms: 'littlebirdy',
   cognizant: 'road',
-  srm: 'road',
+  srm: 'mesa',
   river: 'campground',
 };
+
+/** The landing shares Now's clip: Now is the tab open on arrival. */
+export const LANDING_CLIP: ClipId = STOP_CLIP.now;
 
 /** Short tab labels (the panel keeps each stop's full title). */
 export const STOP_SHORT: Record<StopId, string> = {

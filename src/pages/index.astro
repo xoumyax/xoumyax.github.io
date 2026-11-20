@@ -65,7 +65,8 @@ const contact = { email: profile.email, github: profile.github, linkedin: profil
   }
   /* The footer sits over the clip: give it glass to stand on. */
   :global(body[data-theme='ascii'] .footer) {
-    background: color-mix(in oklab, var(--paper) 88%, transparent);
-    -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+    /* the top bar's glass, so the two bands match */
+    background: color-mix(in oklab, var(--paper) 82%, transparent);
+    -webkit-backdrop-filter: blur(10px) saturate(1.2); backdrop-filter: blur(10px) saturate(1.2);
   }
 </style>

@@ -1,6 +1,6 @@
 import { test, expect } from 'vitest';
 import { existsSync } from 'node:fs';
-import { CLIP_IDS, STOP_CLIP, STOP_SHORT, clearedShare, clipUrl, posterUrl, slidesLabel, stopFromHash, tabKeyTarget } from '../../src/lib/mode2';
+import { CLIP_IDS, LANDING_CLIP, STOP_CLIP, STOP_SHORT, clearedShare, clipUrl, posterUrl, slidesLabel, stopFromHash, tabKeyTarget } from '../../src/lib/mode2';
 import { artHref } from '../../src/lib/art-style';
 import { STOP_IDS } from '../../src/lib/stops';
 import { getJourney } from '../../src/lib/data';
@@ -11,8 +11,13 @@ test('every stop has a clip on disk and a short tab label', () => {
   for (const id of CLIP_IDS) {
     for (const f of [clipUrl(id, false), clipUrl(id, true), posterUrl(id)]) expect(existsSync(`public${f}`), f).toBe(true);
   }
-  // the designer's mapping (mode2 brief, call 2)
-  expect(STOP_CLIP).toEqual({ now: 'glamping', phd: 'hero', ms: 'littlebirdy', cognizant: 'road', srm: 'road', river: 'campground' });
+});
+
+test('each stop has its own clip, every clip belongs to one stop, and the landing shows Now\'s', () => {
+  const used = Object.values(STOP_CLIP);
+  expect(new Set(used).size).toBe(used.length);
+  expect([...used].sort()).toEqual([...CLIP_IDS].sort());
+  expect(LANDING_CLIP).toBe(STOP_CLIP.now);
 });
 
 test('stopFromHash accepts only known #stop-<id> hashes', () => {

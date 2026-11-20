@@ -3,7 +3,7 @@
 import { test, expect, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { STOP_IDS } from '../../src/lib/schema';
-import { STOP_CLIP, STOP_SHORT } from '../../src/lib/mode2';
+import { LANDING_CLIP, STOP_CLIP, STOP_SHORT } from '../../src/lib/mode2';
 import { getJourney } from '../../src/lib/data';
 
 const journey = getJourney();
@@ -15,12 +15,12 @@ test('/ shows Mode II: a clip backdrop, the identity card and the journey tabs',
   await page.goto('/');
   await expect(bg(page)).toHaveAttribute('aria-hidden', 'true');
   await expect(page.locator('[data-m2-bg] video')).toHaveCount(2);
-  await expect(active(page)).toHaveAttribute('poster', '/mode2/hero.jpg');
+  await expect(active(page)).toHaveAttribute('poster', `/mode2/${LANDING_CLIP}.jpg`);
   for (const a of ['muted', 'playsinline', 'loop']) await expect(active(page)).toHaveAttribute(a, /.*/);
   const sources = await active(page).locator('source').evaluateAll((s) => s.map((e) => [e.getAttribute('media'), e.getAttribute('src')]));
-  expect(sources).toEqual([['(orientation: portrait)', '/mode2/hero-m.mp4'], [null, '/mode2/hero.mp4']]);
+  expect(sources).toEqual([['(orientation: portrait)', `/mode2/${LANDING_CLIP}-m.mp4`], [null, `/mode2/${LANDING_CLIP}.mp4`]]);
   await expect.poll(() => active(page).evaluate((v: HTMLVideoElement) => !v.paused)).toBe(true);
-  // only the hero clip loads first
+  // only the landing clip loads first
   expect(await page.locator('[data-m2-bg] video:not(.on)').evaluate((v: HTMLVideoElement) => v.currentSrc)).toBe('');
 
   await expect(page.locator('main h1')).toHaveText('Soumyajyoti Dutta');
@@ -69,9 +69,22 @@ test('tabs: click, arrow keys, Home/End; the panel, the hash and the clip follow
   await expect.poll(() => active(page).evaluate((v: HTMLVideoElement) => !v.paused)).toBe(true);
 });
 
+test('the landing and Now share a clip; every stop has its own', async ({ page }) => {
+  await page.goto('/');
+  await expect(bg(page)).toHaveAttribute('data-clip', STOP_CLIP.now);
+  const shown: string[] = [];
+  for (const id of STOP_IDS) {
+    await tab(page, id).click();
+    await expect(bg(page)).toHaveAttribute('data-clip', STOP_CLIP[id]);
+    await expect(active(page)).toHaveAttribute('poster', `/mode2/${STOP_CLIP[id]}.jpg`);
+    shown.push(STOP_CLIP[id]);
+  }
+  expect(new Set(shown).size).toBe(STOP_IDS.length);
+});
+
 test('the clip cross-fades: the old one fades out, one clip shows', async ({ page }) => {
   await page.goto('/');
-  await tab(page, 'now').click();
+  await tab(page, 'ms').click();
   await expect(page.locator('[data-m2-bg] video.on')).toHaveCount(1);
   await expect.poll(() => page.locator('[data-m2-bg] video:not(.on)').evaluate((v) => getComputedStyle(v).opacity)).toBe('0');
   expect(await active(page).evaluate((v) => getComputedStyle(v).transitionDuration)).toBe('0.6s');
@@ -313,7 +326,7 @@ test.describe('reduced motion', () => {
     const asked: string[] = [];
     page.on('request', (r) => { if (r.url().endsWith('.mp4')) asked.push(r.url()); });
     await page.goto('/');
-    await expect(active(page)).toHaveAttribute('poster', '/mode2/hero.jpg');
+    await expect(active(page)).toHaveAttribute('poster', `/mode2/${LANDING_CLIP}.jpg`);
     await tab(page, 'ms').click();
     await expect(active(page)).toHaveAttribute('poster', '/mode2/littlebirdy.jpg');
     await expect(active(page)).not.toHaveAttribute('src', /.+/);
@@ -339,7 +352,7 @@ test.describe('without JavaScript', () => {
     }
     await expect(page.locator('#stop-river [data-scratch-cover]')).toBeHidden();
     await expect(page.locator('#stop-river [data-scratch-body] .summary')).toBeVisible();
-    expect(await bg(page).evaluate((e) => getComputedStyle(e).backgroundImage)).toContain('/mode2/hero.jpg');
+    expect(await bg(page).evaluate((e) => getComputedStyle(e).backgroundImage)).toContain(`/mode2/${LANDING_CLIP}.jpg`);
     expect(await page.locator('[data-m2-bg] video').evaluateAll((vs) => vs.filter((v) => (v as HTMLVideoElement).autoplay).length)).toBe(0);
     await expect(page.locator('[data-ctl]').first()).toBeHidden();
   });

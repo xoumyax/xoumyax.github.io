@@ -47,8 +47,8 @@ if (!yk) throw new Error('index: the yaraikiba project is missing');
   .journey { pointer-events: none; }
   /* The shared footer sits over the backdrop; give it paper to stand on. */
   :global(body[data-theme='world'] .footer) {
-    background: color-mix(in oklab, var(--paper) 86%, transparent);
-    -webkit-backdrop-filter: blur(14px);
-    backdrop-filter: blur(14px);
+    /* the top bar's glass, so the two bands match */
+    background: color-mix(in oklab, var(--paper) 82%, transparent);
+    -webkit-backdrop-filter: blur(10px) saturate(1.2); backdrop-filter: blur(10px) saturate(1.2);
   }
 </style>
